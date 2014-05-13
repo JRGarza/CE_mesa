@@ -1,0 +1,14 @@
+#!/bin/bash
+
+function check_okay {
+	if [ $? -ne 0 ]
+	then
+		exit 1
+	fi
+}
+if [ $1 ]
+then
+    echo $1 > .restart
+fi
+check_okay
+date;./binary_test;date

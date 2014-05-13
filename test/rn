@@ -1,0 +1,2 @@
+rm -f .restart
+date "+DATE: %Y-%m-%d%nTIME: %H:%M:%S"; ./binary_test ;date "+DATE: %Y-%m-%d%nTIME: %H:%M:%S"
