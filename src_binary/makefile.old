@@ -1,0 +1,75 @@
+
+# the following started as a copy of work_standard_makefile
+
+include $(MESA_DIR)/utils/makefile_header
+
+#################################################################
+
+ifndef STAR
+STAR = star
+endif
+
+OBJS = \
+   run_star_extras.o \
+   run_binary_extras.o \
+   binary_tides.o run_binary_support.o run_binary.o \
+   run_star.o run.o
+
+LIB_BINARY_OBJS = \
+    binary_def.o \
+    other_binary_jdot.o \
+    binary_jdot.o \
+	binary_mdot.o \
+	binary_ctrls_io.o
+
+WORK_DIR = ..
+WORK_SRC_DIR = $(WORK_DIR)/src
+STAR_JOB_DIR = $(MESA_DIR)/star/job
+
+BINARY_SRC_DIR = $(MESA_DIR)/binary/private
+BINARY_OTHER_DIR = $(MESA_DIR)/binary/other
+BINARY_DEFAULTS_DIR = $(MESA_DIR)/binary/defaults
+
+$(STAR) : $(LIB_BINARY_OBJS) $(OBJS) 
+	$(LOADER) $(FCopenmp) -o $(WORK_DIR)/$(STAR) \
+	$(LIB_BINARY_OBJS) $(OBJS) $(LOAD_MESA_STAR)
+	
+#################################################################
+
+# change this as necessary.  see utils/makefile_header for definitions.
+WORK_COMPILE = $(FC) $(FCbasic) $(FCopenmp) $(FCchecks) $(FCdebug) \
+   -I$(MESA_INCLUDE_DIR) -c $(FCfree)
+
+run.o: $(WORK_SRC_DIR)/run.f
+	$(WORK_COMPILE) $<
+
+run_star_extras.o: $(WORK_SRC_DIR)/run_star_extras.f
+	$(WORK_COMPILE) $<
+
+run_binary_extras.o: $(WORK_SRC_DIR)/run_binary_extras.f
+	$(WORK_COMPILE) $<
+
+%.o: $(BINARY_SRC_DIR)/%.f
+	$(WORK_COMPILE) -I$(BINARY_DEFAULTS_DIR) $<
+
+%.o: $(STAR_JOB_DIR)/%.f
+	$(WORK_COMPILE) $<
+
+%.o: $(BINARY_OTHER_DIR)/%.f
+	$(WORK_COMPILE) $<
+
+clean:
+	-@rm -f *.o *.mod $(WORK_DIR)/$(STAR)
+
+remk:
+	-@rm -f run.o $(WORK_DIR)/$(STAR)
+	
+
+
+
+
+
+
+
+
+

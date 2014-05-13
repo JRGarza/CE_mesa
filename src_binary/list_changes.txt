@@ -1,0 +1,47 @@
+Most of the functions have been added to src_binary/private/binary_separation.f
+
+
+Functions:
+-check_CE
+-check_merger
+-accretor_mass_radius_relation
+-calc_naive_A_f
+
+
+Set defaults in defaults/binary_controls.defaults:
+-“do_CE = .false.”
+-“alpha_CE = 1.0”
+
+Added arrays:
+-CE_lnE_old
+-CE_vel_old
+-CE_P_old
+-CE_rho_old
+
+Added to binary_evolve.f:
+-subroutine intial_CE_setup
+-in binary_check_model - hook to stop if merges
+-in binary_check_model - hook to stop if avoid CE
+
+
+Things to check:
+-lower_limit_on_period_in_hours
+-b% xfer_fraction, b% mdot_system_transfer, b% mtransfer_rate
+
+
+Adjustments to the makefile:
+-binary_separation.f is included in $LIB_OBJS
+-$LIB is changed from libbinary.a to libbinary_CE.a
+-statement added: BINARY_INCLUDES = -I$(MOD_DEFAULTS_DIR)
+-$(BINARY_INCLUDES) is now added to the “COMPILE =“ line
+
+Makefile header for project directory:
+-copied standard binary header in /mesa/utils to working dir
+-References lbinary_CE not lbinary: LOAD_MESA_BINARY_CE = -L$(MESA_LIB_DIR) -lbinary_CE $(STAR_LOAD_LIST)
+-Adjust make/makefile to reference this
+
+History column extras:
+-Added the dynamic timescale of the surface to data_for_extra_binary_history_columns
+
+To Do:
+-Put a tag

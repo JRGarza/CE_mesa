@@ -1,0 +1,12 @@
+   ! binary_job.defaults
+
+   inlist_names(1) = 'inlist1' 
+   inlist_names(2) = 'inlist2'
+   
+   which_for_pgstar = 0 ! 0 means none; < 0 means all; i > 0 means star i
+   
+   stopping_age = 1d99
+
+   evolve_both_stars = .false.
+   trace_binary_rlo = .true.
+

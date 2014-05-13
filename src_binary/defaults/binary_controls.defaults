@@ -1,0 +1,111 @@
+         
+   m1 = 1.0d0  ! donor mass in Msun
+   m2 = 0.8d0 ! companion mass in Msun
+   initial_period_in_days = 0.5d0
+   initial_separation_in_Rsuns = 100 ! only used when initial_period_in_days < 0
+
+   ! timestep controls based on relative changes
+   fm = 0.01d0 ! change of envelope mass
+   fm_limit = 1d-3 ! stop using fm timestep control if envelope has less than this mass in Msun
+   fa = 0.01d0 ! change of binary separation
+   fr = 0.10d0 ! change of relative Roche lobe gap
+   fr_limit = 1d-2 ! stop using fr timestep control if abs(rl_relative_gap) < fr_limit
+   fj = 0.01d0 ! change of orbital angular momentum
+   ! weight factor to average max_timestep with old one (in log space) as in
+   ! b% max_timestep = 10**(b% dt_softening_factor*log10(b% max_timestep_old) + &
+   !     (1-b% dt_softening_factor)*log10(b% max_timestep))
+   dt_softening_factor = 0.5
+
+   do_CE = .false.
+   alpha_CE = 1.0
+
+   cur_mdot_frac = 0.5d0
+   smallest_mass = 0.02d0 ! soon get eos problems below this
+   max_abs_mdot = 1d-7 ! limit for explicit scheme
+   max_yrs_dt = 1d9 ! in years
+   factor_for_contact_terminate = 1.0d0
+
+   !rotation controls
+   do_rotation = .false.
+   do_initial_orbit_synch = .false.
+   do_tidal_synch = .false.
+   do_j_accretion = .false. ! if false and doing_rotation then accrete same j as surface
+
+   mdot_scheme = "Ritter"
+   ! controls for implicit selection of mdot to get required RL relative overlap at end of step
+      ! rl_rel_overlap_tolerance ! e.g. 1d-3.    <= 0 means ignore
+         ! if at end of step, donor R >= RL, then require (R-RL)/RL <= rl_rel_overlap_tolerance.
+            ! if relative overlap is too large, then select larger mdot and redo the step.
+         ! if at end of step, donor R < RL, then require mdot = 0.
+            ! if mdot is not 0, then select smaller mdot, perhaps 0, and redo the step.
+      ! max_tries_to_achieve ! <= 0 means skip this process
+      ! if this is > 0 and fail to achieve desired rl_rel_overlap, retry with smaller timestep.
+   rl_rel_overlap_tolerance = 5d-4
+   max_tries_to_achieve = 0
+      ! each step during mass transfer the change factor will be modified according to:
+      !    if(mass_transfer_rate < mass_transfer_prev) then
+      !       change_factor = change_factor*(1.0-implicit_lambda) &
+      !          + implicit_lambda*(1+change_factor_fraction*(mass_transfer_rate/mass_transfer_prev-1))
+      !    else
+      !       change_factor = change_factor*(1.0-implicit_lambda) &
+      !          + implicit_lambda*(1+change_factor_fraction*(mass_transfer_prev/mass_transfer_rate-1))
+      !    end if
+      ! choosing implicit_lambda = 0 will keep the change factor constant.
+   initial_change_factor = 1.5d0
+   change_factor_fraction = 0.4d0
+   implicit_lambda = 0.25d0
+   max_change_factor = 1.5d0
+   min_change_factor = 1.005d0
+
+   starting_mdot = 1d-12 ! starting guess for mdot used in the implicit scheme
+   implicit_min_mdot = 1d-16 ! if mtransfer_rate goes below this without overflow, assume no mass transfer
+
+   !transfer efficiency controls
+   transfer_fraction = 1.0d0
+   limit_retention_by_mdot_edd = .true.
+   use_this_for_mdot_edd = -1 ! fixed mdot_edd in Msun/yr, ignored if negative
+   companion_ratio_limit = 0.5 ! for limiting accretion as accretor fills its rl
+   do_companion_ratio_limit = .false.
+
+   !irradiation controls
+   accretion_powered_irradiation = .false.
+   accretor_radius_for_irrad = 1d6 ! e.g., 10km for ns
+   col_depth_for_eps_extra = -1
+   irrad_flux_at_std_distance = -1
+   std_distance_for_irradiation = -1
+   max_F_irr = 5d12
+
+   !orbital J controls
+   upper_limit_on_period_in_hours = 1d99
+   jdot_multiplier = 1d0
+   alpha = -1 ! for mass loss jdot
+   do_jdot_mb = .true.
+   do_jdot_gr = .true.
+   do_jdot_ml = .true.
+   do_jdot_tide = .true.
+   do_jdot_ls = .true.
+   include_accretor_mb = .false.
+   magnetic_braking_gamma = 3.0d0
+   !tidal controls
+   tidal_Q = 0 ! no tidal braking if tidal_Q = 0
+   R_companion = -1 ! fixed companion radius in Rsun for tidal braking
+
+   ! Hooks
+   use_other_jdot_mb = .false.
+   use_other_jdot_gr = .false.
+   use_other_jdot_ml = .false.
+   use_other_jdot_tide = .false.
+   use_other_extra_jdot = .false.
+   use_other_jdot_ls = .false.
+
+   keep_donor_fixed = .true. !keep star 1 as donor, even if accretor is closer to filling roche lobe
+   
+   ! binary_history.data controls
+   history_name = 'binary_history.data'
+   log_directory = '.'
+   history_dbl_format = '(1pes32.16e3, 1x)'
+   history_int_format = '(i32, 1x)'
+   history_txt_format = '(a32, 1x)'
+
+   photostep = 50
+   photo_digits = 3

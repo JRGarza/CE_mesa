@@ -1,0 +1,2 @@
+cd make; make
+cp libbinary_CE.a ~/Research/mesa-6208/lib/
