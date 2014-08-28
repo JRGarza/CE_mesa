@@ -48,12 +48,12 @@
 
       end function how_many_extra_binary_history_columns
       
-      subroutine data_for_extra_binary_history_columns(b, n, names, vals, ierr)
-!      subroutine data_for_extra_binary_history_columns(b, s, n, names, vals, ierr)
+!      subroutine data_for_extra_binary_history_columns(b, n, names, vals, ierr)
+      subroutine data_for_extra_binary_history_columns(b, s, n, names, vals, ierr)
          use const_def, only: dp
          use star_def, only: star_info
          type (binary_info), pointer :: b
-!         type (star_info), pointer :: s
+         type (star_info), pointer :: s
          integer, intent(in) :: n
          character (len=maxlen_binary_history_column_name) :: names(n)
          real(dp) :: vals(n)
@@ -62,13 +62,14 @@
          include 'formats'
          
          ierr = 0
-       
+              
          names(1) = "surface_dynamic_timescale"
-         vals(1) = 1.0/dsqrt(standard_cgrav * b% s_donor% rho(1))
-!         vals(1) = 1.0/dsqrt(standard_cgrav * s% rho(1))
+!         vals(1) = 1.0/dsqrt(standard_cgrav * b% s_donor% rho(1))
+         vals(1) = 1.0/dsqrt(standard_cgrav * s% rho(1))
          names(2) = "donor_radius"
-         vals(2) = b% s_donor% r(1)
-!         vals(2) = s% r(1)
+!         vals(2) = b% s_donor% r(1)
+         vals(2) = s% r(1)
+
 
       end subroutine data_for_extra_binary_history_columns
 
