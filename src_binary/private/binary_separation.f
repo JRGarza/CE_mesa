@@ -141,7 +141,14 @@
 
          ! ------------ A naive calculation of A_f --------------- !
 
+         ! Set all the specific energies to zero
+         E_int_spec = 0.0d0
+         E_bind_spec = 0.0d0
+         E_kin_spec = 0.0d0
+         E_enth_spec = 0.0d0         
          E_bind_ml = 0.0d0
+
+         ! Loop over grid cells, outside going in
          i = 1
          Delm2 = s% mstar - s% he_core_mass*Msun
          do while ((s% mstar * (1.0d0 - s% q(i)) .le. Delm2) .and. (i < s% nz))
@@ -187,7 +194,15 @@
          s => b% s_donor
 
          Delm2 = s% mstar_old - s% mstar
+
+         ! Set all the specific energies to zero
+         E_int_spec = 0.0d0
+         E_bind_spec = 0.0d0
+         E_kin_spec = 0.0d0
+         E_enth_spec = 0.0d0         
          E_bind_ml = 0.0d0
+         
+         ! Loop over grid cells, outside going in
          i = 1
          do while ((s% mstar_old * (1.0d0-s% q_old(i)) .le. Delm2) .and. (i < s% nz_old)) 
             E_int_spec =  dexp(b% CE_lnE_old(i))
@@ -209,10 +224,13 @@
                 * (Delm2 - s% mstar_old * (1.0d0 - s% q_old(i-1)))               
          endif
                
-
+         ! Calculate the total orbital energy
          E_orb_init = b% alpha_CE * standard_cgrav * b% m_old(b% a_i)*Msun * s% mstar_old / (2.0d0 * b% separation)
+
+         ! Calculate the final orbital separation
          af_E_orb_f = b% alpha_CE * standard_cgrav * b% m(b% a_i)*Msun * s% mstar / 2.0d0
 
+         ! Set orbital separation to calculated value
          b% separation = af_E_orb_f
 
       end subroutine new_separation_CE
