@@ -171,6 +171,7 @@
 
 !         s => b% s_donor
 
+
          if (b% do_CE) b% check_CE = check_CE(b)
          
          if (b% do_CE .and. (dabs(b% mtransfer_rate) .gt. 1.0e-50)) then

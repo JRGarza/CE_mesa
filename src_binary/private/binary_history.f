@@ -108,6 +108,7 @@
          end if
 
          num_extra_cols = how_many_extra_binary_history_columns(b)
+         
          if (num_extra_cols > 0) then
             allocate( &
                extra_col_names(num_extra_cols), extra_col_vals(num_extra_cols), stat=ierr)
@@ -117,8 +118,8 @@
             end if
             call data_for_extra_binary_history_columns( &
 ! edited to add b% s_donor here!
-               b, num_extra_cols, extra_col_names, extra_col_vals, ierr)
-!               b, b% s_donor, num_extra_cols, extra_col_names, extra_col_vals, ierr)
+!               b, num_extra_cols, extra_col_names, extra_col_vals, ierr)
+               b, b% s_donor, num_extra_cols, extra_col_names, extra_col_vals, ierr)
             if (ierr /= 0) then
                deallocate(extra_col_names, extra_col_vals)
                if (io > 0) call free_iounit(io)
