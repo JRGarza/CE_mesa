@@ -20,7 +20,8 @@ OBJS = $(BINARY_WORK_OBJS) binary_run.o
 WORK_DIR = ..
 WORK_SRC_DIR = $(WORK_DIR)/src
 STAR_JOB_DIR = $(MESA_DIR)/star/job
-BINARY_JOB_DIR = $(MESA_DIR)/binary/job
+BINARY_JOB_DIR = ../../src_binary/job
+#BINARY_JOB_DIR = $(MESA_DIR)/binary/job
 
 $(STAR) : $(OBJS)
 	$(LOADER) $(FCopenmp) -o $(WORK_DIR)/$(STAR) $(OBJS) $(LOAD_MESA)
