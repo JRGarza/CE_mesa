@@ -38,7 +38,6 @@
    entropy ! specific entropy divided by (avo*kerg)
    conv_mixing_type ! mixing types are defined in mesa/const
    csound ! sound speed
-   dr_div_csound ! sound crossing time of shell
    v_div_csound ! velocity divided by sound speed
    v_div_r ! velocity divided by radius
    !scale_height ! pressure scale height; P / (g rho)   (in Rsun units)

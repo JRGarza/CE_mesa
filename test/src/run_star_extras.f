@@ -106,7 +106,7 @@
          integer, intent(in) :: id, id_extra
          
 !         how_many_extra_profile_columns = 0
-         how_many_extra_profile_columns = 4
+         how_many_extra_profile_columns = 5
 
       end function how_many_extra_profile_columns
       
@@ -124,7 +124,7 @@
          names(2) = "Enthalpy"
          names(3) = "Kinetic Energy"
          names(4) = "Grav Bind Energy"
-         
+         names(5) = "Sound crossing time"
 
          k=1
          do while(k<=nz)
@@ -132,8 +132,11 @@
             vals(k,2) = s% mstar * s% dq(k) * s% P(k) / s% rho_face(k)
             vals(k,3) = s% mstar * s% dq(k) * 0.5 * s% velocity(k) * s% velocity(k)
             vals(k,4) = - s% mstar * s% dq(k) * standard_cgrav * s% m(k) / s% r(k)
+           
+            vals(k,5) = s% dr_div_csound(k)
             k = k + 1
          enddo
+         
          
       end subroutine data_for_extra_profile_columns
       
