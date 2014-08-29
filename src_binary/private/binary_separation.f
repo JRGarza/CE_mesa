@@ -50,6 +50,7 @@
          
          write(*,'(3x(A,1pe16.9))') 'R_1 = ', b% r(b% d_i), ' R_2 = ', R_accretor, &
                'separation = ', b% separation
+         write(*,'(2x(A,1pe16.9))') "Donor RL: ", b% rl(b% d_i), " Accretor RL:", b% rl(b% a_i)
          i = 0
          sound_xing_time = 0.0
          do while(i .lt. s% nz)
@@ -72,16 +73,18 @@
          write(*,FMT_1) "Temporary instability Mdot = ", 1.0d-1 * msol / secyer
          
 !         if( dabs(mdot) > 1.0d0*(s% mstar)*dsqrt(standard_cgrav * s% rho(1))) then
+         ! Dynamically Unstable RLOF
          if( dabs(mdot) > 1.0d-1 * msol / secyer ) then
-            ! Dynamically Unstable RLOF
             check_CE = .true.
             write(*,*) "Dynamically unstable RLOF"
-         else if (b% r(b% d_i) + R_accretor > b% separation) then
+
+         else if ((b% r(b% d_i) > b% rl(b% d_i)) .and. (R_accretor > b% rl(b% a_i))) then
             ! Contact Binary
             check_CE = .true.
             write(*,*) "Contact binary"
+
+         ! Double Common Envelope
          else if (b% rl(b% a_i) < b% r(b% a_i)) then
-            ! Double Common Envelope
             check_CE = .true.
             write(*,*) "Double Common Envelope"
          else

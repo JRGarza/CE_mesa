@@ -104,7 +104,10 @@
       integer function how_many_extra_profile_columns(s, id, id_extra)
          type (star_info), pointer :: s
          integer, intent(in) :: id, id_extra
-         how_many_extra_profile_columns = 0
+         
+!         how_many_extra_profile_columns = 0
+         how_many_extra_profile_columns = 4
+
       end function how_many_extra_profile_columns
       
       
@@ -116,6 +119,22 @@
          integer, intent(out) :: ierr
          integer :: k
          ierr = 0
+         
+         names(1) = "Internal Energy"
+         names(2) = "Enthalpy"
+         names(3) = "Kinetic Energy"
+         names(4) = "Grav Bind Energy"
+         
+
+         k=1
+         do while(k<=nz)
+            vals(k,1) = s% mstar * s% dq(k) * dexp(s% lnE(k))
+            vals(k,2) = s% mstar * s% dq(k) * s% P(k) / s% rho_face(k)
+            vals(k,3) = s% mstar * s% dq(k) * 0.5 * s% velocity(k) * s% velocity(k)
+            vals(k,4) = - s% mstar * s% dq(k) * standard_cgrav * s% m(k) / s% r(k)
+            k = k + 1
+         enddo
+         
       end subroutine data_for_extra_profile_columns
       
 
