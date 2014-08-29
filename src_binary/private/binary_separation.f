@@ -17,6 +17,30 @@
       contains
       
       
+      logical function exit_CE(b)
+         use binary_def, only: binary_info
+         use binary_mdot
+         type (binary_info), pointer :: b
+
+         real(dp) :: temp_mdot
+
+         include 'formats.inc'
+
+         
+         ! calculate the Kolb explicit MT rate
+         call get_info_for_ritter(b)
+         call get_info_for_kolb(b)
+         temp_mdot = b% mdot_thin + b% mdot_thick
+         
+         ! Exit CE if Mdot is less than some small mass transfer rate
+         if(temp_mdot .lt. 1.0d-8) then
+            exit_CE = .true.
+         else
+            exit_CE = .false.
+         end if
+
+      end function exit_CE
+      
       logical function check_CE(b)
          use binary_def, only: binary_info
          type (binary_info), pointer :: b
@@ -79,13 +103,13 @@
          
 !         write(*,*) "# of cells removed for instability to ensue = ", i
 !         write(*,FMT_1) "Percent of star radius required to reach this = ", (s% r(1) - s% r(i)) / s% r(1)
-         write(*,FMT_1) "Temporary instability Mdot = ", 1.0d-5
+         write(*,FMT_1) "Temporary instability Mdot = ", 1.0d-2
          write(*,FMT_1) " Mass Transfer Rate (msun/yr): ", dabs(mdot) * secyer / msol
          
          
 !         if( dabs(mdot) > 1.0d0*(s% mstar)*dsqrt(standard_cgrav * s% rho(1))) then
          ! Dynamically Unstable RLOF
-         if( dabs(mdot) > 1.0d-5 * msol / secyer ) then
+         if( dabs(mdot) > 1.0d-2 * msol / secyer ) then
             check_CE = .true.
             write(*,*) "Dynamically unstable RLOF"
 

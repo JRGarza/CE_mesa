@@ -172,9 +172,13 @@
 
          s => b% s_donor
 
+         ! Exit conditions for CE
+         if (b% check_CE) b% check_CE = exit_CE(b)
 
-         if (b% do_CE) b% check_CE = check_CE(b)
+         ! Entrance conditions for CE
+         if (b% do_CE .and. (.not. b% check_CE)) b% check_CE = check_CE(b)
          
+         ! Prepare variable to check for CE
          if (b% do_CE .and. (dabs(b% mtransfer_rate) .gt. 1.0e-50)) then
 
             write(*,*) "MASS TRANSFER HAS STARTED (Msun/yr): ", b% mtransfer_rate*secyer/msol
@@ -192,7 +196,7 @@
              
          end if
 
-
+         ! Calculate new separation
          if (b% check_CE) then
             call new_separation_CE(b)
          else
@@ -269,7 +273,12 @@
                binary_check_model = retry
                return
             end if
-            if (implicit_rlo) then ! check agreement between new r and new rl
+            
+            if (b% check_CE) then
+            
+               new_mdot = 1.0d-1 * msol / secyer  ! in grams per second
+            
+            else if (implicit_rlo) then ! check agreement between new r and new rl
                b% s_donor% min_abs_mdot_for_change_limits = 1d99
                binary_check_model = check_implicit_rlo(new_mdot)
                if (binary_check_model == keep_going) then

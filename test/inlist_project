@@ -19,11 +19,13 @@
    do_CE = .true.
 !   do_CE = .false.
 
+   rl_rel_overlap_tolerance = 1.0d-5
+
    fr = 0.05
    fr_limit = 1d-2
 
    limit_retention_by_mdot_edd = .false.
 
-   max_tries_to_achieve = 50
+   max_tries_to_achieve = 10
          
 / ! end of binary_controls namelist
