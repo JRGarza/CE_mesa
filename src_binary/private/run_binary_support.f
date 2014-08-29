@@ -502,8 +502,6 @@
 
                end do
 
-               write(*,*) "Here 5"
-
                if (result == redo) then
                   do i = 1, num_stars
                      id = b% star_ids(i)

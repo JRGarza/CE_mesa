@@ -200,7 +200,7 @@
          type (star_info), pointer :: s
          include 'formats.inc'
          
-         real(dp) :: Delm2, E_orb_init, af_E_orb_f
+         real(dp) :: Delm2, E_orb_init, E_orb_fin, af_E_orb_f
          real(dp) :: E_bind_ml, E_int_spec, E_bind_spec, E_kin_spec, E_enth_spec
          
          integer :: i
@@ -215,16 +215,21 @@
          E_kin_spec = 0.0d0
          E_enth_spec = 0.0d0         
          E_bind_ml = 0.0d0
-         
+                  
          ! Loop over grid cells, outside going in
          i = 1
          do while ((s% mstar_old * (1.0d0-s% q_old(i)) .le. Delm2) .and. (i < s% nz_old)) 
+
+
             E_int_spec =  dexp(b% CE_lnE_old(i))
             E_bind_spec = - standard_cgrav * s% mstar_old / dexp(s% xh_old(s% i_lnR,i))  
             E_kin_spec = b% CE_vel_old(i) * b% CE_vel_old(i) / 2.0
             E_enth_spec = b% CE_P_old(i) / b% CE_rho_old(i)
-            E_bind_ml = E_bind_ml - (E_int_spec + E_bind_spec + E_kin_spec + E_enth_spec) &
+            E_bind_ml = E_bind_ml + (E_int_spec + E_bind_spec + E_kin_spec + E_enth_spec) &
                 * s% mstar * s% dq(i)
+
+!            write(*,*) Delm2, " ", s% mstar_old * (1.0d0-s% q_old(i)), " ", &
+!                       E_int_spec, " ", E_bind_spec, " ", E_kin_spec, " ", E_enth_spec
 
             i = i + 1
          enddo
@@ -234,15 +239,22 @@
             E_bind_spec = - standard_cgrav * s% mstar_old / dexp(s% xh_old(s% i_lnR,i))  
             E_kin_spec = b% CE_vel_old(i) * b% CE_vel_old(i) / 2.0
             E_enth_spec = b% CE_P_old(i) / b% CE_rho_old(i)
-            E_bind_ml = E_bind_ml - (E_int_spec + E_bind_spec + E_kin_spec + E_enth_spec) &
+            E_bind_ml = E_bind_ml + (E_int_spec + E_bind_spec + E_kin_spec + E_enth_spec) &
                 * (Delm2 - s% mstar_old * (1.0d0 - s% q_old(i-1)))               
          endif
                
-         ! Calculate the total orbital energy
-         E_orb_init = b% alpha_CE * standard_cgrav * b% m_old(b% a_i)*Msun * s% mstar_old / (2.0d0 * b% separation)
+         ! Calculate the initial orbital energy
+         E_orb_init = - standard_cgrav * b% m_old(b% a_i) * s% mstar_old / (2.0d0 * b% separation)
+
+         ! Calculate the final orbital energy
+         E_orb_fin = E_bind_ml / b% alpha_CE + E_orb_init
+
+         write(*,*) "Initial Orb energy: ", E_orb_init, " Final Orb Energy: ", E_orb_fin
 
          ! Calculate the final orbital separation
-         af_E_orb_f = b% alpha_CE * standard_cgrav * b% m(b% a_i)*Msun * s% mstar / 2.0d0
+         af_E_orb_f = - standard_cgrav * b% m(b% a_i) * s% mstar / (2.0d0 * E_orb_fin)
+
+         write(*,*) "Initial Separation: ", b% separation, " Final separation: ", af_E_orb_f
 
          ! Set orbital separation to calculated value
          b% separation = af_E_orb_f
