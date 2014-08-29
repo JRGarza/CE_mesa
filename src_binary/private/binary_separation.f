@@ -42,9 +42,10 @@
          
          FMT_1 = '(A,1pe16.9)'
          FMT_2 = '(A,1pe16.9,A,1pe16.9)'
-         write(*,FMT_2) "Old mass transfer rate: ", b% mtransfer_rate_old, " Current accretion rate: ", b% mtransfer_rate
-         write(*,FMT_1) "Mass change: ", s% mstar_old - s% mstar
-         write(*,FMT_1) "Time step: ",b% s_donor% dt 
+         write(*,FMT_1) "Old mass transfer rate (msun/yr): ", b% mtransfer_rate_old * secyer / msol
+         write(*,FMT_1) " Current accretion rate (msun/yr): ", b% mtransfer_rate * secyer / msol
+!         write(*,FMT_1) "Mass change: ", s% mstar_old - s% mstar
+         write(*,FMT_1) "Time step (yr): ",b% s_donor% dt / secyer
          write(*,FMT_2) "mstar = ", s% mstar, " dynamical timescale = ", 1.0/dsqrt(standard_cgrav * s% rho(1))
      !    write(*,FMT_1) "MESA calculated dynamical timescale = ", b% s_donor% dynamic_timescale
      !    write(*,FMT_1) "Textbook dynamical timescale - sqrt(R^3/GM) = ", &
@@ -55,15 +56,16 @@
                'separation = ', b% separation
          write(*,'(2x(A,1pe16.9))') "Donor RL: ", b% rl(b% d_i), " Accretor RL:", b% rl(b% a_i)
 
-         i = 0
-         temp_M = 0.0
-         sound_xing_time = 0.0
-         do while(temp_M .lt. b% mtransfer_rate)
-            i = i + 1
-            sound_xing_time = sound_xing_time + s% dr_div_csound(i)
-         enddo
+ !        i = 0
+ !        temp_M = 0.0
+ !        sound_xing_time = 0.0
+ !        do while(temp_M .lt. b% mtransfer_rate * b% dt)
+ !           i = i + 1
+ !           temp_M = temp_M + s% dm(i)
+ !           sound_xing_time = sound_xing_time + s% dr_div_csound(i)
+ !        enddo
 
-      !   write(*,FMT_1) "Sound crossing time of star = ", sound_xing_time 
+!         write(*,FMT_1) "Sound crossing time of star = ", sound_xing_time 
       !   write(*,FMT_1) "Outer layer mass / Sound crossing time = ", s% dm(1) / sound_xing_time
  
          temp_M = 0.0;
@@ -77,12 +79,13 @@
          
 !         write(*,*) "# of cells removed for instability to ensue = ", i
 !         write(*,FMT_1) "Percent of star radius required to reach this = ", (s% r(1) - s% r(i)) / s% r(1)
-         write(*,FMT_1) "Temporary instability Mdot = ", 1.0d-1 * msol / secyer
+         write(*,FMT_1) "Temporary instability Mdot = ", 1.0d-5
+         write(*,FMT_1) " Mass Transfer Rate (msun/yr): ", dabs(mdot) * secyer / msol
          
          
 !         if( dabs(mdot) > 1.0d0*(s% mstar)*dsqrt(standard_cgrav * s% rho(1))) then
          ! Dynamically Unstable RLOF
-         if( dabs(mdot) > 1.0d-1 * msol / secyer ) then
+         if( dabs(mdot) > 1.0d-5 * msol / secyer ) then
             check_CE = .true.
             write(*,*) "Dynamically unstable RLOF"
 

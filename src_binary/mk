@@ -1,2 +1,7 @@
 cd make; make
+
 cp libbinary_CE.a $MESA_DIR/lib/
+cp binary_def.mod $MESA_DIR/include/
+cp binary_lib.mod $MESA_DIR/include/
+
+
