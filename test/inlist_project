@@ -12,7 +12,7 @@
          
    m1 = 4.0d0  ! donor mass in Msun
    m2 = 1.0d0 ! companion mass in Msun
-   initial_period_in_days = 50.0d0
+   initial_period_in_days = 100.0d0
 
  !  For COMMON ENVELOPE
    alpha_CE = 1.0

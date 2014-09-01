@@ -439,12 +439,13 @@
                      result_reason = 0
                      exit step_loop
                   end if
-
+                  
+! Star is evolved a step
                   result = worst_result(result, star_evolve_step(id, first_try, just_did_backup))
 
                end do
 
-
+! Binary is evolved a step (orbital separation is adjusted)
                call binary_evolve_step(b)
 
 
@@ -456,9 +457,12 @@
                      result = worst_result(result, check_model(s, id, id_extra, extras_check_model))
                   end if
                end do
+               
+! M_dot rate is adjusted in binary_check_model
                if (result == keep_going) then
                   result = worst_result(result, binary_check_model(b))
                end if
+               
                ! solve first binary timestep limit because star_pick_next_timestep needs it
                result = worst_result(result, binary_pick_next_timestep(b))
                if (result == keep_going) then

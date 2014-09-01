@@ -134,7 +134,12 @@
          use binary_separation
          type(binary_info), pointer :: b
          type(star_info), pointer :: s
-         
+
+         CHARACTER(LEN=40) :: FMT_1
+         CHARACTER(LEN=40) :: FMT_2
+         CHARACTER(LEN=40) :: FMT_3
+         real(dp) :: mdot, rl2, R_accretor
+
          integer :: ierr
          integer :: i
          
@@ -173,16 +178,39 @@
          s => b% s_donor
 
          ! Exit conditions for CE
-         if (b% check_CE) b% check_CE = exit_CE(b)
+         if (b% check_CE) then
+            b% exit_CE = exit_CE(b)
 
+            FMT_1 = '(A,1pe16.9)'
+            FMT_2 = '(A,1pe16.9,A,1pe16.9)'
+            FMT_3 = '(A,1pe16.9,A,1pe16.9,A,1pe16.9)'
+
+            mdot = b% mtransfer_rate_old
+            R_accretor = accretor_mass_radius_relation(b% m2 * msol)
+            rl2 = b% rl(b% a_i)
+
+
+            write(*,FMT_1) "Time step (yr): ",b% s_donor% dt / secyer
+            write(*,FMT_3) 'R_1 = ', b% r(b% d_i), ' R_2 = ', R_accretor, &
+                  ' separation = ', b% separation
+            write(*,FMT_2) "Donor RL: ", b% rl(b% d_i), " Accretor RL:", b% rl(b% a_i)
+
+            write(*,FMT_1) "Temporary instability Mdot = ", 1.0d-2
+            write(*,FMT_1) " Mass Transfer Rate (msun/yr): ", dabs(mdot) * secyer / msol
+
+         end if
+ 
          ! Entrance conditions for CE
-         if (b% do_CE .and. (.not. b% check_CE)) b% check_CE = check_CE(b)
+         ! Calculate CE, not already be in a CE, and not have left a CE
+         if (b% do_CE .and. (.not. b% check_CE) .and. (.not. b% exit_CE)) b% check_CE = check_CE(b)
+
+
          
          ! Prepare variable to check for CE
          if (b% do_CE .and. (dabs(b% mtransfer_rate) .gt. 1.0e-50)) then
 
             write(*,*) "MASS TRANSFER HAS STARTED (Msun/yr): ", b% mtransfer_rate*secyer/msol
-
+ 
             if (.not. b% started_rlof) then
                 call initial_CE_setup(b)
                 b% started_rlof = .true.
@@ -195,6 +223,18 @@
              end if
              
          end if
+         
+         
+         ! If in exiting step, take care of things
+         if (b% check_CE .and. b% exit_CE) then
+            b% check_CE = .false.
+            deallocate(b% CE_rho_old)
+            deallocate(b% CE_P_old)
+            deallocate(b% CE_vel_old)
+            deallocate(b% CE_lnE_old)
+         endif 
+
+
 
          ! Calculate new separation
          if (b% check_CE) then
@@ -202,8 +242,10 @@
          else
             call new_separation_jdot(b)
          endif
+         
+         
 
-         if (b% do_CE .and. b% started_rlof) then
+         if (b% do_CE .and. b% started_rlof .and. (.not. b% exit_CE)) then
             deallocate(b% CE_rho_old)
             deallocate(b% CE_P_old)
             deallocate(b% CE_vel_old)
@@ -276,7 +318,7 @@
             
             if (b% check_CE) then
             
-               new_mdot = 1.0d-1 * msol / secyer  ! in grams per second
+               new_mdot = - 1.0d-1 * msol / secyer  ! in grams per second
             
             else if (implicit_rlo) then ! check agreement between new r and new rl
                b% s_donor% min_abs_mdot_for_change_limits = 1d99
@@ -317,8 +359,6 @@
            write(*,*) "terminate because system avoided common envelope"
            binary_check_model = terminate               
          endif
-
-         
 
          if (b% evolve_both_stars .and. b% s_accretor% photosphere_r*Rsun >= b% rl(b% a_i)) then
             if (b% s_accretor% photosphere_r*Rsun >= b% factor_for_contact_terminate * b% rl(b% a_i)) &

@@ -34,7 +34,7 @@
           real(dp) :: max_mdot_reached
 
           logical :: in_CE_flag, merger_flag, started_CE_flag, prev_CE_flag
-          logical :: check_CE 
+          logical :: check_CE, exit_CE 
           logical :: started_rlof, started_CE
 
           ! *************** end of info that is saved and restored for restarts  ***************
