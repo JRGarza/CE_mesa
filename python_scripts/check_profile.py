@@ -1,15 +1,27 @@
+#!/usr/bin/env python
 import matplotlib
 matplotlib.use('TkAgg')
 
 import mesa as ms
-import pylab as plt
+import pylab as pyl
 import numpy as np
 from astropy import units as u
 from astropy import constants as const
 import math
 import copy
 
-p1=ms.mesa_profile('../LOGS1',100,num_type='model')
+
+model_paths = ["/Users/tassos/Dropbox/Projects/CE/SINGLEgrid/3.0/LOGS/", 
+               "/Users/tassos/Dropbox/Projects/CE/SINGLEgrid/4.0/LOGS/",
+               "/Users/tassos/Dropbox/Projects/CE/SINGLEgrid/5.0/LOGS/",
+               "/Users/tassos/Dropbox/Projects/CE/SINGLEgrid/7.0/LOGS/",]
+
+
+h1=ms.history_data(model_paths[3])
+h1.kippenhahn(1,"model")
+pyl.show()
+
+p1=ms.mesa_profile(model_paths[0],100,num_type='model')
 mass = p1.get('mass') * u.Msun # solar mass
 NN = mass.size
 dm = copy.deepcopy(mass)
@@ -27,18 +39,18 @@ mdot_sc =  dm/t_sc
 t_ff = math.pi/2. * r**(3./2.) / np.sqrt(2.*const.G*(mass))
 mdot_ff = dm/t_ff
 
-fig = plt.figure()
+fig = pyl.figure(2)
 
-plt.semilogy(mass.to('Msun').value,mdot_ff.to('Msun/yr').value,label="$local dm/dt_{free\ fall}$",linewidth=2)
-plt.semilogy(mass.to('Msun').value,mdot_sc.to('Msun/yr').value, label="$local dm/dt_{sound\ crossing}$",linewidth=2)
-plt.xlabel("Mass coordinate m ($M_{\odot}$)",fontsize=14)
-plt.ylabel("Mass-transfer rate ($M_{\odot}/yr$)",fontsize=14)
+pyl.semilogy(mass.to('Msun').value,mdot_ff.to('Msun/yr').value,label="$local dm/dt_{free\ fall}$",linewidth=2)
+pyl.semilogy(mass.to('Msun').value,mdot_sc.to('Msun/yr').value, label="$local dm/dt_{sound\ crossing}$",linewidth=2)
+pyl.xlabel("Mass coordinate m ($M_{\odot}$)",fontsize=14)
+pyl.ylabel("Mass-transfer rate ($M_{\odot}/yr$)",fontsize=14)
 
-plt.legend()
+pyl.legend()
 
 #Put figure window on top of all other windows
 fig.canvas.manager.window.attributes('-topmost', 1)
 # #After placing figure window on top, allow other windows to be on top of it later
 fig.canvas.manager.window.attributes('-topmost', 0)
 
-plt.show()
+pyl.show()
