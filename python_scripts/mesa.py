@@ -132,8 +132,7 @@ import numpy as np
 from data_plot import *
 import numpy as np
 import matplotlib
-from pylab import *
-import pylab as pyl
+import matplotlib.pylab as pyl
 import matplotlib.pyplot as pl
 import os
 import sys
@@ -430,8 +429,8 @@ class history_data(DataPlot):
 		
                 t0_mod=xaxisarray[t0_model]
 	    
-		h1_boundary_mass  = self.get('he_core_mass')
-		he4_boundary_mass = self.get('c_core_mass')
+		h1_boundary_mass  = self.get('h1_boundary_mass')
+		he4_boundary_mass = self.get('he4_boundary_mass')
 		star_mass         = self.get('star_mass')
 		mx1_bot           = self.get('mx1_bot')*star_mass
 		mx1_top           = self.get('mx1_top')*star_mass

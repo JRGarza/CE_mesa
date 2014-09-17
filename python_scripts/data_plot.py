@@ -19,7 +19,6 @@ from numpy import *
 from math import *
 import matplotlib.pylab as pyl
 import matplotlib.pyplot as pl
-#from matplotlib.mpl import colors,cm
 import matplotlib as mpl
 from matplotlib.patches import Rectangle, Arrow
 from matplotlib.collections import PatchCollection
