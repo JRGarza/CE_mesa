@@ -211,6 +211,8 @@
 
             write(*,*) "MASS TRANSFER HAS STARTED (Msun/yr): ", b% mtransfer_rate*secyer/msol
  
+            call calc_energies(b)
+ 
             if (.not. b% started_rlof) then
                 call initial_CE_setup(b)
                 b% started_rlof = .true.
@@ -234,6 +236,7 @@
             deallocate(b% CE_lnE_old)
          endif 
 
+         write(*,'(A,1pe16.9)') "Old Separation = ", b% separation
 
 
          ! Calculate new separation
@@ -246,6 +249,11 @@
          
 
          if (b% do_CE .and. b% started_rlof .and. (.not. b% exit_CE)) then
+            b% E_int_old = b% E_int
+            b% E_grav_old = b% E_grav
+            b% E_kin_old = b% E_kin
+            b% E_enth_old = b% E_enth
+            
             deallocate(b% CE_rho_old)
             deallocate(b% CE_P_old)
             deallocate(b% CE_vel_old)

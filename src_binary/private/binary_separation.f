@@ -55,6 +55,8 @@
          real(dp) :: temp_M, temp_R, temp_t
          real(dp) :: sound_xing_time
          real(dp) :: q_rl, q_rl_old, zeta_star, zeta_rl
+         real(dp) :: R_trap, mdot_edd
+         real(dp) :: I_orb, I_donor
          
          include 'formats.inc'
          
@@ -102,18 +104,58 @@
             temp_M = temp_M + s% dm(i)
          enddo
          
-         
 !         write(*,*) "# of cells removed for instability to ensue = ", i
 !         write(*,FMT_1) "Percent of star radius required to reach this = ", (s% r(1) - s% r(i)) / s% r(1)
 !         write(*,FMT_1) "Temporary instability Mdot = ", 1.0d-2
 !         write(*,FMT_1) " Mass Transfer Rate (msun/yr): ", dabs(mdot) * secyer / msol
+ 
          
          
-!         if( dabs(mdot) > 1.0d0*(s% mstar)*dsqrt(standard_cgrav * s% rho(1))) then
+         
+         
+         ! Moment of Inertia calculations
+         I_orb = b% m(1) * b% m(2) / (b% m(1) + b% m(2)) * b% separation * b% separation
+         
+         I_donor = 0.0
+         i = 0
+         do while(i .lt. s% nz)
+            i = i + 1
+            I_donor = I_donor + s% i_rot(i) * s% dm(i)
+         enddo
+         
+!         write(*,*) "I_orb = ", I_orb, " I_donor = ", I_donor
+         
+         
+         
+         
+         ! Trapping Radius calculations
+         if (b% use_this_for_mdot_edd > 0) then
+            mdot_edd = b% use_this_for_mdot_edd*(Msun/secyer)
+         else
+!            mdot_edd = 4*pi*s% cgrav(1)*b% m(b% a_i)/(clight*s% opacity(1))
+            mdot_edd = 4*pi* mp * clight * R_accretor / s% opacity(1)
+         end if
+         R_trap = 0.5 * dabs( R_accretor * (mdot / mdot_edd) )
+         
+!         write(*,*) "Mdot = ", mdot*secyer/msol, " Mdot_edd = ", mdot_edd*secyer/msol, " R_acc = ", &
+!                    R_accretor, " R_trap = ", R_trap
+         
+         
+         
+         
+         ! Common Envelope Conditions         
+         check_CE = .false.
+         
          ! Dynamically Unstable RLOF
+!         if( dabs(mdot) > 1.0d0*(s% mstar)*dsqrt(standard_cgrav * s% rho(1))) then         
          if( dabs(mdot) > 1.0d-2 * msol / secyer ) then
             check_CE = .true.
             write(*,*) "Dynamically unstable RLOF"
+
+         ! Darwin instability
+         else if ((I_orb < 3.0 * I_donor) .and. (b% separation < 3.0 * s% r(1))) then
+            check_CE = .true.
+            write(*,*) "Darwin instability has kicked in"
 
          else if ((b% r(b% d_i) > b% rl(b% d_i)) .and. (R_accretor > b% rl(b% a_i))) then
             ! Contact Binary
@@ -123,7 +165,11 @@
          ! Double Common Envelope
          else if (b% rl(b% a_i) < b% r(b% a_i)) then
             check_CE = .true.
-            write(*,*) "Double Common Envelope"
+            write(*,*) "Double common envelope"
+            
+         else if (R_trap > b% rl(b% a_i)) then
+!            check_CE = .true.
+            write(*,*) "Trapping radius > roche radius"
          else
             check_CE = .false.
          endif
@@ -219,8 +265,76 @@
  
 
       end function calc_naive_A_f
+      
+      subroutine calc_energies(b)
+         use binary_def, only: binary_info
+         type (binary_info), pointer :: b
+         type (star_info), pointer :: s
+         include 'formats.inc'
+
+         integer :: i
+
+         s => b% s_donor
+
+         ! Set all the energies to zero
+         b% E_int = 0.0d0
+         b% E_grav = 0.0d0
+         b% E_kin = 0.0d0
+         b% E_enth = 0.0d0         
+
+         i = 0.0
+         do while(i .lt. s% nz)
+
+            i = i + 1
+            b% E_int  = b% E_int  + s% dm(i) *  dexp(s% lnE(i))
+            b% E_grav = b% E_grav + s% dm(i) * (-1.0) * standard_cgrav * s% m(i) / s% r(i)
+            b% E_kin  = b% E_kin  + s% dm(i) * s% v(i) * s% v(i) / 2.0
+            b% E_enth = b% E_enth + s% dm(i) * s% P(i) / s% rho(i)
+
+         enddo
+
+      end subroutine calc_energies      
+
 
       subroutine new_separation_CE(b)
+         use binary_def, only: binary_info
+         type (binary_info), pointer :: b
+         type (star_info), pointer :: s
+         include 'formats.inc'
+
+         real(dp) :: E_bind, E_orb_i, E_orb_f
+
+         character(LEN=40) :: FMT_1
+         character(LEN=40) :: FMT_2
+         character(LEN=40) :: FMT_3
+
+         FMT_1 = '(A,1pe16.9)'
+         FMT_2 = '(A,1pe16.9,A,1pe16.9)'
+         FMT_3 = '(A,1pe16.9,A,1pe16.9,A,1pe16.9)'
+
+         s => b% s_donor
+
+         
+         write(*,FMT_2) "New E_int = ", b% E_int, " New E_grav = ", b% E_grav
+         write(*,FMT_2) "Old E_int = ", b% E_int_old, " Old E_grav = ", b% E_grav_old
+         
+         ! Binding energy is the difference of the new and old energies
+         E_bind = b% E_int + b% E_grav - b% E_int_old - b% E_grav_old
+
+         ! Calculate the initial orbital energy
+         E_orb_i = - standard_cgrav * b% m_old(b% a_i) * s% mstar_old / (2.0d0 * b% separation)
+
+         ! Calculate the final orbital energy
+         E_orb_f = E_orb_i - E_bind / b% alpha_CE
+
+         ! Set orbital separation to calculated value
+         b% separation = - standard_cgrav * b% m_old(b% a_i) * s% mstar_old / (2.0d0 * E_orb_f)
+
+      end subroutine new_separation_CE      
+
+
+
+      subroutine new_separation_CE_2(b)
          use binary_def, only: binary_info
          type (binary_info), pointer :: b
          type (star_info), pointer :: s
@@ -251,10 +365,11 @@
          E_enth_spec = 0.0d0         
          E_bind_ml = 0.0d0
               
+         write(*,*) "vel: ", s% v(145), " velocity: ", s% velocity(145)
               
-         write(*,*) "TESTING: Cell number  |       Nuclear Energy        | ", &
-             "      Opacity      |  ", &
-             " Mass external to cell | " , &
+         write(*,*) "TESTING: Cell number  |       Pressure        | ", &
+             "      Density      |  ", &
+             " Temperature | " , &
              " Specific Internal Energy  |  Specific Gravitational Energy | " , &
              " Specific Kinetic Energy  |  Specific Enthalpy"           
          ! Loop over grid cells, outside going in
@@ -269,9 +384,14 @@
             E_bind_ml = E_bind_ml + (E_int_spec + E_bind_spec + E_kin_spec + E_enth_spec) &
                 * s% mstar * s% dq(i)
 
-            write(*,*) "TESTING: ", i, " ", s% eps_nuc(i), " ", s% opacity(i), " ", &
-                       s% mstar_old * (1.0d0-s% q_old(i)), " ", &
-                       E_int_spec, " ", E_bind_spec, " ", E_kin_spec, " ", E_enth_spec
+            write(*,*) "TESTING: ", i, " ", &
+                       s% dm(i), " ", &
+                       s% rho(i), " ", &
+                       s% r(i), " ", &
+                       E_int_spec, " ", &
+                       E_bind_spec, " ", &
+                       E_kin_spec, " ", &
+                       E_enth_spec
 
             i = i + 1
          enddo
@@ -316,7 +436,7 @@
          ! Set orbital separation to calculated value
          b% separation = af_E_orb_f
 
-      end subroutine new_separation_CE
+      end subroutine new_separation_CE_2
 
 
       subroutine new_separation_jdot(b)

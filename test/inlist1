@@ -10,6 +10,9 @@
       change_v_flag = .true.
       new_v_flag = .true.
 
+      change_rotation_flag = .true.
+      new_rotation_flag = .true.
+
 / ! end of star_job namelist
 
 
@@ -34,6 +37,8 @@
       write_header_frequency = 10
       
       varcontrol_target = 1d-3
+
+      
       
 
 / ! end of controls namelist
