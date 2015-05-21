@@ -28,23 +28,36 @@ def LoadOneProfile(filename, NY, Yaxis, Ymin, Ymax, Variable):
 	 
 	data_from_file=np.genfromtxt(filename, skiprows=5, names=True)
 	# Add the fields log_mass, log_q and log_radius, in case they are not stored in the profile files
-	try:
-		data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'log_mass',
-															data = np.log10(data_from_file['mass']), asrecarray=True)
-	except Exception:
-		raise ValueError("Column 'mass' is missing from the profile files")
 
-	try:
-		data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'log_q',
-															data = np.log10(data_from_file['q']), asrecarray=True)
-	except Exception:
-		raise ValueError("Column 'q' is missing from the profile files")
+	if (not "log_mass" in data_from_file.dtype.names):
+		try: 
+			data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'log_mass',
+																data = np.log10(data_from_file['mass']), asrecarray=True)
+		except Exception:
+			raise ValueError("Column 'mass' is missing from the profile files")
 
-	try:
-		data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'log_radius',
-															data = np.log10(data_from_file['radius']), asrecarray=True)
-	except Exception:
-		raise ValueError("Column 'radius' is missing from the profile files")
+	if (not "log_q" in data_from_file.dtype.names):
+		try:
+			if (not data_from_file['log_q']):
+				data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'log_q',
+																data = np.log10(data_from_file['q']), asrecarray=True)
+		except Exception:
+			raise ValueError("Column 'q' is missing from the profile files")
+
+	if (not "log_radius" in data_from_file.dtype.names):
+		try:
+			data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'log_radius',
+																data = np.log10(data_from_file['radius']), asrecarray=True)
+		except Exception:
+			raise ValueError("Column 'radius' is missing from the profile files")
+
+	if (not "j_rot" in data_from_file.dtype.names):
+		try:
+			data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'j_rot',
+																data = 10.**data_from_file['log_j_rot'], asrecarray=True)
+		except Exception:
+			raise ValueError("Column 'log_j_rot' is missing from the profile files")
+
 
 	#Define the values that we want to itnerpolate along the  Y axis
 	Y_to_interp = (np.arange(1,NY+1).astype(float))/float(NY+2) * (Ymax-Ymin) + Ymin
@@ -170,7 +183,7 @@ class mesa(object):
 
 
 	def CheckParameters(self):
-		cmaps=[m for m in cm.datad if not m.endswith("_r")]
+		cmaps=[m for m in cm.datad]
 		if not (self._param['cmap'] in cmaps):
 			raise ValueError(self._param['cmap']+"not a valid option for parameter cmap")
 		if not (self._param['Yaxis'] in ['mass', 'radius', 'q', 'log_mass', 'log_radius', 'log_q']):
@@ -178,6 +191,10 @@ class mesa(object):
 		if not (self._param['Xaxis'] in ['model_number', 'star_age', 'inv_star_age', 'log_model_number', 'log_star_age', 
 				'log_inv_star_age']):
 			raise ValueError(self._param['Xaxis']+"not a valid option for parameter Xaxis")
+		if not (self._param['Variable'] in ['eps_nuc', 'velocity', 'entropy', 'total_energy', 'j_rot']):
+			raise ValueError(self._param['Variable']+"not a valid option for parameter Variable")
+
+
 		return
 
 	def SetParameters(self,**kwargs):
@@ -345,6 +362,8 @@ class mesa(object):
 			cmap_label = "log(specific entropy [erg/K/gr])"
 		elif self._param['Variable'] == "total_energy":
 			cmap_label = "log(specific total energy [erg/gr])"
+		elif self._param['Variable'] == "j_rot":
+			cmap_label = "log(specific angular momentum [cm$^2$/s])"
 
 
 		fig1 = plt.figure()
@@ -382,13 +401,13 @@ class mesa(object):
 			elif self._param['Xaxis'] == "star_age":
 				X_axis_czones = self.history['star_age']/1.e6
 			elif self._param['Xaxis'] == "inv_star_age":
-				X_axis_czones = self.history['star_age'][-1]/1.e6-self.history['star_age']/1.e6
+				X_axis_czones = self.history['star_age'][-1]/1.e6-self.history['star_age']/1.e6 + self.history['star_age'][0]/1.e6
 			elif self._param['Xaxis'] == "log_model_number":
 				X_axis_czones = np.log10(self.history['model_number'])
 			elif self._param['Xaxis'] == "log_star_age":
 				X_axis_czones = np.log10(self.history['star_age']/1.e6)
 			elif self._param['Xaxis'] == "log_inv_star_age":
-				X_axis_czones = np.log10(self.history['star_age'][-1]/1.e6-self.history['star_age']/1.e6)
+				X_axis_czones = np.log10(self.history['star_age'][-1]/1.e6-self.history['star_age']/1.e6 + self.history['star_age'][0]/1.e6)
 
 
 
@@ -565,9 +584,18 @@ class mesa(object):
 
 
 if __name__ == "__main__":
-	data_path = "/Users/tassos/Dropbox/Projects/mesa_projects/CE/make_starting_models/LOGS/"
-	a = mesa(data_path=data_path, parallel=True, abundances=True, log_abundances = True, Yaxis='mass', Xaxis="model_number", czones=True, Variable='entropy')
-	a.SetParameters(onscreen=True, cmap_dynamic_range=2)
+
+
+
+
+	#Options for Xaxis: 'model_number', 'star_age', 'inv_star_age', 'log_model_number', 'log_star_age', 'log_inv_star_age'
+	#Options for Yaxis: 'mass', 'radius', 'q', 'log_mass', 'log_radius', 'log_q'	
+	#Options for Variable: "eps_nuc", "velocity", "entropy", "total_energy"
+
+
+	data_path = "/Users/tassos/Desktop/LOGS/"
+	a = mesa(data_path=data_path, parallel=True, abundances=True, log_abundances = True, Yaxis='mass', Xaxis="log_inv_star_age", czones=True, Variable='j_rot')
+	a.SetParameters(onscreen=True, cmap = 'Spectral_r', cmap_dynamic_range=10)
 
 	a.Kippenhahn()
 
