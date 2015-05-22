@@ -28,7 +28,7 @@
       use star_def
       use const_def
       !#CE: Add here all the external modules for CE_mesa here
-      use other_energy
+      use CE_energy
       
       implicit none
       
@@ -48,7 +48,7 @@
          ! e.g., other_wind, other_mixing, other_energy  (see star_data.inc)
 
          !#CE: Here we should point to the names of the "other_" functions to be used         
-         s% other_energy => default_other_energy         
+         s% other_energy => CE_inject_energy         
       end subroutine extras_controls
       
       

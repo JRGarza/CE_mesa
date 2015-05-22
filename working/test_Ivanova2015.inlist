@@ -2,37 +2,28 @@
 
 &star_job
       
-      create_pre_main_sequence_model = .true.
+      load_saved_model = .true.
+      saved_model_name = '../data/Ivanova2015_1.6.mod'
 
       save_model_when_terminate = .true.
-      save_model_filename = 'inlist_Ivanova2015_1.6.mod'
+      save_model_filename = 'test_Ivanova2015.mod'
       
       write_profile_when_terminate = .true.
-      filename_for_profile_when_terminate = 'inlist_Ivanova2015_1.6.data'
+      filename_for_profile_when_terminate = 'test_Ivanova2015.data'
 
       history_columns_file = './history_columns.list'
       profile_columns_file = './profile_columns.list'
 
       kappa_file_prefix = 'gs98'
       
-!       change_lnPgas_flag = .true.
-!       new_lnPgas_flag = .true.
 
-!       change_initial_net = .true.      
-!       new_net_name = 'o18_and_ne22.net'
 
-      pre_ms_relax_num_steps = 200
 
 
 !      change_v_flag = .true.
 !      change_initial_v_flag = .true.
 !      new_v_flag = .true.
       
-!        new_surface_rotation_v = 2 ! solar (km sec^1)
-!        set_near_zams_surface_rotation_v_steps = 10 ! to turn on rotation when near zams
-         ! if rotation_flag is false and L_nuc_burn_total >= L_phot and this control > 0
-         ! then turn on rotation and set set_surf_rotation_v_step_limit to
-         ! the current model_number plus this control
 
 
 
@@ -40,32 +31,25 @@
 
 &controls
 
+      use_other_energy = .true.
+
+
       ! check for retries and backups as part of test_suite
       ! you can/should delete this for use outside of test_suite
          max_number_backups = 50
          max_number_retries = 100
 
-      initial_mass = 1.6
-      initial_z = 0.02d0
+!       initial_mass = 1.6
+!       initial_z = 0.02d0
       
       use_Type2_opacities = .true.
       Zbase = 0.02d0
 
-      am_nu_visc_factor = 0
-      am_D_mix_factor = 0.0333333333333333d0
-      D_DSI_factor = 0
-      D_SH_factor = 1
-      D_SSI_factor = 1
-      D_ES_factor = 1
-      D_GSF_factor = 1
-      D_ST_factor = 1
       
       varcontrol_target = 1d-4
       mesh_delta_coeff = 0.5
      
       he_core_boundary_h1_fraction = 1.d-10
-      photosphere_r_upper_limit = 1d2
-!      he_core_mass_limit = 0.422
 
 
       history_interval = 1
