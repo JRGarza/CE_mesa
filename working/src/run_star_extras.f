@@ -39,8 +39,62 @@
          ! this is the place to set any procedure pointers you want to change
          ! e.g., other_wind, other_mixing, other_energy  (see star_data.inc)
 
+
+		 ! TESTING
+         ! Common Envelope prescriptions for tidal heating
+         ! To Do: Angular momentum from tides
+         
+         s% other_energy => CE_energy_dissipation
+         s% other_torque => CE_torque
          
       end subroutine extras_controls
+      
+      
+      ! Tidal heating prescription from CE
+      ! Based off example from mesa/star/other/other_energy.f
+      
+      subroutine CE_energy_dissipation(id, ierr)
+         use const_def, only: Rsun
+         integer, intent(in) :: id
+         integer, intent(out) :: ierr
+         type (star_info), pointer :: s
+         integer :: k
+         ierr = 0
+         call star_ptr(id, s, ierr)
+         if (ierr /= 0) return
+         s% extra_heat(:) = 1 ! erg/g/sec
+         return
+         ! here is an example of calculating extra_heat for each cell.
+         do k = 1, s% nz
+            if (s% r(k) > 0.7*Rsun .and. s% r(k) < 0.9*Rsun) then
+               s% extra_heat(k) = 1d3*exp(-10*(s% r(k) - 0.8*Rsun)**2)
+            end if
+         end do
+      end subroutine CE_energy_dissipation
+
+
+	  ! Angular momentum prescription from CE
+      ! Based off example from mesa/star/other/other_torque.f
+      	  
+      subroutine CE_torque(id, ierr)
+         integer, intent(in) :: id
+         integer, intent(out) :: ierr
+         type (star_info), pointer :: s
+         integer :: k
+         ierr = 0
+         call star_ptr(id, s, ierr)
+         if (ierr /= 0) return
+         ! here is an (unrealistic) example of adding angular momentum to each cell
+         do k = 1, s% nz
+            s% extra_jdot(k) = 1 ! rate at which specific angular momentum is changed
+! note that can set extra_omegadot instead of extra_jdot if that is more convenient
+! set one or the other, not both.  set the one you are not using to 0 as in the following line.
+            s% extra_omegadot(k) = 0 ! rate at which omega is changed
+         end do
+      end subroutine CE_torque
+
+
+      
       
       
       integer function extras_startup(s, id, restart, ierr)
