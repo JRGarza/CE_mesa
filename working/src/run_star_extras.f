@@ -20,35 +20,46 @@
 !
 ! ***********************************************************************
  
+ !#CE: copied the content from star/job/standard_run_satr_extras.inc here and made the necessary changes
+
       module run_star_extras
 
       use star_lib
       use star_def
       use const_def
+      !#CE: Add here all the external modules for CE_mesa here
+      use other_energy
       
       implicit none
       
       ! these routines are called by the standard run_star check_model
       contains
 
-      subroutine extras_controls(s, ierr)
-         type (star_info), pointer :: s
+
+      subroutine extras_controls(id, ierr)
+         integer, intent(in) :: id
          integer, intent(out) :: ierr
+         type (star_info), pointer :: s
          ierr = 0
+         call star_ptr(id, s, ierr)
+         if (ierr /= 0) return
          
          ! this is the place to set any procedure pointers you want to change
          ! e.g., other_wind, other_mixing, other_energy  (see star_data.inc)
 
-         
+         !#CE: Here we should point to the names of the "other_" functions to be used         
+         s% other_energy => default_other_energy         
       end subroutine extras_controls
       
       
-      integer function extras_startup(s, id, restart, ierr)
-         type (star_info), pointer :: s
+      integer function extras_startup(id, restart, ierr)
          integer, intent(in) :: id
          logical, intent(in) :: restart
          integer, intent(out) :: ierr
+         type (star_info), pointer :: s
          ierr = 0
+         call star_ptr(id, s, ierr)
+         if (ierr /= 0) return
          extras_startup = 0
          if (.not. restart) then
             call alloc_extra_info(s)
@@ -59,9 +70,13 @@
       
 
       ! returns either keep_going, retry, backup, or terminate.
-      integer function extras_check_model(s, id, id_extra)
-         type (star_info), pointer :: s
+      integer function extras_check_model(id, id_extra)
          integer, intent(in) :: id, id_extra
+         integer :: ierr
+         type (star_info), pointer :: s
+         ierr = 0
+         call star_ptr(id, s, ierr)
+         if (ierr /= 0) return
          extras_check_model = keep_going         
          if (.false. .and. s% star_mass_h1 < 0.35d0) then
             ! stop when star hydrogen mass drops to specified level
@@ -72,57 +87,73 @@
 
 
          ! if you want to check multiple conditions, it can be useful
-         ! to set a different termination code depenending on which
+         ! to set a different termination code depending on which
          ! condition was triggered.  MESA provides 9 customizeable
          ! termination codes, named t_xtra1 .. t_xtra9.  You can
          ! customize the messages that will be printed upon exit by
          ! setting the corresponding termination_code_str value.
-         ! termination_code_str(t_xtra1) = 'my termination conditon'
+         ! termination_code_str(t_xtra1) = 'my termination condition'
 
          ! by default, indicate where (in the code) MESA terminated
          if (extras_check_model == terminate) s% termination_code = t_extras_check_model
       end function extras_check_model
 
 
-      integer function how_many_extra_history_columns(s, id, id_extra)
-         type (star_info), pointer :: s
+      integer function how_many_extra_history_columns(id, id_extra)
          integer, intent(in) :: id, id_extra
+         integer :: ierr
+         type (star_info), pointer :: s
+         ierr = 0
+         call star_ptr(id, s, ierr)
+         if (ierr /= 0) return
          how_many_extra_history_columns = 0
       end function how_many_extra_history_columns
       
       
-      subroutine data_for_extra_history_columns(s, id, id_extra, n, names, vals, ierr)
-         type (star_info), pointer :: s
+      subroutine data_for_extra_history_columns(id, id_extra, n, names, vals, ierr)
          integer, intent(in) :: id, id_extra, n
          character (len=maxlen_history_column_name) :: names(n)
          real(dp) :: vals(n)
          integer, intent(out) :: ierr
+         type (star_info), pointer :: s
+         ierr = 0
+         call star_ptr(id, s, ierr)
+         if (ierr /= 0) return
          
-         !note: do NOT add these names to history_columns.list
+         !note: do NOT add the extras names to history_columns.list
          ! the history_columns.list is only for the built-in log column options.
          ! it must not include the new column names you are adding here.
          
-         ierr = 0
+
       end subroutine data_for_extra_history_columns
 
       
-      integer function how_many_extra_profile_columns(s, id, id_extra)
-         type (star_info), pointer :: s
+      integer function how_many_extra_profile_columns(id, id_extra)
+         use star_def, only: star_info
          integer, intent(in) :: id, id_extra
+         integer :: ierr
+         type (star_info), pointer :: s
+         ierr = 0
+         call star_ptr(id, s, ierr)
+         if (ierr /= 0) return
          how_many_extra_profile_columns = 0
       end function how_many_extra_profile_columns
       
       
-      subroutine data_for_extra_profile_columns(s, id, id_extra, n, nz, names, vals, ierr)
-         type (star_info), pointer :: s
+      subroutine data_for_extra_profile_columns(id, id_extra, n, nz, names, vals, ierr)
+         use star_def, only: star_info, maxlen_profile_column_name
+         use const_def, only: dp
          integer, intent(in) :: id, id_extra, n, nz
          character (len=maxlen_profile_column_name) :: names(n)
          real(dp) :: vals(nz,n)
          integer, intent(out) :: ierr
+         type (star_info), pointer :: s
          integer :: k
          ierr = 0
+         call star_ptr(id, s, ierr)
+         if (ierr /= 0) return
          
-         !note: do NOT add these names to profile_columns.list
+         !note: do NOT add the extra names to profile_columns.list
          ! the profile_columns.list is only for the built-in profile column options.
          ! it must not include the new column names you are adding here.
 
@@ -138,10 +169,13 @@
 
       ! returns either keep_going or terminate.
       ! note: cannot request retry or backup; extras_check_model can do that.
-      integer function extras_finish_step(s, id, id_extra)
-         type (star_info), pointer :: s
+      integer function extras_finish_step(id, id_extra)
          integer, intent(in) :: id, id_extra
          integer :: ierr
+         type (star_info), pointer :: s
+         ierr = 0
+         call star_ptr(id, s, ierr)
+         if (ierr /= 0) return
          extras_finish_step = keep_going
          call store_extra_info(s)
 
@@ -156,11 +190,13 @@
       end function extras_finish_step
       
       
-      subroutine extras_after_evolve(s, id, id_extra, ierr)
-         type (star_info), pointer :: s
+      subroutine extras_after_evolve(id, id_extra, ierr)
          integer, intent(in) :: id, id_extra
          integer, intent(out) :: ierr
+         type (star_info), pointer :: s
          ierr = 0
+         call star_ptr(id, s, ierr)
+         if (ierr /= 0) return
       end subroutine extras_after_evolve
       
       

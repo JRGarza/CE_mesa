@@ -590,7 +590,7 @@ if __name__ == "__main__":
 
 	#Options for Xaxis: 'model_number', 'star_age', 'inv_star_age', 'log_model_number', 'log_star_age', 'log_inv_star_age'
 	#Options for Yaxis: 'mass', 'radius', 'q', 'log_mass', 'log_radius', 'log_q'	
-	#Options for Variable: "eps_nuc", "velocity", "entropy", "total_energy"
+	#Options for Variable: "eps_nuc", "velocity", "entropy", "total_energy, "j_rot"
 
 
 	data_path = "/Users/tassos/Desktop/LOGS/"
