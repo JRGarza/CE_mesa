@@ -39,7 +39,15 @@
                                  !#CE: star from the center of the donor star in solar radii
       x_ctrl(3) = 1.d0           !#CE: CE_companion_radius: The radius of the companion star in solar radii
       x_ctrl(4) = 1.d0           !#CE: CE_companion_mass: The mass of the companion star in solar masses
-      x_integer_ctrl(1) = 2      !#CE: 
+      x_integer_ctrl(1) = 2      !#CE: 1: Uniform heating of the whole envelope, 2: Heating only in the position of the 
+                                 !#CE: companion in the region R > CE_companion_position - CE_companion_radius and
+                                 !#CE: R < CE_companion_position + CE_companion_radius
+
+
+      !#CE: increase the resolution around the position of the companion where the energy is deposited.
+      !#CE: The other two parameters (R_function2_param1 and R_function2_param2) are set automatically
+      !#CE: based on the position of the companion.
+      R_function2_weight = 100
 
       use_Type2_opacities = .true.
       Zbase = 0.02d0

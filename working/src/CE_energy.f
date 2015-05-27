@@ -61,7 +61,8 @@
          integer, intent(in) :: id
          integer, intent(out) :: ierr
          type (star_info), pointer :: s
-         real(dp) :: CE_energy_rate, CE_companion_position, CE_companion_radius, CE_companion_mass
+         real(dp) :: CE_energy_rate, CE_companion_position, CE_companion_radius, CE_companion_mass, CE_test_case
+         real(dp) :: mass_to_be_heated, a_tukey = 0.1, ff, ff_integral, extra_heat_integral
          integer :: k
          ierr = 0
          call star_ptr(id, s, ierr)
@@ -82,16 +83,41 @@
                end if
             end do
          else if (CE_test_case == 2) then
+            !First calculate the mass in which the energy will be deposited
+            mass_to_be_heated =0.
+            ff_integral = 0.
             do k = 1, s% nz
-               if ((s% m(k) > s% he_core_mass * Msun) .and. (s% m(k) < (s% he_core_mass + 0.1d0) * Msun)) then
-                  s% extra_heat(k) = CE_energy_rate / (0.1 * Msun)
-               end if
+               ff = TukeyWindow(s% r(k)/(CE_companion_radius*Rsun) - CE_companion_position, a_tukey)
+               ff_integral = ff_integral + ff
+               mass_to_be_heated =  mass_to_be_heated + s% dm(k) * ff
             end do
-
+            !Now redo the loop and add the extra specific heat
+            extra_heat_integral = 0.
+            do k = 1, s% nz
+               ff = TukeyWindow(s% r(k)/(CE_companion_radius*Rsun) - CE_companion_position, a_tukey)
+               s% extra_heat(k) = CE_energy_rate / mass_to_be_heated * ff
+            end do
          else
             return
          endif
       end subroutine CE_inject_energy
+
+      real(dp) function TukeyWindow(x,a)
+         use const_def, only: dp, pi
+         real(dp), intent(in) :: x, a
+
+         if ((x .ge. -0.5) .and. (x .le. 0.5) .and. (2.*x+a .ge. 0) .and. (-2.*x+a .ge. 0)) then
+            TukeyWindow = 1.
+         else if ((x .ge. -0.5) .and. (x .le. 0.5) .and. (2.*x+a .lt. 0)) then
+            TukeyWindow = 0.5*(1.-sin(pi*x/a))
+         else if ((x .ge. -0.5) .and. (x .le. 0.5) .and. (2.*x+a .gt. 0) .and. (-2.*x+a .lt. 0)) then
+            TukeyWindow = 0.5*(1.+sin(pi*x/a))
+         else
+            TukeyWindow = 0.
+         endif
+
+      end function TukeyWindow 
+
 
 
       end module CE_energy
