@@ -48,6 +48,7 @@
       ! for logical control values, you can use x_logical_ctrl
 
       use star_def
+      use const_def
 
       implicit none
       
@@ -60,19 +61,36 @@
          integer, intent(in) :: id
          integer, intent(out) :: ierr
          type (star_info), pointer :: s
+         real(dp) :: CE_energy_rate, CE_companion_position, CE_companion_radius, CE_companion_mass
          integer :: k
          ierr = 0
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
          s% extra_heat(:) = 0.0d0
-         ! here is an example of calculating extra_heat for each cell.
-         do k = 1, s% nz
-            if (s% r(k) > 10.*Rsun .and. s% r(k) < 20.*Rsun) then
-               !#CE: Note that "extra_heat" is the specific energy added to the the specific cell in
-               ! units of erg/s/gr
-               s% extra_heat(k) = 1d5
-            end if
-         end do
+         !#CE: Reading values of parameters from the extra controls that we are using
+         !#CE: Note that "extra_heat" is the specific energy added to the the  cell in units of erg/s/gr
+         CE_energy_rate = s% x_ctrl(1)
+         CE_companion_position = s% x_ctrl(2)
+         CE_companion_radius = s% x_ctrl(3)
+         CE_companion_mass = s% x_ctrl(4)
+         CE_test_case = s% x_integer_ctrl(1)
+
+         if (CE_test_case == 1) then
+            do k = 1, s% nz
+               if (s% r(k) > s% he_core_radius * Rsun) then
+                  s% extra_heat(k) = CE_energy_rate / ((s% star_mass - s% he_core_mass) * Msun)
+               end if
+            end do
+         else if (CE_test_case == 2) then
+            do k = 1, s% nz
+               if ((s% m(k) > s% he_core_mass * Msun) .and. (s% m(k) < (s% he_core_mass + 0.1d0) * Msun)) then
+                  s% extra_heat(k) = CE_energy_rate / (0.1 * Msun)
+               end if
+            end do
+
+         else
+            return
+         endif
       end subroutine CE_inject_energy
 
 
