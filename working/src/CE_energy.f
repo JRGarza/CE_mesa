@@ -62,7 +62,7 @@
          integer, intent(out) :: ierr
          type (star_info), pointer :: s
          real(dp) :: CE_energy_rate, CE_companion_position, CE_companion_radius, CE_companion_mass, CE_test_case
-         real(dp) :: mass_to_be_heated, a_tukey = 0.1, ff, ff_integral, extra_heat_integral
+         real(dp) :: mass_to_be_heated, a_tukey = 0.1, ff, ff_integral, extra_heat_integral, m_bot
          integer :: k
          ierr = 0
          call star_ptr(id, s, ierr)
@@ -76,19 +76,32 @@
          CE_companion_mass = s% x_ctrl(4)
          CE_test_case = s% x_integer_ctrl(1)
 
+         mass_to_be_heated = 0.
+         ff = 0.
+
          if (CE_test_case == 1) then
-            do k = 1, s% nz
-               if (s% r(k) > s% he_core_radius * Rsun) then
-                  s% extra_heat(k) = CE_energy_rate / ((s% star_mass - s% he_core_mass) * Msun)
-               end if
-            end do
-         else if (CE_test_case == 2) then
+         
+            ! mass (g) of the bottom of the (outer) convective envelope         
+              ! Based on the inner edge of the convective envelope
+!            m_bot = s% conv_mx1_bot * s% mstar
+              ! Based on the helium core
+            m_bot = s% he_core_mass * Msun
+
             !First calculate the mass in which the energy will be deposited
-            mass_to_be_heated =0.
-            ff_integral = 0.
+            do k = 1, s% nz
+               ff = EnvelopeWindow(s% m(k), m_bot)
+               mass_to_be_heated = mass_to_be_heated + s% dm(k) * ff
+            end do
+            !Now redo the loop and add the extra specific heat
+            do k = 1, s% nz
+               s% extra_heat(k) = CE_energy_rate / mass_to_be_heated * EnvelopeWindow(s% m(k), m_bot)
+            end do
+            
+         else if (CE_test_case == 2) then
+
+            !First calculate the mass in which the energy will be deposited
             do k = 1, s% nz
                ff = TukeyWindow(s% r(k)/(CE_companion_radius*Rsun) - CE_companion_position, a_tukey)
-               ff_integral = ff_integral + ff
                mass_to_be_heated =  mass_to_be_heated + s% dm(k) * ff
             end do
             !Now redo the loop and add the extra specific heat
@@ -97,27 +110,38 @@
                ff = TukeyWindow(s% r(k)/(CE_companion_radius*Rsun) - CE_companion_position, a_tukey)
                s% extra_heat(k) = CE_energy_rate / mass_to_be_heated * ff
             end do
+            
          else
             return
          endif
+         
+         contains
+
+         real(dp) function EnvelopeWindow(m_interior, m_bot)
+            use const_def, only: pi, Msun
+            real(dp), intent(in) :: m_interior, m_bot
+
+            EnvelopeWindow = atan((s% m(k) - m_bot) / (0.002*Msun)) + 0.5
+         
+         end function EnvelopeWindow
+
+         real(dp) function TukeyWindow(x,a)
+            use const_def, only: dp, pi
+            real(dp), intent(in) :: x, a
+
+            if ((x .ge. -0.5) .and. (x .le. 0.5) .and. (2.*x+a .ge. 0) .and. (-2.*x+a .ge. 0)) then
+               TukeyWindow = 1.
+            else if ((x .ge. -0.5) .and. (x .le. 0.5) .and. (2.*x+a .lt. 0)) then
+               TukeyWindow = 0.5*(1.-sin(pi*x/a))
+            else if ((x .ge. -0.5) .and. (x .le. 0.5) .and. (2.*x+a .gt. 0) .and. (-2.*x+a .lt. 0)) then
+               TukeyWindow = 0.5*(1.+sin(pi*x/a))
+            else
+               TukeyWindow = 0.
+            endif
+
+         end function TukeyWindow 
+
       end subroutine CE_inject_energy
-
-      real(dp) function TukeyWindow(x,a)
-         use const_def, only: dp, pi
-         real(dp), intent(in) :: x, a
-
-         if ((x .ge. -0.5) .and. (x .le. 0.5) .and. (2.*x+a .ge. 0) .and. (-2.*x+a .ge. 0)) then
-            TukeyWindow = 1.
-         else if ((x .ge. -0.5) .and. (x .le. 0.5) .and. (2.*x+a .lt. 0)) then
-            TukeyWindow = 0.5*(1.-sin(pi*x/a))
-         else if ((x .ge. -0.5) .and. (x .le. 0.5) .and. (2.*x+a .gt. 0) .and. (-2.*x+a .lt. 0)) then
-            TukeyWindow = 0.5*(1.+sin(pi*x/a))
-         else
-            TukeyWindow = 0.
-         endif
-
-      end function TukeyWindow 
-
 
 
       end module CE_energy
