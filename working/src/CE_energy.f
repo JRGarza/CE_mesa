@@ -121,7 +121,10 @@
             use const_def, only: pi, Msun
             real(dp), intent(in) :: m_interior, m_bot
 
-            EnvelopeWindow = atan((s% m(k) - m_bot) / (0.002*Msun)) + 0.5
+            ! arctan function causes a smooth transition from 0 to unity around m_bot.
+            ! The 0.002 in the denominator sets the width of the transition, in this case
+            ! calibrated so the transition region is roughly 0.01 Msun.
+            EnvelopeWindow = 1./pi * atan((s% m(k) - m_bot) / (0.002*Msun)) + 0.5
          
          end function EnvelopeWindow
 
