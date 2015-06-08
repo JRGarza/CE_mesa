@@ -1,0 +1,46 @@
+{
+	"folders":
+	[
+		{
+			"path": "src"
+		},
+		{
+			"path": "make",
+			"file_exclude_patterns":
+			[
+				"*.o",
+				"*.mod"
+			]
+		},
+		{
+			"path": ".",
+			"file_include_patterns":
+			[
+				"inlist*",
+				"*.inlist",
+				"*.list"
+			],
+			"folder_exclude_patterns":
+			[
+				"LOGS",
+				"photos",
+				"src",
+				"make"
+			]
+		},
+		{
+			"path": "/Users/tassos/repos/CE_mesa/data",
+			"file_exclude_patterns":
+			[
+				"*.o",
+				"*.mod",
+				"*.data"
+			],
+		}
+	],
+	"settings":
+	{
+		"tab_size": 3,
+		"translate_tabs_to_spaces": true
+	}
+}

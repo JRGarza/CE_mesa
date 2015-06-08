@@ -2,37 +2,29 @@
 
 &star_job
       
-      create_pre_main_sequence_model = .true.
+      load_saved_model = .true.
+      saved_model_name = '../data/Ivanova2015_1.6.mod'
 
       save_model_when_terminate = .true.
-      save_model_filename = 'inlist_Ivanova2015_1.6.mod'
+      save_model_filename = 'test_Ivanova2015.mod'
       
       write_profile_when_terminate = .true.
-      filename_for_profile_when_terminate = 'inlist_Ivanova2015_1.6.data'
+      filename_for_profile_when_terminate = 'test_Ivanova2015.data'
 
       history_columns_file = './history_columns.list'
       profile_columns_file = './profile_columns.list'
 
       kappa_file_prefix = 'gs98'
       
-!       change_lnPgas_flag = .true.
-!       new_lnPgas_flag = .true.
 
-!       change_initial_net = .true.      
-!       new_net_name = 'o18_and_ne22.net'
 
-      pre_ms_relax_num_steps = 200
-
+   set_initial_model_number = .true.
+   initial_model_number = 0
 
 !      change_v_flag = .true.
 !      change_initial_v_flag = .true.
 !      new_v_flag = .true.
       
-!        new_surface_rotation_v = 2 ! solar (km sec^1)
-!        set_near_zams_surface_rotation_v_steps = 10 ! to turn on rotation when near zams
-         ! if rotation_flag is false and L_nuc_burn_total >= L_phot and this control > 0
-         ! then turn on rotation and set set_surf_rotation_v_step_limit to
-         ! the current model_number plus this control
 
 
 
@@ -40,35 +32,39 @@
 
 &controls
 
-      ! check for retries and backups as part of test_suite
-      ! you can/should delete this for use outside of test_suite
-         max_number_backups = 50
-         max_number_retries = 100
+      use_other_energy = .true.
+      x_ctrl(1) = 3.1687536e+38  !#CE: CE_energy_rate: The rate at which energy is deposited in the star
+                                 !#CE: in units of erg/s      
+      x_ctrl(2) = 10.d0          !#CE: CE_companion_position: The distance of the center of the companion
+                                 !#CE: star from the center of the donor star in solar radii
+      x_ctrl(3) = 1.d0           !#CE: CE_companion_radius: The radius of the companion star in solar radii
+      x_ctrl(4) = 1.d0           !#CE: CE_companion_mass: The mass of the companion star in solar masses
+      x_integer_ctrl(1) = 2      !#CE: 1: Uniform heating of the whole envelope, 2: Heating only in the position of the 
+                                 !#CE: companion in the region R > CE_companion_position - CE_companion_radius and
+                                 !#CE: R < CE_companion_position + CE_companion_radius
 
-      initial_mass = 1.6
-      initial_z = 0.02d0
-      
+
+      !#CE: increase the resolution around the position of the companion where the energy is deposited.
+      !#CE: The other two parameters (R_function2_param1 and R_function2_param2) are set automatically
+      !#CE: based on the position of the companion.
+      R_function2_weight = 100
+
       use_Type2_opacities = .true.
       Zbase = 0.02d0
 
-      am_nu_visc_factor = 0
-      am_D_mix_factor = 0.0333333333333333d0
-      D_DSI_factor = 0
-      D_SH_factor = 1
-      D_SSI_factor = 1
-      D_ES_factor = 1
-      D_GSF_factor = 1
-      D_ST_factor = 1
-      
-      varcontrol_target = 1d-4
+      max_model_number = 512
+      varcontrol_target = 5d-3
       mesh_delta_coeff = 0.5
-     
+      max_allowed_nz = 20000
+      max_years_for_timestep = 0.1
+!       delta_lgR_limit = 0.001
+!       delta_lgE_limit = 0.001
       he_core_boundary_h1_fraction = 1.d-10
-      photosphere_r_upper_limit = 1d2
-!      he_core_mass_limit = 0.422
 
 
       history_interval = 1
+      profile_interval = 1
+      max_num_profile_models = 512
       terminal_cnt = 10
       write_header_frequency = 10
 

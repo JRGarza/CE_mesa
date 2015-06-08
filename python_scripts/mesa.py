@@ -28,23 +28,50 @@ def LoadOneProfile(filename, NY, Yaxis, Ymin, Ymax, Variable):
 	 
 	data_from_file=np.genfromtxt(filename, skiprows=5, names=True)
 	# Add the fields log_mass, log_q and log_radius, in case they are not stored in the profile files
-	try:
-		data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'log_mass',
-															data = np.log10(data_from_file['mass']), asrecarray=True)
-	except Exception:
-		raise ValueError("Column 'mass' is missing from the profile files")
 
-	try:
-		data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'log_q',
+	if (not "log_mass" in data_from_file.dtype.names):
+		try: 
+			data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'log_mass',
+																data = np.log10(data_from_file['mass']), asrecarray=True)
+		except Exception:
+			raise ValueError("Column 'mass' is missing from the profile files")
+
+	if (not "log_q" in data_from_file.dtype.names):
+		try:
+			data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'log_q',
 															data = np.log10(data_from_file['q']), asrecarray=True)
-	except Exception:
-		raise ValueError("Column 'q' is missing from the profile files")
+		except Exception:
+			raise ValueError("Column 'q' is missing from the profile files")
 
-	try:
-		data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'log_radius',
-															data = np.log10(data_from_file['radius']), asrecarray=True)
-	except Exception:
-		raise ValueError("Column 'radius' is missing from the profile files")
+	if (not "log_radius" in data_from_file.dtype.names):
+		try:
+			data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'log_radius',
+																data = np.log10(data_from_file['radius']), asrecarray=True)
+		except Exception:
+			try:
+				data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'log_radius',
+																	data = data_from_file['logR'], asrecarray=True)
+			except Exception:
+				raise ValueError("Column 'logR' or 'log_radius' or 'radius' is missing from the profile files")
+
+	if (not "radius" in data_from_file.dtype.names):
+		try:
+			data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'radius',
+																data = 10.**data_from_file['log_radius'], asrecarray=True)
+		except Exception:
+			try:
+				data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'radius',
+																	data = 10.**data_from_file['logR'], asrecarray=True)
+			except Exception:
+				raise ValueError("Column 'logR' or 'log_radius' or 'radius' is missing from the profile files")
+
+	if (not "j_rot" in data_from_file.dtype.names and (Variable == 'log_j_rot' or Variable == 'j_rot')):
+		try:
+			data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'j_rot',
+																data = 10.**data_from_file['log_j_rot'], asrecarray=True)
+		except Exception:
+			raise ValueError("Column 'log_j_rot' is missing from the profile files")
+
 
 	#Define the values that we want to itnerpolate along the  Y axis
 	Y_to_interp = (np.arange(1,NY+1).astype(float))/float(NY+2) * (Ymax-Ymin) + Ymin
@@ -53,18 +80,104 @@ def LoadOneProfile(filename, NY, Yaxis, Ymin, Ymax, Variable):
 	valid_points  = np.where((Y_to_interp < np.max(data_from_file[Yaxis])) & 
 							(Y_to_interp > np.min(data_from_file[Yaxis])))
 
-	interp_func = interp1d(data_from_file[Yaxis], data_from_file[Variable])
+	invalid_points  = np.where((Y_to_interp > np.max(data_from_file[Yaxis])) & 
+							(Y_to_interp < np.min(data_from_file[Yaxis])))
+
+	if (Variable == 'eps_rec' or Variable == 'ion_energy'):
+		interp_func = interp1d(data_from_file[Yaxis], IonizationEnergy(data_from_file))
+	else:
+		interp_func = interp1d(data_from_file[Yaxis], data_from_file[Variable])
+
 	data1 = np.zeros(NY)
 	data1[:] = float('nan')
 	data1[valid_points] = interp_func(Y_to_interp[valid_points])
+
 	return data1
+
+
+def IonizationEnergy(data_from_file):
+	# Here we will consider only H and He in the calculation of ionazion energy. Let us that N_H, N_HI, N_HII are
+	# the total number of H atoms, the  number of neutral H atoms and the number of ionized H atoms in a specific shell.
+	# For the Helium, the corresponding numbers would be N_He (total number of He atoms), N_HeI (number of neutral He atoms), 
+	# N_HeII (number of singly ionized He atoms), and N_HeIII (number of doubly ionized He atoms). Also, lets define as
+	# Q_H the average charge per hydrogen particle (in units of electron charge) in a shell and f_HI the fraction of neutral 
+	# H in a shell. For Helium the respective numbers are Q_He and F_HeI. Given these definitions we can write the equations:
+	# For hydrogen
+	# N_HI + N_HII = N_H
+	# N_HI = f_HI * N_H
+	# N_HII / NH = Q_H
+	# For Helium these equations become:
+	# N_HeI + N_HeII + N_HeIII = N_He 
+	# N_HeI = f_HeI * N_He
+	# (N_HeII + 2*N_HeIII)/N_He = Q_He
+	# Solving this simple system of equations can give us the number of H and He atoms at each ionization state:
+	# N_HII = Q_H * NH
+	# N_HeII = (2.-2.*f_HeI -Q_He) * N_He
+	# N_HeIII = (Q_He + f_HeI -1.) * N_He
+
+	erg_in_ev =1.60217657e-12 # ergs in 1 eV
+	Eion_HII_pp = 13.5924 * erg_in_ev # Ionization energy HI -> HII of one atom in ergs
+	Eion_HeII_pp = 24.5874 * erg_in_ev # Ionization energy HI -> HII of one atom in ergs
+	Eion_HeIII_pp = 54.417760 * erg_in_ev # Ionization energy HI -> HII of one atom in ergs
+	e_charge = 1.60217657e-19 # electron chanrge in coulomb
+	He_mass = 6.64648e-24 # Mass of He atom in gr
+	H_mass = 1.67372e-24 # Mass of H atom in gr
+
+	N_H = data_from_file['dm']*data_from_file['x_mass_fraction_H']/H_mass
+	N_He = data_from_file['dm']*data_from_file['y_mass_fraction_He']/He_mass
+
+	Q_H = data_from_file['avg_charge_H']
+	# Due to approximations in the mass of the different ions, Q_H may become slightly negative or above 1. 
+	# We check for this here
+	idx_values_above_1 = np.where(Q_H > 1.)
+	if len(idx_values_above_1) > 0:
+		Q_H[idx_values_above_1] =1.0
+	idx_values_below_0 = np.where(Q_H < 0.)
+	if len(idx_values_below_0) > 0:
+		Q_H[idx_values_below_0] =0.0
+
+	Q_He = data_from_file['avg_charge_He']
+	# Due to approximations in the mass of the different ions, Q_He may become slightly negative or above 2. 
+	# We check for this here
+	idx_values_above_2 = np.where(Q_He > 2.)
+	if len(idx_values_above_2) > 0:
+		Q_He[idx_values_above_2] =2.0
+	idx_values_below_0 = np.where(Q_He < 0.)
+	if len(idx_values_below_0) > 0:
+		Q_He[idx_values_below_0] =0.0
+
+	f_HI = data_from_file['neutral_fraction_H']
+	# Due to approximations in the mass of the different ions, f_HI may become slightly negative or above 1. 
+	# We check for this here
+	idx_values_above_1 = np.where(f_HI > 1.)
+	if len(idx_values_above_1) > 0:
+		f_HI[idx_values_above_1] =1.0
+	idx_values_below_0 = np.where(f_HI < 0.)
+	if len(idx_values_below_0) > 0:
+		f_HI[idx_values_below_0] =0.0
+
+	f_HeI = data_from_file['neutral_fraction_He']
+	# Due to approximations in the mass of the different ions, f_HeI may become slightly negative or above 1. 
+	# We check for this here
+	idx_values_above_1 = np.where(f_HeI > 1.)
+	if len(idx_values_above_1) > 0:
+		f_HeI[idx_values_above_1] =1.0
+	idx_values_below_0 = np.where(f_HeI < 0.)
+	if len(idx_values_below_0) > 0:
+		f_HeI[idx_values_below_0] =0.0
+
+	N_HII = Q_H * N_H
+	N_HeII = (2.-2.*f_HeI -Q_He) * N_He
+	N_HeIII = (Q_He + f_HeI -1.) * N_He
+
+	return (N_HII*Eion_HII_pp + N_HeII*Eion_HeII_pp + N_HeIII*(Eion_HeII_pp+Eion_HeIII_pp)) / data_from_file['dm']+1e-99
 
 
 
 class mesa(object):
 	def __init__(self, **kwargs):
 
-		self._param = {'data_path':"./", 'NX':512, 'NY':512, 'Yaxis':'mass', 'Xaxis':'star_age', 
+		self._param = {'data_path':"./", 'NX':1024, 'NY':1024, 'Yaxis':'mass', 'Xaxis':'star_age', 
 					'Variable':'eps_nuc', 'cmap':'coolwarm', 'cmap_dynamic_range':10, 'Xaxis_dynamic_range':float('Inf'), 
 					'Yaxis_dynamic_range':4, 'figure_format':"eps", 'font_small':16, 'font_large':20, 'file_out':'figure',
 					'onscreen':False, 'parallel':True, 'abundances':False, 'log_abundances':True, 'czones':False}
@@ -170,7 +283,7 @@ class mesa(object):
 
 
 	def CheckParameters(self):
-		cmaps=[m for m in cm.datad if not m.endswith("_r")]
+		cmaps=[m for m in cm.datad]
 		if not (self._param['cmap'] in cmaps):
 			raise ValueError(self._param['cmap']+"not a valid option for parameter cmap")
 		if not (self._param['Yaxis'] in ['mass', 'radius', 'q', 'log_mass', 'log_radius', 'log_q']):
@@ -178,6 +291,10 @@ class mesa(object):
 		if not (self._param['Xaxis'] in ['model_number', 'star_age', 'inv_star_age', 'log_model_number', 'log_star_age', 
 				'log_inv_star_age']):
 			raise ValueError(self._param['Xaxis']+"not a valid option for parameter Xaxis")
+		if not (self._param['Variable'] in ['eps_nuc', 'velocity', 'entropy', 'total_energy', 'j_rot', 'eps_rec', 'ion_energy']):
+			raise ValueError(self._param['Variable']+"not a valid option for parameter Variable")
+
+
 		return
 
 	def SetParameters(self,**kwargs):
@@ -222,17 +339,19 @@ class mesa(object):
 			self._Xmax = np.max(profile_age)
 			self._Xmin = np.min(profile_age)
 		elif self._param['Xaxis'] == "inv_star_age":
-			self._Xmax = np.min(profile_age)
-			self._Xmin = np.max(profile_age)
+			self._Xmax = np.min(profile_age[-1] - profile_age)
+			self._Xmin = np.max(profile_age[-1] - profile_age)
 		elif self._param['Xaxis'] == "log_model_number":
 			self._Xmax = np.max(np.log10(profile_index["model_number"]))
-			self._Xmin = max([np.min(np.log10(profile_index["model_number"])), self._Xmax-self._param['Xaxis_dynamic_range']])
+			self._Xmin = max([np.min(np.log10(profile_index["model_number"])), 
+							self._Xmax-self._param['Xaxis_dynamic_range']])
 		elif self._param['Xaxis'] == "log_star_age":
 			self._Xmax = np.max(np.log10(profile_age))
 			self._Xmin = max([np.min(np.log10(profile_age)), self._Xmax-self._param['Xaxis_dynamic_range']])
 		elif self._param['Xaxis'] == "log_inv_star_age":
-			self._Xmin = np.max(np.log10(profile_age))
-			self._Xmax = max([np.min(np.log10(profile_age)), self._Xmin-self._param['Xaxis_dynamic_range']])
+			self._Xmin = np.max(np.log10(profile_age[-1] - profile_age))
+			self._Xmax = max([np.min(np.log10(profile_age[-1] - profile_age)), 
+							self._Xmin-self._param['Xaxis_dynamic_range']])
 		else: 
 			raise(self._param['Xaxis']+" is not a valid option for Xaxis")
 
@@ -289,6 +408,23 @@ class mesa(object):
 				data_all[i,:] = LoadOneProfile(filename, self._param['NY'], self._param['Yaxis'], self._Ymin, 
 													self._Ymax, self._param['Variable'])
 
+
+
+
+		#If the chosen variable is "eps_rec", then we need to do an extratime derivative in data_all
+		if (self._param['Variable'] == 'eps_rec'):
+			dt_profile = np.diff(profile_age) * 1e6 * 3.15569e7
+			#Note that dt_profile has one element less that profile_age, and we need to fix this
+			dt_profile = np.append([1.e-99],dt_profile)
+			#Note that dE_ionization has one column less that data_all, and we need to fix this
+			dE_ionization = np.diff(data_all,n=1,axis=0)
+
+			dE_ionization = np.append([np.zeros(self._param['NY'])],dE_ionization, axis=0)
+
+			data_all = dE_ionization / [np.transpose([dt_profile])]
+			data_all = data_all[0,:,:]
+
+
 		for i in range(self._param['NY']):
 			if self._param['Xaxis'] == "model_number":
 				Xaxis_values = interp1d(profile_index["model_number"].astype(float), data_all[:,i])
@@ -301,14 +437,12 @@ class mesa(object):
 			elif self._param['Xaxis'] == "log_star_age":
 				Xaxis_values = interp1d(np.log10(profile_age), data_all[:,i])
 			elif self._param['Xaxis'] == "log_inv_star_age":
-				Xaxis_values = interp1d(np.log10(profile_age[-1]-profile_age+profile_age[0]), data_all[:,i])
+				Xaxis_values = interp1d(np.log10(profile_age[-1]-profile_age), data_all[:,i])
 			self._data[:,i] = Xaxis_values(X_to_interp)
 
 
 
 	def Kippenhahn(self):
-
-
 		######################################################################
 		# Set the labels of the two axis
 		if self._param['Yaxis'] == "mass":
@@ -338,14 +472,19 @@ class mesa(object):
 			Xlabel = "log(Time since the end of evolution [Myr])"
 
 		if self._param['Variable'] == "eps_nuc":
-			cmap_label = "log(specific nuclear power [erg/s/gr])"
+			cmap_label = "log($\epsilon_{nuclear}$ [erg/s/gr])"
 		elif self._param['Variable'] == "velocity":
 			cmap_label = "log(radial velocity [cm/s])"
 		elif self._param['Variable'] == "entropy":
 			cmap_label = "log(specific entropy [erg/K/gr])"
 		elif self._param['Variable'] == "total_energy":
 			cmap_label = "log(specific total energy [erg/gr])"
-
+		elif self._param['Variable'] == "j_rot":
+			cmap_label = "log(specific angular momentum [cm$^2$/s])"
+		elif self._param['Variable'] == "eps_rec":
+			cmap_label = "log($\epsilon_{recombination}$ [erg/s/gr])"
+		elif self._param['Variable'] == "ion_energy":
+			cmap_label = "log(specific ionization energy [erg/gr])"
 
 		fig1 = plt.figure()
 		ax1 = fig1.add_subplot(111)
@@ -382,14 +521,13 @@ class mesa(object):
 			elif self._param['Xaxis'] == "star_age":
 				X_axis_czones = self.history['star_age']/1.e6
 			elif self._param['Xaxis'] == "inv_star_age":
-				X_axis_czones = self.history['star_age'][-1]/1.e6-self.history['star_age']/1.e6
+				X_axis_czones = self.history['star_age'][-1]/1.e6 - self.history['star_age']/1.e6
 			elif self._param['Xaxis'] == "log_model_number":
 				X_axis_czones = np.log10(self.history['model_number'])
 			elif self._param['Xaxis'] == "log_star_age":
 				X_axis_czones = np.log10(self.history['star_age']/1.e6)
 			elif self._param['Xaxis'] == "log_inv_star_age":
 				X_axis_czones = np.log10(self.history['star_age'][-1]/1.e6-self.history['star_age']/1.e6)
-
 
 
 			if self._param['Yaxis'] == "mass":
@@ -565,9 +703,18 @@ class mesa(object):
 
 
 if __name__ == "__main__":
-	data_path = "/Users/tassos/Dropbox/Projects/mesa_projects/CE/make_starting_models/LOGS/"
-	a = mesa(data_path=data_path, parallel=True, abundances=True, log_abundances = True, Yaxis='mass', Xaxis="model_number", czones=True, Variable='entropy')
-	a.SetParameters(onscreen=True, cmap_dynamic_range=2)
+
+
+
+
+	#Options for Xaxis: 'model_number', 'star_age', 'inv_star_age', 'log_model_number', 'log_star_age', 'log_inv_star_age'
+	#Options for Yaxis: 'mass', 'radius', 'q', 'log_mass', 'log_radius', 'log_q'	
+	#Options for Variable: "eps_nuc", "velocity", "entropy", "total_energy, "j_rot", "eps_rec", "ion_energy"
+
+
+	data_path = "/Users/tassos/repos/CE_mesa/working/LOGS_v/"
+	a = mesa(data_path=data_path, parallel=True, abundances=False, log_abundances = True, Yaxis='log_radius', Xaxis="inv_star_age", czones=False, Variable='ion_energy')
+	a.SetParameters(onscreen=True, cmap = 'jet', cmap_dynamic_range=20)
 
 	a.Kippenhahn()
 
