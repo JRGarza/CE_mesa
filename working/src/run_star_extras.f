@@ -20,15 +20,16 @@
 !
 ! ***********************************************************************
  
- !#CE: copied the content from star/job/standard_run_satr_extras.inc here and made the necessary changes
+ ! copied the content from star/job/standard_run_satr_extras.inc here and made the necessary changes
 
       module run_star_extras
 
       use star_lib
       use star_def
       use const_def
-      !#CE: Add here all the external modules for CE_mesa here
+      ! Add here all the external modules for CE_mesa here
       use CE_energy
+      use CE_torque
       
       implicit none
       
@@ -47,53 +48,13 @@
          ! this is the place to set any procedure pointers you want to change
          ! e.g., other_wind, other_mixing, other_energy  (see star_data.inc)
 
-         !#CE: Here we should point to the names of the "other_" functions to be used         
+         ! Here we should point to the names of the "other_" functions to be used         
          s% other_energy => CE_inject_energy         
+         s% other_energy => CE_inject_am ! currently does nothing        
       end subroutine extras_controls
       
       
-      !#CE: Tidal heating prescription from CE
-      !#CE: Based off example from mesa/star/other/other_energy.f
-      
-      subroutine CE_energy_dissipation(id, ierr)
-         use const_def, only: Rsun
-         integer, intent(in) :: id
-         integer, intent(out) :: ierr
-         type (star_info), pointer :: s
-         integer :: k
-         ierr = 0
-         call star_ptr(id, s, ierr)
-         if (ierr /= 0) return
-         s% extra_heat(:) = 1 ! erg/g/sec
-         return
-         ! here is an example of calculating extra_heat for each cell.
-         do k = 1, s% nz
-            if (s% r(k) > 0.7*Rsun .and. s% r(k) < 0.9*Rsun) then
-               s% extra_heat(k) = 1d3*exp(-10*(s% r(k) - 0.8*Rsun)**2)
-            end if
-         end do
-      end subroutine CE_energy_dissipation
 
-
-      !#CE: Angular momentum prescription from CE
-      !#CE: Based off example from mesa/star/other/other_torque.f
-      	  
-      subroutine CE_torque(id, ierr)
-         integer, intent(in) :: id
-         integer, intent(out) :: ierr
-         type (star_info), pointer :: s
-         integer :: k
-         ierr = 0
-         call star_ptr(id, s, ierr)
-         if (ierr /= 0) return
-         !#CE: here is an (unrealistic) example of adding angular momentum to each cell
-         do k = 1, s% nz
-            s% extra_jdot(k) = 1 ! rate at which specific angular momentum is changed
-!#CE: note that can set extra_omegadot instead of extra_jdot if that is more convenient
-!#CE: set one or the other, not both.  set the one you are not using to 0 as in the following line.
-            s% extra_omegadot(k) = 0 ! rate at which omega is changed
-         end do
-      end subroutine CE_torque
 
 
       
@@ -115,17 +76,17 @@
             call unpack_extra_info(s)
          end if
 
-         !#CE: Reading values of parameters from the extra controls that we are using
-         !#CE: Note that "extra_heat" is the specific energy added to the the  cell in units of erg/s/gr
+         ! Reading values of parameters from the extra controls that we are using
+         ! Note that "extra_heat" is the specific energy added to the the  cell in units of erg/s/gr
          CE_energy_rate = s% x_ctrl(1)
          CE_companion_position = s% x_ctrl(2)
          CE_companion_radius = s% x_ctrl(3)
          CE_companion_mass = s% x_ctrl(4)
          CE_test_case = s% x_integer_ctrl(1)
 
-         !#CE: We need to increase the resolution around the area where the extra heat is deposited
-         !#CE: We will do this at the startup and also in the extra_check model, since the position
-         !#CE: of the companion will be changing
+         ! We need to increase the resolution around the area where the extra heat is deposited
+         ! We will do this at the startup and also in the extra_check model, since the position
+         ! of the companion will be changing
          if (CE_test_case == 2) then
             s% R_function2_param1 = CE_companion_position/(s%r(1)/Rsun) - 2.*CE_companion_radius/(s%r(1)/Rsun)
             s% R_function2_param2 = CE_companion_position/(s%r(1)/Rsun) + 2.*CE_companion_radius/(s%r(1)/Rsun)
@@ -154,24 +115,21 @@
 
 
 
-         !#CE: Reading values of parameters from the extra controls that we are using
-         !#CE: Note that "extra_heat" is the specific energy added to the the  cell in units of erg/s/gr
+         ! Reading values of parameters from the extra controls that we are using
+         ! Note that "extra_heat" is the specific energy added to the the  cell in units of erg/s/gr
          CE_energy_rate = s% x_ctrl(1)
          CE_companion_position = s% x_ctrl(2)
          CE_companion_radius = s% x_ctrl(3)
          CE_companion_mass = s% x_ctrl(4)
          CE_test_case = s% x_integer_ctrl(1)
 
-         !#CE: We need to increase the resolution around the area where the extra heat is deposited
-         !#CE: We will do this at the startup and also in the extra_check model, since the position
-         !#CE: of the companion will be changing
+         ! We need to increase the resolution around the area where the extra heat is deposited
+         ! We will do this at the startup and also in the extra_check model, since the position
+         ! of the companion will be changing
          if (CE_test_case == 2) then
             s% R_function2_param1 = CE_companion_position/(s%r(1)/Rsun) - 2.*CE_companion_radius/(s%r(1)/Rsun)
             s% R_function2_param2 = CE_companion_position/(s%r(1)/Rsun) + 2.*CE_companion_radius/(s%r(1)/Rsun)
          endif
-
-
-
 
          ! if you want to check multiple conditions, it can be useful
          ! to set a different termination code depending on which

@@ -68,8 +68,8 @@
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
          s% extra_heat(:) = 0.0d0
-         !#CE: Reading values of parameters from the extra controls that we are using
-         !#CE: Note that "extra_heat" is the specific energy added to the the  cell in units of erg/s/gr
+         ! Reading values of parameters from the extra controls that we are using
+         ! Note that "extra_heat" is the specific energy added to the the  cell in units of erg/s/gr
          CE_energy_rate = s% x_ctrl(1)
          CE_companion_position = s% x_ctrl(2)
          CE_companion_radius = s% x_ctrl(3)
