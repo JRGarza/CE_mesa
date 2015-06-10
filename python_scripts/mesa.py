@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import matplotlib
-matplotlib.use('Qt4Agg')
+#matplotlib.use('Qt4Agg')
 
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
@@ -9,7 +9,6 @@ import matplotlib.cm as cm
 
 import numpy as np
 import numpy.lib.recfunctions 
-import pandas as pd
 from astropy import units as u
 from astropy import constants as const
 from multiprocessing import Pool,cpu_count
@@ -72,6 +71,14 @@ def LoadOneProfile(filename, NY, Yaxis, Ymin, Ymax, Variable):
 		except Exception:
 			raise ValueError("Column 'log_j_rot' is missing from the profile files")
 
+        if (not "dq" in data_from_file.dtype.names):
+                try:
+                        data_from_file = numpy.lib.recfunctions.append_fields(data_from_file, 'dq',
+                                 data = data_from_file['dq'], asrecarray=True)
+                except Exception:
+                        raise ValueError("Column 'dq' is missing from the profile files")
+
+
 
 	#Define the values that we want to itnerpolate along the  Y axis
 	Y_to_interp = (np.arange(1,NY+1).astype(float))/float(NY+2) * (Ymax-Ymin) + Ymin
@@ -84,9 +91,11 @@ def LoadOneProfile(filename, NY, Yaxis, Ymin, Ymax, Variable):
 							(Y_to_interp < np.min(data_from_file[Yaxis])))
 
 	if (Variable == 'eps_rec' or Variable == 'ion_energy'):
-		interp_func = interp1d(data_from_file[Yaxis], IonizationEnergy(data_from_file))
+#		interp_func = interp1d(data_from_file[Yaxis], IonizationEnergy(data_from_file))
+                interp_func = interp1d(data_from_file[Yaxis][::-1], IonizationEnergy(data_from_file)[::-1])
 	else:
-		interp_func = interp1d(data_from_file[Yaxis], data_from_file[Variable])
+                interp_func = interp1d(data_from_file[Yaxis][::-1], data_from_file[Variable][::-1])
+#		interp_func = interp1d(data_from_file[Yaxis], data_from_file[Variable])
 
 	data1 = np.zeros(NY)
 	data1[:] = float('nan')
@@ -291,7 +300,7 @@ class mesa(object):
 		if not (self._param['Xaxis'] in ['model_number', 'star_age', 'inv_star_age', 'log_model_number', 'log_star_age', 
 				'log_inv_star_age']):
 			raise ValueError(self._param['Xaxis']+"not a valid option for parameter Xaxis")
-		if not (self._param['Variable'] in ['eps_nuc', 'velocity', 'entropy', 'total_energy', 'j_rot', 'eps_rec', 'ion_energy']):
+		if not (self._param['Variable'] in ['eps_nuc', 'velocity', 'entropy', 'total_energy', 'j_rot', 'eps_rec', 'ion_energy', 'dq']):
 			raise ValueError(self._param['Variable']+"not a valid option for parameter Variable")
 
 
@@ -318,9 +327,10 @@ class mesa(object):
 
 
 	def LoadData(self):
-		# Read history with panda so that we keep the column names and then convert then convert to a record array
-		self.history = pd.io.parsers.read_csv(self._param['data_path']+"history.data", header=5, index_col=False, sep=r'\s*', engine='python')
-		self.history = self.history.to_records()
+		# Read history with numpy so that we keep the column names and then convert then convert to a record array
+		self.history = np.genfromtxt(self._param['data_path']+"history.data", skiprows=5, names=True)
+
+		print self.history["model_number"]
 
 		# Read list of available profile files
 		profile_index = np.loadtxt(self._param['data_path']+"profiles.index",skiprows=1,usecols=(0,2), 
@@ -399,8 +409,9 @@ class mesa(object):
 		    results = [pool.apply_async(LoadOneProfile, args = (filename, self._param['NY'], self._param['Yaxis'], 
 		    			self._Ymin, self._Ymax, self._param['Variable'],)) for filename in filenames]
 		    Nresults=len(results)
+
 		    for i in range(0,Nresults):
-		        data_all[i,:] = results[i].get()
+			data_all[i,:] = results[i].get()
 		else:
 			print "Process running serially" 
 			for i in range(Nprofile):
@@ -454,7 +465,7 @@ class mesa(object):
 		elif self._param['Yaxis'] == "log_mass":
 			Ylabel = "log(Mass Coordinate [$M_{\odot}$])"
 		elif self._param['Yaxis'] == "log_radius":
-			Ylabel = "log(Radius Coordinate [$M_{\odot}$])"
+			Ylabel = "log(Radius Coordinate [$R_{\odot}$])"
 		elif self._param['Yaxis'] == "log_q":
 			Ylabel = "log(Dimentionless Mass Coordinate q)"
 
@@ -485,6 +496,8 @@ class mesa(object):
 			cmap_label = "log($\epsilon_{recombination}$ [erg/s/gr])"
 		elif self._param['Variable'] == "ion_energy":
 			cmap_label = "log(specific ionization energy [erg/gr])"
+                elif self._param['Variable'] == "dq":
+                        cmap_label = "Cell Mass Fraction"
 
 		fig1 = plt.figure()
 		ax1 = fig1.add_subplot(111)
@@ -709,11 +722,11 @@ if __name__ == "__main__":
 
 	#Options for Xaxis: 'model_number', 'star_age', 'inv_star_age', 'log_model_number', 'log_star_age', 'log_inv_star_age'
 	#Options for Yaxis: 'mass', 'radius', 'q', 'log_mass', 'log_radius', 'log_q'	
-	#Options for Variable: "eps_nuc", "velocity", "entropy", "total_energy, "j_rot", "eps_rec", "ion_energy"
+	#Options for Variable: "eps_nuc", "velocity", "entropy", "total_energy, "j_rot", "eps_rec", "ion_energy", "dq"
 
 
-	data_path = "/Users/tassos/repos/CE_mesa/working/LOGS_v/"
-	a = mesa(data_path=data_path, parallel=True, abundances=False, log_abundances = True, Yaxis='log_radius', Xaxis="inv_star_age", czones=False, Variable='ion_energy')
+	data_path = "../working/LOGS/"
+	a = mesa(data_path=data_path, parallel=True, abundances=False, log_abundances = True, Yaxis='log_radius', Xaxis="model_number", czones=False, Variable='dq')
 	a.SetParameters(onscreen=True, cmap = 'jet', cmap_dynamic_range=20)
 
 	a.Kippenhahn()
