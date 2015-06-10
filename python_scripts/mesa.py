@@ -454,7 +454,7 @@ class mesa(object):
 		elif self._param['Yaxis'] == "log_mass":
 			Ylabel = "log(Mass Coordinate [$M_{\odot}$])"
 		elif self._param['Yaxis'] == "log_radius":
-			Ylabel = "log(Radius Coordinate [$M_{\odot}$])"
+			Ylabel = "log(Radius Coordinate [$R_{\odot}$])"
 		elif self._param['Yaxis'] == "log_q":
 			Ylabel = "log(Dimentionless Mass Coordinate q)"
 
@@ -713,7 +713,7 @@ if __name__ == "__main__":
 
 
 	data_path = "/Users/tassos/repos/CE_mesa/working/LOGS_v/"
-	a = mesa(data_path=data_path, parallel=True, abundances=False, log_abundances = True, Yaxis='log_radius', Xaxis="inv_star_age", czones=False, Variable='ion_energy')
+	a = mesa(data_path=data_path, parallel=True, abundances=False, log_abundances = True, Yaxis='mass', Xaxis="inv_star_age", czones=False, Variable='eps_rec')
 	a.SetParameters(onscreen=True, cmap = 'jet', cmap_dynamic_range=20)
 
 	a.Kippenhahn()

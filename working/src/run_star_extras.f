@@ -88,8 +88,8 @@
          ! We will do this at the startup and also in the extra_check model, since the position
          ! of the companion will be changing
          if (CE_test_case == 2) then
-            s% R_function2_param1 = CE_companion_position/(s%r(1)/Rsun) - 2.*CE_companion_radius/(s%r(1)/Rsun)
-            s% R_function2_param2 = CE_companion_position/(s%r(1)/Rsun) + 2.*CE_companion_radius/(s%r(1)/Rsun)
+            s% R_function2_param1 = CE_companion_position/(s%r(1)/Rsun) + 2.*CE_companion_radius/(s%r(1)/Rsun)
+            s% R_function2_param2 = CE_companion_position/(s%r(1)/Rsun) - 2.*CE_companion_radius/(s%r(1)/Rsun)
          endif
 
       end function extras_startup
@@ -127,8 +127,8 @@
          ! We will do this at the startup and also in the extra_check model, since the position
          ! of the companion will be changing
          if (CE_test_case == 2) then
-            s% R_function2_param1 = CE_companion_position/(s%r(1)/Rsun) - 2.*CE_companion_radius/(s%r(1)/Rsun)
-            s% R_function2_param2 = CE_companion_position/(s%r(1)/Rsun) + 2.*CE_companion_radius/(s%r(1)/Rsun)
+            s% R_function2_param1 = CE_companion_position/(s%r(1)/Rsun) + 2.*CE_companion_radius/(s%r(1)/Rsun)
+            s% R_function2_param2 = CE_companion_position/(s%r(1)/Rsun) - 2.*CE_companion_radius/(s%r(1)/Rsun)
          endif
 
          ! if you want to check multiple conditions, it can be useful
