@@ -5,15 +5,14 @@
 			"path": "src"
 		},
 		{
-			"path": "make",
 			"file_exclude_patterns":
 			[
 				"*.o",
 				"*.mod"
-			]
+			],
+			"path": "make"
 		},
 		{
-			"path": ".",
 			"file_include_patterns":
 			[
 				"inlist*",
@@ -26,16 +25,29 @@
 				"photos",
 				"src",
 				"make"
-			]
+			],
+			"path": "."
 		},
 		{
-			"path": "/Users/tassos/repos/CE_mesa/data",
 			"file_exclude_patterns":
 			[
 				"*.o",
 				"*.mod",
 				"*.data"
 			],
+			"path": "/Users/tassos/repos/CE_mesa/data"
+		},
+		{
+			"path": "LOGS"
+		},
+		{
+			"path": "LOGS_no_v"
+		},
+		{
+			"path": "LOGS_v"
+		},
+		{
+			"path": "photos"
 		}
 	],
 	"settings":
