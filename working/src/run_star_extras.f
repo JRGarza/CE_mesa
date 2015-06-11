@@ -29,7 +29,7 @@
       use const_def
       ! Add here all the external modules for CE_mesa here
       use CE_energy
-      use CE_torque
+!      use CE_torque
       
       implicit none
       
@@ -50,7 +50,7 @@
 
          ! Here we should point to the names of the "other_" functions to be used         
          s% other_energy => CE_inject_energy         
-         s% other_energy => CE_inject_am ! currently does nothing        
+!         s% other_energy => CE_inject_am ! currently does nothing        
       end subroutine extras_controls
       
       
@@ -65,7 +65,8 @@
          logical, intent(in) :: restart
          integer, intent(out) :: ierr
          type (star_info), pointer :: s
-         real(dp) :: CE_energy_rate, CE_companion_position, CE_companion_radius, CE_companion_mass, CE_test_case
+         real(dp) :: CE_energy_rate, CE_companion_position, CE_companion_radius, CE_companion_mass
+         integer :: CE_test_case
          ierr = 0
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
@@ -87,10 +88,12 @@
          ! We need to increase the resolution around the area where the extra heat is deposited
          ! We will do this at the startup and also in the extra_check model, since the position
          ! of the companion will be changing
-         if (CE_test_case == 2) then
-            s% R_function2_param1 = CE_companion_position/(s%r(1)/Rsun) - 2.*CE_companion_radius/(s%r(1)/Rsun)
-            s% R_function2_param2 = CE_companion_position/(s%r(1)/Rsun) + 2.*CE_companion_radius/(s%r(1)/Rsun)
-         endif
+!         if (CE_test_case == 2) then
+!            s% R_function2_param1 = CE_companion_position/(s%r(1)/Rsun) + 2.*CE_companion_radius/(s%r(1)/Rsun)
+!            s% R_function2_param2 = CE_companion_position/(s%r(1)/Rsun) - 2.*CE_companion_radius/(s%r(1)/Rsun)
+!	    write(*,*) s%r(1)/Rsun*s% R_function2_param1, s%r(1)/Rsun*s% R_function2_param2
+
+!         endif
 
       end function extras_startup
       
@@ -100,7 +103,8 @@
          integer, intent(in) :: id, id_extra
          integer :: ierr
          type (star_info), pointer :: s
-         real(dp) :: CE_energy_rate, CE_companion_position, CE_companion_radius, CE_companion_mass, CE_test_case
+         real(dp) :: CE_energy_rate, CE_companion_position, CE_companion_radius, CE_companion_mass
+         integer :: CE_test_case
          ierr = 0
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
@@ -126,10 +130,10 @@
          ! We need to increase the resolution around the area where the extra heat is deposited
          ! We will do this at the startup and also in the extra_check model, since the position
          ! of the companion will be changing
-         if (CE_test_case == 2) then
-            s% R_function2_param1 = CE_companion_position/(s%r(1)/Rsun) - 2.*CE_companion_radius/(s%r(1)/Rsun)
-            s% R_function2_param2 = CE_companion_position/(s%r(1)/Rsun) + 2.*CE_companion_radius/(s%r(1)/Rsun)
-         endif
+!         if (CE_test_case == 2) then
+!            s% R_function2_param1 = CE_companion_position/(s%r(1)/Rsun) + 2.*CE_companion_radius/(s%r(1)/Rsun)
+!            s% R_function2_param2 = CE_companion_position/(s%r(1)/Rsun) - 2.*CE_companion_radius/(s%r(1)/Rsun)
+!         endif
 
          ! if you want to check multiple conditions, it can be useful
          ! to set a different termination code depending on which
