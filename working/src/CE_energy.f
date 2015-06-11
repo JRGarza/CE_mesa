@@ -61,9 +61,9 @@
          integer, intent(in) :: id
          integer, intent(out) :: ierr
          type (star_info), pointer :: s
-         real(dp) :: CE_energy_rate, CE_companion_position, CE_companion_radius, CE_companion_mass, CE_test_case
+         real(dp) :: CE_energy_rate, CE_companion_position, CE_companion_radius, CE_companion_mass
          real(dp) :: mass_to_be_heated, a_tukey = 0.1, ff, ff_integral, extra_heat_integral, m_bot
-         integer :: k
+         integer :: k, CE_test_case
          ierr = 0
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
@@ -78,6 +78,7 @@
 
          mass_to_be_heated = 0.
          ff = 0.
+
 
          if (CE_test_case == 1) then
          

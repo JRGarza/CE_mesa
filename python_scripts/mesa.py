@@ -83,10 +83,8 @@ def LoadOneProfile(filename, NY, Yaxis, Ymin, Ymax, Variable):
 	invalid_points  = np.where((Y_to_interp > np.max(data_from_file[Yaxis])) & 
 							(Y_to_interp < np.min(data_from_file[Yaxis])))
 
-	if (Variable == 'eps_rec' or Variable == 'ion_energy'):
-		interp_func = interp1d(data_from_file[Yaxis], IonizationEnergy(data_from_file))
-	else:
-		interp_func = interp1d(data_from_file[Yaxis], data_from_file[Variable])
+
+	interp_func = interp1d(data_from_file[Yaxis], data_from_file[Variable])
 
 	data1 = np.zeros(NY)
 	data1[:] = float('nan')
@@ -291,7 +289,8 @@ class mesa(object):
 		if not (self._param['Xaxis'] in ['model_number', 'star_age', 'inv_star_age', 'log_model_number', 'log_star_age', 
 				'log_inv_star_age']):
 			raise ValueError(self._param['Xaxis']+"not a valid option for parameter Xaxis")
-		if not (self._param['Variable'] in ['eps_nuc', 'velocity', 'entropy', 'total_energy', 'j_rot', 'eps_rec', 'ion_energy']):
+		if not (self._param['Variable'] in ['eps_nuc', 'velocity', 'entropy', 'total_energy', 'j_rot', 'eps_recombination'
+				, 'ionization_energy']):
 			raise ValueError(self._param['Variable']+"not a valid option for parameter Variable")
 
 
@@ -329,7 +328,7 @@ class mesa(object):
 
 		#Create an array fromt eh history data that gives you the age of each model for wich you have output a profile
 		model_age_from_history =  interp1d(self.history["model_number"], self.history["star_age"])
-		profile_age = model_age_from_history(profile_index["model_number"])/1.e6
+		profile_age = model_age_from_history(profile_index["model_number"])
 
 		# Set the maximum and the minimum of the X axis
 		if self._param['Xaxis'] == "model_number":
@@ -461,15 +460,15 @@ class mesa(object):
 		if self._param['Xaxis'] == "model_number":
 			Xlabel = "Model Number"
 		elif self._param['Xaxis'] == "star_age":
-			Xlabel = "Star Age [Myr]"
+			Xlabel = "Star Age [yr]"
 		elif self._param['Xaxis'] == "inv_star_age":
-			Xlabel = "Time since the end of evolution [Myr]"
+			Xlabel = "Time since the end of evolution [yr]"
 		elif self._param['Xaxis'] == "log_model_number":
 			Xlabel = "log(Model Number)"
 		elif self._param['Xaxis'] == "log_star_age":
-			Xlabel = "log(Star Age [Myr])"
+			Xlabel = "log(Star Age [yr])"
 		elif self._param['Xaxis'] == "log_inv_star_age":
-			Xlabel = "log(Time since the end of evolution [Myr])"
+			Xlabel = "log(Time since the end of evolution [yr])"
 
 		if self._param['Variable'] == "eps_nuc":
 			cmap_label = "log($\epsilon_{nuclear}$ [erg/s/gr])"
@@ -481,9 +480,9 @@ class mesa(object):
 			cmap_label = "log(specific total energy [erg/gr])"
 		elif self._param['Variable'] == "j_rot":
 			cmap_label = "log(specific angular momentum [cm$^2$/s])"
-		elif self._param['Variable'] == "eps_rec":
+		elif self._param['Variable'] == "eps_recombination":
 			cmap_label = "log($\epsilon_{recombination}$ [erg/s/gr])"
-		elif self._param['Variable'] == "ion_energy":
+		elif self._param['Variable'] == "ionization_energy":
 			cmap_label = "log(specific ionization energy [erg/gr])"
 
 		fig1 = plt.figure()
@@ -519,15 +518,15 @@ class mesa(object):
 			if self._param['Xaxis'] == "model_number":
 				X_axis_czones = self.history['model_number']
 			elif self._param['Xaxis'] == "star_age":
-				X_axis_czones = self.history['star_age']/1.e6
+				X_axis_czones = self.history['star_age']
 			elif self._param['Xaxis'] == "inv_star_age":
-				X_axis_czones = self.history['star_age'][-1]/1.e6 - self.history['star_age']/1.e6
+				X_axis_czones = self.history['star_age'][-1] - self.history['star_age']
 			elif self._param['Xaxis'] == "log_model_number":
 				X_axis_czones = np.log10(self.history['model_number'])
 			elif self._param['Xaxis'] == "log_star_age":
-				X_axis_czones = np.log10(self.history['star_age']/1.e6)
+				X_axis_czones = np.log10(self.history['star_age'])
 			elif self._param['Xaxis'] == "log_inv_star_age":
-				X_axis_czones = np.log10(self.history['star_age'][-1]/1.e6-self.history['star_age']/1.e6)
+				X_axis_czones = np.log10(self.history['star_age'][-1]-self.history['star_age'])
 
 
 			if self._param['Yaxis'] == "mass":
@@ -600,15 +599,15 @@ class mesa(object):
 			if self._param['Xaxis'] == "model_number":
 				X_axis_abundances = self.history['model_number']
 			elif self._param['Xaxis'] == "star_age":
-				X_axis_abundances = self.history['star_age']/1.e6
+				X_axis_abundances = self.history['star_age']
 			elif self._param['Xaxis'] == "inv_star_age":
-				X_axis_abundances = self.history['star_age'][-1]/1.e6-self.history['star_age']/1.e6
+				X_axis_abundances = self.history['star_age'][-1]-self.history['star_age']
 			elif self._param['Xaxis'] == "log_model_number":
 				X_axis_abundances = np.log10(self.history['model_number'])
 			elif self._param['Xaxis'] == "log_star_age":
-				X_axis_abundances = np.log10(self.history['star_age']/1.e6)
+				X_axis_abundances = np.log10(self.history['star_age'])
 			elif self._param['Xaxis'] == "log_inv_star_age":
-				X_axis_abundances = np.log10(self.history['star_age'][-1]/1.e6-self.history['star_age']/1.e6)
+				X_axis_abundances = np.log10(self.history['star_age'][-1]-self.history['star_age'])
 
 
 
@@ -709,12 +708,13 @@ if __name__ == "__main__":
 
 	#Options for Xaxis: 'model_number', 'star_age', 'inv_star_age', 'log_model_number', 'log_star_age', 'log_inv_star_age'
 	#Options for Yaxis: 'mass', 'radius', 'q', 'log_mass', 'log_radius', 'log_q'	
-	#Options for Variable: "eps_nuc", "velocity", "entropy", "total_energy, "j_rot", "eps_rec", "ion_energy"
+	#Options for Variable: "eps_nuc", "velocity", "entropy", "total_energy, "j_rot", "eps_recombination", "ionization_energy"
 
 
-	data_path = "/Users/tassos/repos/CE_mesa/working/LOGS_v/"
-	a = mesa(data_path=data_path, parallel=True, abundances=False, log_abundances = True, Yaxis='mass', Xaxis="inv_star_age", czones=False, Variable='eps_rec')
-	a.SetParameters(onscreen=True, cmap = 'jet', cmap_dynamic_range=20)
+	data_path = "/Users/tassos/repos/CE_mesa/working/LOGS/"
+	a = mesa(data_path=data_path, parallel=True, abundances=False, log_abundances = True, Yaxis='mass', Xaxis="inv_star_age", 
+		czones=False, Variable='eps_recombination')
+	a.SetParameters(onscreen=True, cmap = 'jet', cmap_dynamic_range=10)
 
 	a.Kippenhahn()
 

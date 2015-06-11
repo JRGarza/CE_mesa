@@ -30,6 +30,8 @@
       ! Add here all the external modules for CE_mesa here
       use CE_energy
       use CE_torque
+      use CE_after_struct_burn_mix
+      use CE_before_struct_burn_mix
       
       implicit none
       
@@ -50,7 +52,9 @@
 
          ! Here we should point to the names of the "other_" functions to be used         
          s% other_energy => CE_inject_energy         
-         s% other_energy => CE_inject_am ! currently does nothing        
+         s% other_torque => CE_inject_am ! currently does nothing   
+         s% other_before_struct_burn_mix => calc_recombination_before_struct_burn_mix
+         s% other_after_struct_burn_mix => calc_recombination_after_struct_burn_mix     
       end subroutine extras_controls
       
       
@@ -111,9 +115,6 @@
             write(*, *) 'have reached desired hydrogen mass'
             return
          end if
-
-
-
 
          ! Reading values of parameters from the extra controls that we are using
          ! Note that "extra_heat" is the specific energy added to the the  cell in units of erg/s/gr
@@ -181,7 +182,7 @@
          ierr = 0
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
-         how_many_extra_profile_columns = 0
+         how_many_extra_profile_columns = 2
       end function how_many_extra_profile_columns
       
       
@@ -208,7 +209,14 @@
          !do k = 1, nz
          !   vals(k,1) = s% Pgas(k)/s% P(k)
          !end do
-         
+
+         names(1) = 'ionization_energy'
+         names(2) = 'eps_recombination'
+         do k = 1, nz
+           vals(k,1) = s% xtra1_array(k)
+           vals(k,2) = s% xtra2_array(k)
+         end do
+
       end subroutine data_for_extra_profile_columns
       
 

@@ -79,7 +79,7 @@
       end subroutine CE_inject_am
 
 
-      end module CE_energy
+      end module CE_torque
 
 
 
