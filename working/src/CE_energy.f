@@ -61,60 +61,70 @@
          integer, intent(in) :: id
          integer, intent(out) :: ierr
          type (star_info), pointer :: s
-         real(dp) :: CE_energy_rate, CE_companion_position, CE_companion_radius, CE_companion_mass, CE_test_case
-         real(dp) :: mass_to_be_heated, a_tukey = 0.1, ff, ff_integral, extra_heat_integral, m_bot
-         integer :: k
+         integer :: CE_test_case
+
          ierr = 0
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
-         s% extra_heat(:) = 0.0d0
-         ! Reading values of parameters from the extra controls that we are using
-         ! Note that "extra_heat" is the specific energy added to the the  cell in units of erg/s/gr
-         CE_energy_rate = s% x_ctrl(1)
-         CE_companion_position = s% x_ctrl(2)
-         CE_companion_radius = s% x_ctrl(3)
-         CE_companion_mass = s% x_ctrl(4)
+
          CE_test_case = s% x_integer_ctrl(1)
 
-         mass_to_be_heated = 0.
-         ff = 0.
-
+         ! Call functions to calculate test cases
          if (CE_test_case == 1) then
-         
-            ! mass (g) of the bottom of the (outer) convective envelope         
-              ! Based on the inner edge of the convective envelope
-!            m_bot = s% conv_mx1_bot * s% mstar
-              ! Based on the helium core
-            m_bot = s% he_core_mass * Msun
-
-            !First calculate the mass in which the energy will be deposited
-            do k = 1, s% nz
-               ff = EnvelopeWindow(s% m(k), m_bot)
-               mass_to_be_heated = mass_to_be_heated + s% dm(k) * ff
-            end do
-            !Now redo the loop and add the extra specific heat
-            do k = 1, s% nz
-               s% extra_heat(k) = CE_energy_rate / mass_to_be_heated * EnvelopeWindow(s% m(k), m_bot)
-            end do
+        
+            call CE_inject_case1(id, ierr, s% extra_heat)
             
          else if (CE_test_case == 2) then
 
-            !First calculate the mass in which the energy will be deposited
-            do k = 1, s% nz
-               ff = TukeyWindow(s% r(k)/(CE_companion_radius*Rsun) - CE_companion_position, a_tukey)
-               mass_to_be_heated =  mass_to_be_heated + s% dm(k) * ff
-            end do
-            !Now redo the loop and add the extra specific heat
-            extra_heat_integral = 0.
-            do k = 1, s% nz
-               ff = TukeyWindow(s% r(k)/(CE_companion_radius*Rsun) - CE_companion_position, a_tukey)
-               s% extra_heat(k) = CE_energy_rate / mass_to_be_heated * ff
-            end do
-            
-         else
-            return
+            call CE_inject_case2(id, ierr, s% extra_heat)     
+
+         else if (CE_test_case == 3) then
+        
+            call CE_inject_case3(id, ierr, s% extra_heat)
+ 
          endif
-         
+
+
+      end subroutine CE_inject_energy
+
+
+
+
+      subroutine CE_inject_case1(id, ierr, extra_heat)
+
+         use const_def, only: Msun
+         integer, intent(in) :: id
+         integer, intent(out) :: ierr
+         real(dp), intent(out) :: extra_heat(:)
+         type (star_info), pointer :: s
+         integer :: k
+         real(dp) :: ff, mass_to_be_heated, m_bot
+         real(dp) :: CE_energy_rate
+
+         ierr = 0
+         call star_ptr(id, s, ierr)
+         if (ierr /= 0) return
+
+         CE_energy_rate = s% x_ctrl(1)
+
+         ! mass (g) of the bottom of the (outer) convective envelope
+           ! Based on the inner edge of the convective envelope
+!          m_bot = s% conv_mx1_bot * s% mstar
+           ! Based on the helium core
+         m_bot = s% he_core_mass * Msun
+
+         !First calculate the mass in which the energy will be deposited
+         mass_to_be_heated = 0.0
+         do k = 1, s% nz
+            ff = EnvelopeWindow(s% m(k), m_bot)
+            mass_to_be_heated = mass_to_be_heated + s% dm(k) * ff
+         end do
+
+         !Now redo the loop and add the extra specific heat
+         do k = 1, s% nz
+            extra_heat(k) = CE_energy_rate / mass_to_be_heated * EnvelopeWindow(s% m(k), m_bot)
+         end do
+
          contains
 
          real(dp) function EnvelopeWindow(m_interior, m_bot)
@@ -125,8 +135,52 @@
             ! The 0.002 in the denominator sets the width of the transition, in this case
             ! calibrated so the transition region is roughly 0.01 Msun.
             EnvelopeWindow = 1./pi * atan((s% m(k) - m_bot) / (0.002*Msun)) + 0.5
-         
+
          end function EnvelopeWindow
+
+      end subroutine CE_inject_case1
+
+
+
+      subroutine CE_inject_case2(id, ierr, extra_heat)
+
+         use const_def, only: Msun
+         integer, intent(in) :: id
+         integer, intent(out) :: ierr
+         real(dp), intent(out) :: extra_heat(:)
+         type (star_info), pointer :: s
+         integer :: k
+         real(dp) :: ff, mass_to_be_heated, a_tukey
+         real(dp) :: CE_energy_rate, CE_companion_position, CE_companion_radius, CE_companion_mass
+
+         ierr = 0
+         call star_ptr(id, s, ierr)
+         if (ierr /= 0) return
+
+         ! Get input controls
+         CE_energy_rate = s% x_ctrl(1)
+         CE_companion_position = s% x_ctrl(2)
+         CE_companion_radius = s% x_ctrl(3)
+         CE_companion_mass = s% x_ctrl(4)
+
+         ! Tukey window scale
+         a_tukey = 0.1
+
+         ! First calculate the mass in which the energy will be deposited
+         mass_to_be_heated = 0.0
+         do k = 1, s% nz
+            ff = TukeyWindow(s% r(k)/(CE_companion_radius*Rsun) - CE_companion_position, a_tukey)
+            mass_to_be_heated = mass_to_be_heated + s% dm(k) * ff
+         end do
+      
+         ! Now redo the loop and add the extra specific heat
+         do k = 1, s% nz
+            ff = TukeyWindow(s% r(k)/(CE_companion_radius*Rsun) - CE_companion_position, a_tukey)
+            extra_heat(k) = CE_energy_rate / mass_to_be_heated * ff
+         end do
+
+
+         contains
 
          real(dp) function TukeyWindow(x,a)
             use const_def, only: dp, pi
@@ -142,9 +196,32 @@
                TukeyWindow = 0.
             endif
 
-         end function TukeyWindow 
+         end function TukeyWindow
 
-      end subroutine CE_inject_energy
+
+      end subroutine CE_inject_case2
+
+      subroutine CE_inject_case3(id, ierr, extra_heat)
+
+         use const_def, only: Msun
+         integer, intent(in) :: id
+         integer, intent(out) :: ierr
+         real(dp), intent(out) :: extra_heat(:)
+         type (star_info), pointer :: s
+         integer :: k
+
+         ierr = 0
+         call star_ptr(id, s, ierr)
+         if (ierr /= 0) return
+
+         ! Alternative energy source here
+
+         do k = 1, s% nz
+            extra_heat(k) = 0.0
+         end do
+
+      end subroutine CE_inject_case3
+
 
 
       end module CE_energy
