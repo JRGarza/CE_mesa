@@ -32,6 +32,7 @@
       use CE_torque
       use CE_after_struct_burn_mix
       use CE_before_struct_burn_mix
+      use CE_adjust_mdot
       
       implicit none
       
@@ -54,7 +55,8 @@
          s% other_energy => CE_inject_energy         
          s% other_torque => CE_inject_am ! currently does nothing   
          s% other_before_struct_burn_mix => calc_recombination_before_struct_burn_mix
-         s% other_after_struct_burn_mix => calc_recombination_after_struct_burn_mix     
+         s% other_after_struct_burn_mix => calc_recombination_after_struct_burn_mix
+         s% other_adjust_mdot => CE_remove_unbound_envelope   
       end subroutine extras_controls
       
       
