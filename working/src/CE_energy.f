@@ -72,15 +72,15 @@
          ! Call functions to calculate test cases
          if (CE_test_case == 1) then
         
-            call CE_inject_case1(id, ierr, s% extra_heat)
+            call CE_inject_case1(id, ierr)
             
          else if (CE_test_case == 2) then
 
-            call CE_inject_case2(id, ierr, s% extra_heat)     
+            call CE_inject_case2(id, ierr)     
 
          else if (CE_test_case == 3) then
         
-            call CE_inject_case3(id, ierr, s% extra_heat)
+            call CE_inject_case3(id, ierr)
  
          endif
 
@@ -90,12 +90,11 @@
 
 
 
-      subroutine CE_inject_case1(id, ierr, extra_heat)
+      subroutine CE_inject_case1(id, ierr)
 
          use const_def, only: Msun
          integer, intent(in) :: id
          integer, intent(out) :: ierr
-         real(dp), intent(out) :: extra_heat(:)
          type (star_info), pointer :: s
          integer :: k
          real(dp) :: ff, mass_to_be_heated, m_bot
@@ -122,8 +121,11 @@
 
          !Now redo the loop and add the extra specific heat
          do k = 1, s% nz
-            extra_heat(k) = CE_energy_rate / mass_to_be_heated * EnvelopeWindow(s% m(k), m_bot)
+            s% extra_heat(k) = CE_energy_rate / mass_to_be_heated * EnvelopeWindow(s% m(k), m_bot)
          end do
+
+         ! Save the total erg/second added in this time step
+         s% xtra1 = CE_energy_rate
 
          contains
 
@@ -142,12 +144,11 @@
 
 
 
-      subroutine CE_inject_case2(id, ierr, extra_heat)
+      subroutine CE_inject_case2(id, ierr)
 
          use const_def, only: Msun
          integer, intent(in) :: id
          integer, intent(out) :: ierr
-         real(dp), intent(out) :: extra_heat(:)
          type (star_info), pointer :: s
          integer :: k
          real(dp) :: ff, mass_to_be_heated, a_tukey
@@ -176,9 +177,11 @@
          ! Now redo the loop and add the extra specific heat
          do k = 1, s% nz
             ff = TukeyWindow(s% r(k)/(CE_companion_radius*Rsun) - CE_companion_position, a_tukey)
-            extra_heat(k) = CE_energy_rate / mass_to_be_heated * ff
+            s% extra_heat(k) = CE_energy_rate / mass_to_be_heated * ff
          end do
 
+         ! Save the total erg/second added in this time step
+         s% xtra1 = CE_energy_rate
 
          contains
 
@@ -201,24 +204,29 @@
 
       end subroutine CE_inject_case2
 
-      subroutine CE_inject_case3(id, ierr, extra_heat)
+      subroutine CE_inject_case3(id, ierr)
 
          use const_def, only: Msun
          integer, intent(in) :: id
          integer, intent(out) :: ierr
-         real(dp), intent(out) :: extra_heat(:)
          type (star_info), pointer :: s
          integer :: k
+         real(dp) :: total_heat
 
          ierr = 0
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
 
          ! Alternative energy source here
-
+         
+         total_heat = 0.0
          do k = 1, s% nz
-            extra_heat(k) = 0.0
+            s% extra_heat(k) = 0.0
+            total_heat = s% extra_heat(k) * s% dm(k)
          end do
+
+         ! Save the total erg/second added in this time step
+         s% xtra1 = total_heat
 
       end subroutine CE_inject_case3
 
