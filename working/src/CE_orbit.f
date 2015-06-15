@@ -43,8 +43,11 @@
          type (star_info), pointer :: s
          integer :: k
          real(dp) :: CE_energy_rate, CE_companion_position, CE_companion_mass
-         real(dp) :: E_init, E_loss, E_final
-         real(dp) :: M_inner
+         real(dp) :: E_init, E_loss, E_final, E_tmp
+         real(dp) :: M_inner, R_inner, M_outer, R_outer, M_final, R_final
+         real(dp) :: M_slope, R_slope, M_int, R_int, M_encl
+         real(dp) :: top, bottom, k_final
+
 
          ierr = 0
          call star_ptr(id, s, ierr)
@@ -56,28 +59,63 @@
          CE_companion_mass = s% x_ctrl(4)
 
          ! Mass for orbital energy calculation depends on mass contained within a radius
-         ! This is a bit dirty, but should work
+         ! Include all the enclosed cells
+         ! Add to it the enclosed mass of the current cell
          k = 1
-         M_inner = s% m(k)
          do while (s% r(k) > CE_companion_position * Rsun)
-            M_inner = s% m(k) 
             k = k + 1
          end do
 
+         M_encl = s% m(k)
+         M_encl = M_encl + s% dm(k-1) * (CE_companion_position*Rsun - s% r(k)) / (s% r(k-1) - s% r(k))
+
+
          ! Calculate the energies
-         E_init = -standard_cgrav * CE_companion_mass * Msun * M_inner / (2.0 * CE_companion_position * Rsun)
+         E_init = -standard_cgrav * CE_companion_mass * Msun * M_encl / (2.0 * CE_companion_position * Rsun)
          E_loss = CE_energy_rate * s% dt
          E_final = E_init - E_loss
 
-         ! Calculate the new orbital separation
-         CE_companion_position = -standard_cgrav * CE_companion_mass * Msun * M_inner / (2.0 * E_final * Rsun)
 
-         s% x_ctrl(2) = CE_companion_position
+         ! Move from outside of star in to find cell containing companion
+         k = 1
+         do while (E_tmp > E_final)
+            M_inner = s% m(k)
+            R_inner = s% r(k)
+            E_tmp = -standard_cgrav * CE_companion_mass * Msun * M_inner / (2.0 * R_inner)
+!            write(*,*) "Cell number: ", k, " Radius: ", s% r(k)/Rsun, " Mass: ", s% m(k), " Energy: ", E_tmp
+            k = k + 1
+         end do
 
-         write(*,*) "Companion mass: ", CE_companion_mass*Msun, " Enclosed mass: ", M_inner
-         write(*,*) "Separation: ", CE_companion_position*Rsun 
-         write(*,*) "Current Orbital Separation = ", CE_companion_position 
-         write(*,*) "Current Orbital Energy = ", E_init
+         ! save end points of cell containing companion
+         M_inner = s% m(k-2)
+         R_inner = s% r(k-2)
+         M_outer = s% m(k-1)
+         R_outer = s% r(k-1)
+
+         ! linearly interpolate across cell (using k as the independent variable)
+         M_slope = (M_outer - M_inner) / real((k-1) - (k-2))
+         M_int = s% m(k-1) - M_slope * real(k-1)
+         R_slope = (R_outer - R_inner) / real((k-1) - (k-2))
+         R_int = s% r(k-1) - R_slope * real(k-1)
+
+         ! Given the final energy, E_final, determine the resulting k that solves the equation
+         top = 2.0 * E_final * R_int + standard_cgrav * CE_companion_mass * Msun * M_int
+         bottom = 2.0 * E_final * R_slope + standard_cgrav * CE_companion_mass * Msun * M_slope 
+         k_final = -top / bottom
+
+         ! Now use the interpolations and the derived k_final, determine the resulting separation and enclosed mass
+         R_final = R_slope * k_final + R_int
+         M_final = M_slope * k_final + M_int
+
+         s% x_ctrl(2) = R_final/Rsun
+
+         ! For diagnostics
+!         write(*,*) "Final k: ", k_final
+!         write(*,*) "Previous Enclosed Mass: ", M_encl, " Final Enclosed Mass: ", M_final
+!         write(*,*) "Previous Separation = ", CE_companion_position, " Final Separation: ", R_final/Rsun 
+!         write(*,*) "Previous Orbital Energy = ", E_init, " Final Orbital Energy: ", E_final
+!         write(*,*) "Dissipated Energy: ", E_loss
+
  
       end subroutine CE_orbit_adjust
 
