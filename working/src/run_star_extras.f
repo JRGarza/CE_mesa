@@ -28,6 +28,7 @@
       use star_def
       use const_def
       ! Add here all the external modules for CE_mesa here
+      use CE_orbit
       use CE_energy
       use CE_torque
       use CE_after_struct_burn_mix
@@ -133,6 +134,9 @@
             s% R_function2_param1 = CE_companion_position/(s%r(1)/Rsun) + 2.*CE_companion_radius/(s%r(1)/Rsun)
             s% R_function2_param2 = CE_companion_position/(s%r(1)/Rsun) - 2.*CE_companion_radius/(s%r(1)/Rsun)
          endif
+
+         ! Adjust orbital separation based on energy deposited
+         call CE_orbit_adjust(id, ierr)
 
          ! if you want to check multiple conditions, it can be useful
          ! to set a different termination code depending on which
