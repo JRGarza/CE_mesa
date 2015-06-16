@@ -104,7 +104,7 @@
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
 
-         CE_energy_rate = s% x_ctrl(1)
+         CE_energy_rate = s% xtra1
 
          ! mass (g) of the bottom of the (outer) convective envelope
            ! Based on the inner edge of the convective envelope
@@ -159,10 +159,10 @@
          if (ierr /= 0) return
 
          ! Get input controls
-         CE_energy_rate = s% x_ctrl(1)
-         CE_companion_position = s% x_ctrl(2)
-         CE_companion_radius = s% x_ctrl(3)
-         CE_companion_mass = s% x_ctrl(4)
+         CE_energy_rate = s% xtra1
+         CE_companion_position = s% xtra2
+         CE_companion_radius = s% xtra3
+         CE_companion_mass = s% xtra4
 
          ! Tukey window scale
          a_tukey = 0.1
@@ -211,7 +211,7 @@
          integer, intent(out) :: ierr
          type (star_info), pointer :: s
          integer :: k
-         real(dp) :: total_heat
+         real(dp) :: CE_energy_rate
 
          ierr = 0
          call star_ptr(id, s, ierr)
@@ -219,14 +219,14 @@
 
          ! Alternative energy source here
          
-         total_heat = 0.0
+         CE_energy_rate = 0.0
          do k = 1, s% nz
             s% extra_heat(k) = 0.0
-            total_heat = s% extra_heat(k) * s% dm(k)
+            CE_energy_rate = CE_energy_rate + s% extra_heat(k) * s% dm(k)
          end do
 
          ! Save the total erg/second added in this time step
-         s% xtra1 = total_heat
+         s% xtra1 = CE_energy_rate
 
       end subroutine CE_inject_case3
 

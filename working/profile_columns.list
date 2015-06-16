@@ -119,7 +119,7 @@
    !dlnP_dlnd_c_E
    
    !prad ! radiation pressure at center of zone
-   !energy ! internal energy (ergs/g)
+   energy ! internal energy (ergs/g)
    !logE ! log10(specific internal energy) at center of zone
    !grada ! dlnT_dlnP at constant S
    !dE_dRho ! at constant T

@@ -55,8 +55,8 @@
 
 
          CE_energy_rate = s% xtra1
-         CE_companion_position = s% x_ctrl(2)
-         CE_companion_mass = s% x_ctrl(4)
+         CE_companion_position = s% xtra2
+         CE_companion_mass = s% xtra4
 
          ! Mass for orbital energy calculation depends on mass contained within a radius
          ! Include all the enclosed cells
@@ -107,14 +107,15 @@
          R_final = R_slope * k_final + R_int
          M_final = M_slope * k_final + M_int
 
-         s% x_ctrl(2) = R_final/Rsun
+         s% xtra2 = R_final/Rsun
 
          ! For diagnostics
-!         write(*,*) "Final k: ", k_final
-!         write(*,*) "Previous Enclosed Mass: ", M_encl, " Final Enclosed Mass: ", M_final
-!         write(*,*) "Previous Separation = ", CE_companion_position, " Final Separation: ", R_final/Rsun 
-!         write(*,*) "Previous Orbital Energy = ", E_init, " Final Orbital Energy: ", E_final
-!         write(*,*) "Dissipated Energy: ", E_loss
+
+         write(*,*) "Final k: ", k_final
+         write(*,*) "Previous Enclosed Mass: ", M_encl, " Final Enclosed Mass: ", M_final
+         write(*,*) "Previous Separation = ", CE_companion_position, " Final Separation: ", R_final/Rsun 
+         write(*,*) "Previous Orbital Energy = ", E_init, " Final Orbital Energy: ", E_final
+         write(*,*) "Dissipated Energy: ", E_loss
 
  
       end subroutine CE_orbit_adjust

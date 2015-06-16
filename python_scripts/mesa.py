@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import matplotlib
-#matplotlib.use('Qt4Agg')
+matplotlib.use('Qt4Agg')
 
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
@@ -31,45 +31,64 @@ def LoadOneProfile(filename, NY, Yaxis, Ymin, Ymax, Variable):
 	if (not "log_mass" in data_from_file.dtype.names):
 		try: 
 			data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'log_mass',
-																data = np.log10(data_from_file['mass']), asrecarray=True)
+							data = np.log10(data_from_file['mass']), asrecarray=True)
 		except Exception:
 			raise ValueError("Column 'mass' is missing from the profile files")
 
 	if (not "log_q" in data_from_file.dtype.names):
 		try:
 			data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'log_q',
-															data = np.log10(data_from_file['q']), asrecarray=True)
+							data = np.log10(data_from_file['q']), asrecarray=True)
 		except Exception:
 			raise ValueError("Column 'q' is missing from the profile files")
 
 	if (not "log_radius" in data_from_file.dtype.names):
 		try:
 			data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'log_radius',
-																data = np.log10(data_from_file['radius']), asrecarray=True)
+							data = np.log10(data_from_file['radius']), asrecarray=True)
 		except Exception:
 			try:
 				data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'log_radius',
-																	data = data_from_file['logR'], asrecarray=True)
+								data = data_from_file['logR'], asrecarray=True)
 			except Exception:
 				raise ValueError("Column 'logR' or 'log_radius' or 'radius' is missing from the profile files")
 
 	if (not "radius" in data_from_file.dtype.names):
 		try:
 			data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'radius',
-																data = 10.**data_from_file['log_radius'], asrecarray=True)
+							data = 10.**data_from_file['log_radius'], asrecarray=True)
 		except Exception:
 			try:
 				data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'radius',
-																	data = 10.**data_from_file['logR'], asrecarray=True)
+								data = 10.**data_from_file['logR'], asrecarray=True)
 			except Exception:
 				raise ValueError("Column 'logR' or 'log_radius' or 'radius' is missing from the profile files")
 
 	if (not "j_rot" in data_from_file.dtype.names and (Variable == 'log_j_rot' or Variable == 'j_rot')):
 		try:
 			data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'j_rot',
-																data = 10.**data_from_file['log_j_rot'], asrecarray=True)
+							data = 10.**data_from_file['log_j_rot'], asrecarray=True)
 		except Exception:
 			raise ValueError("Column 'log_j_rot' is missing from the profile files")
+
+
+	if (not "potential_plus_kinetic" in data_from_file.dtype.names and (Variable == 'potential_plus_kinetic' )):
+		try:
+			data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'potential_plus_kinetic',
+							data = data_from_file['total_energy'] - data_from_file['energy'], asrecarray=True)
+		except Exception:
+			raise ValueError("Column 'total_energy' and/or 'energy' is missing from the profile files")
+
+	if (not "v_div_vesc" in data_from_file.dtype.names and (Variable == 'v_div_vesc' )):
+		G = const.G.to('cm3/(g s2)').value
+		Msun = const.M_sun.to('g').value
+		Rsun = const.R_sun.to('cm').value
+		try:
+			data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'v_div_vesc',
+							data = data_from_file['velocity']/np.sqrt(2.*G*(data_from_file['mass']*Msun)/(data_from_file['radius']*Rsun)), asrecarray=True)
+		except Exception:
+			raise ValueError("Column 'radius' and/or 'velocity' is missing from the profile files")
+
 
 
 	#Define the values that we want to itnerpolate along the  Y axis
@@ -289,7 +308,7 @@ class mesa(object):
 				'log_inv_star_age']):
 			raise ValueError(self._param['Xaxis']+"not a valid option for parameter Xaxis")
 		if not (self._param['Variable'] in ['eps_nuc', 'velocity', 'entropy', 'total_energy', 'j_rot', 'eps_recombination'
-				, 'ionization_energy']):
+				, 'ionization_energy', 'energy', 'potential_plus_kinetic', 'extra_heat', 'v_div_vesc']):
 			raise ValueError(self._param['Variable']+"not a valid option for parameter Variable")
 
 
@@ -408,18 +427,6 @@ class mesa(object):
 
 
 
-		#If the chosen variable is "eps_rec", then we need to do an extratime derivative in data_all
-		if (self._param['Variable'] == 'eps_rec'):
-			dt_profile = np.diff(profile_age) * 1e6 * 3.15569e7
-			#Note that dt_profile has one element less that profile_age, and we need to fix this
-			dt_profile = np.append([1.e-99],dt_profile)
-			#Note that dE_ionization has one column less that data_all, and we need to fix this
-			dE_ionization = np.diff(data_all,n=1,axis=0)
-
-			dE_ionization = np.append([np.zeros(self._param['NY'])],dE_ionization, axis=0)
-
-			data_all = dE_ionization / [np.transpose([dt_profile])]
-			data_all = data_all[0,:,:]
 
 
 		for i in range(self._param['NY']):
@@ -482,8 +489,16 @@ class mesa(object):
 			cmap_label = "log($\epsilon_{recombination}$ [erg/s/gr])"
 		elif self._param['Variable'] == "ionization_energy":
 			cmap_label = "log(specific ionization energy [erg/gr])"
-                elif self._param['Variable'] == "dq":
-                        cmap_label = "Cell Mass Fraction"
+		elif self._param['Variable'] == "dq":
+			cmap_label = "Cell Mass Fraction"
+		elif self._param['Variable'] == "energy":
+			cmap_label = "log(specific internal energy [erg/gr])"
+		elif self._param['Variable'] == "potential_plus_kinetic":
+			cmap_label = "log(specific potential+kinetic energy [erg/gr])"
+		elif self._param['Variable'] == "extra_heat":
+			cmap_label = "log(specific injected energy rate [erg/s/gr])"
+		elif self._param['Variable'] == "v_div_vesc":
+			cmap_label = "log($v/v_{esc}$)"
 
 		fig1 = plt.figure()
 		ax1 = fig1.add_subplot(111)
@@ -708,13 +723,14 @@ if __name__ == "__main__":
 
 	#Options for Xaxis: 'model_number', 'star_age', 'inv_star_age', 'log_model_number', 'log_star_age', 'log_inv_star_age'
 	#Options for Yaxis: 'mass', 'radius', 'q', 'log_mass', 'log_radius', 'log_q'	
-	#Options for Variable: "eps_nuc", "velocity", "entropy", "total_energy, "j_rot", "eps_recombination", "ionization_energy"
+	#Options for Variable: "eps_nuc", "velocity", "entropy", "total_energy, "j_rot", "eps_recombination", "ionization_energy", 
+	#						"energy", "potential_plus_kinetic", "extra_heat", "v_div_vesc"
 
 
 	data_path = "/Users/tassos/repos/CE_mesa/working/LOGS/"
-	a = mesa(data_path=data_path, parallel=True, abundances=False, log_abundances = True, Yaxis='mass', Xaxis="inv_star_age", 
-		czones=False, Variable='eps_recombination')
-	a.SetParameters(onscreen=True, cmap = 'jet', cmap_dynamic_range=10)
+	a = mesa(data_path=data_path, parallel=True, abundances=False, log_abundances = True, Yaxis='log_radius', Xaxis="model_number", 
+		czones=False, Variable='velocity')
+	a.SetParameters(onscreen=True, cmap = 'jet', cmap_dynamic_range=5)
 
 	a.Kippenhahn()
 
