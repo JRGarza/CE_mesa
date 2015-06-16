@@ -91,6 +91,13 @@
          CE_companion_mass = s% x_ctrl(4)
          CE_test_case = s% x_integer_ctrl(1)
 
+         s% xtra1 = s% x_ctrl(1)
+         s% xtra2 = s% x_ctrl(2)
+         s% xtra3 = s% x_ctrl(3)
+         s% xtra4 = s% x_ctrl(4)
+         s% ixtra1 = s% x_integer_ctrl(1)
+
+
          ! We need to increase the resolution around the area where the extra heat is deposited
          ! We will do this at the startup and also in the extra_check model, since the position
          ! of the companion will be changing
@@ -120,13 +127,13 @@
             return
          end if
 
-         ! Reading values of parameters from the extra controls that we are using
+         ! Reading initial values of parameters from the extra controls that we are using
          ! Note that "extra_heat" is the specific energy added to the the  cell in units of erg/s/gr
-         CE_energy_rate = s% x_ctrl(1)
-         CE_companion_position = s% x_ctrl(2)
-         CE_companion_radius = s% x_ctrl(3)
-         CE_companion_mass = s% x_ctrl(4)
-         CE_test_case = s% x_integer_ctrl(1)
+         CE_energy_rate = s% xtra1
+         CE_companion_position = s% xtra2
+         CE_companion_radius = s% xtra3
+         CE_companion_mass = s% xtra4
+         CE_test_case = s% ixtra1
 
          ! We need to increase the resolution around the area where the extra heat is deposited
          ! We will do this at the startup and also in the extra_check model, since the position
@@ -156,7 +163,7 @@
          ierr = 0
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
-         how_many_extra_history_columns = 0
+         how_many_extra_history_columns = 2
       end function how_many_extra_history_columns
       
       
@@ -174,6 +181,11 @@
          ! the history_columns.list is only for the built-in log column options.
          ! it must not include the new column names you are adding here.
          
+         names(1) = 'CE_energy_rate'
+         vals(1) = s% xtra1
+         names(2) = 'CE_companion_position'
+         vals(2) = s% xtra2
+
 
       end subroutine data_for_extra_history_columns
 

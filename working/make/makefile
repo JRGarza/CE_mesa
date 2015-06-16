@@ -17,7 +17,7 @@ endif
 #CE: here you need to add all the additional modules/objects written for CE_mesa
 # and located in WORK_SRC_DIR to be compiled
 # STAR_WORK_OBJS defined in makefile_header
-OBJS = CE_energy.o CE_torque.o CE_before_struct_burn_mix.o CE_after_struct_burn_mix.o $(STAR_WORK_OBJS) run.o
+OBJS = CE_energy.o CE_torque.o CE_adjust_mdot.o CE_before_struct_burn_mix.o CE_after_struct_burn_mix.o $(STAR_WORK_OBJS) run.o
 
 WORK_DIR = ..
 WORK_SRC_DIR = $(WORK_DIR)/src

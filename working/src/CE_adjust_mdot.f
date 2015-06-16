@@ -25,6 +25,9 @@
  
       module CE_adjust_mdot
 
+      use star_def
+      use const_def
+
       implicit none
       
             
@@ -34,10 +37,28 @@
       ! your routine will be called after winds and before mass adjustment
    
       subroutine CE_remove_unbound_envelope(id, ierr)
-         use star_def
+
          integer, intent(in) :: id
          integer, intent(out) :: ierr
+         type (star_info), pointer :: s
+         integer :: k
+         real(dp) :: mass_to_remove
+
          ierr = 0
+         call star_ptr(id, s, ierr)
+         if (ierr /= 0) return
+
+         k=1
+         mass_to_remove = 0.0d0
+         do while ((k < s% nz) .and. (.not. is_bound(k)))
+            mass_to_remove = mass_to_remove + s% dm(k)
+            k=k+1
+         enddo
+         s% mstar_dot = s% mstar_dot - (mass_to_remove/Msun) / (s% dt / secyer) !In Msun/yr
+
+         !write(*,*) "CE_adjust_mdot ", mass_to_remove/Msun, (mass_to_remove/Msun) / (s% dt / secyer)
+
+
 
 
 

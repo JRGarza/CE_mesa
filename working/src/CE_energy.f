@@ -105,7 +105,7 @@
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
 
-         CE_energy_rate = s% x_ctrl(1)
+         CE_energy_rate = s% xtra1
 
          ! mass (g) of the bottom of the (outer) convective envelope
            ! Based on the inner edge of the convective envelope
@@ -158,10 +158,10 @@
          if (ierr /= 0) return
 
          ! Get input controls
-         CE_energy_rate = s% x_ctrl(1)
-         CE_companion_position = s% x_ctrl(2)
-         CE_companion_radius = s% x_ctrl(3)
-         CE_companion_mass = s% x_ctrl(4)
+         CE_energy_rate = s% xtra1
+         CE_companion_position = s% xtra2
+         CE_companion_radius = s% xtra3
+         CE_companion_mass = s% xtra4
 
          ! Tukey window scale
          a_tukey = 0.1
