@@ -73,6 +73,7 @@
          integer, intent(out) :: ierr
          type (star_info), pointer :: s
          real(dp) :: CE_energy_rate, CE_companion_position, CE_companion_radius, CE_companion_mass
+         real(dp) :: CE_n_acc_radii
          integer :: CE_test_case
          ierr = 0
          call star_ptr(id, s, ierr)
@@ -90,12 +91,14 @@
          CE_companion_position = s% x_ctrl(2)
          CE_companion_radius = s% x_ctrl(3)
          CE_companion_mass = s% x_ctrl(4)
+         CE_n_acc_radii = s% x_ctrl(5)
          CE_test_case = s% x_integer_ctrl(1)
 
          s% xtra1 = s% x_ctrl(1)
          s% xtra2 = s% x_ctrl(2)
          s% xtra3 = s% x_ctrl(3)
          s% xtra4 = s% x_ctrl(4)
+         s% xtra5 = s% x_ctrl(5)
          s% ixtra1 = s% x_integer_ctrl(1)
 
 
