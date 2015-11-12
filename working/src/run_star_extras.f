@@ -54,7 +54,7 @@
 
          ! Here we should point to the names of the "other_" functions to be used         
          s% other_energy => CE_inject_energy         
-         s% other_torque => CE_inject_am ! currently does nothing   
+         s% other_torque => CE_inject_am ! NEEDS TESTING
          s% other_before_struct_burn_mix => calc_recombination_before_struct_burn_mix
          s% other_after_struct_burn_mix => calc_recombination_after_struct_burn_mix
          s% other_adjust_mdot => CE_remove_unbound_envelope   
@@ -73,7 +73,7 @@
          integer, intent(out) :: ierr
          type (star_info), pointer :: s
          real(dp) :: CE_energy_rate, CE_companion_position, CE_companion_radius, CE_companion_mass
-         real(dp) :: CE_n_acc_radii
+         real(dp) :: CE_n_acc_radii, CE_ang_mom_transferred
          integer :: CE_test_case
          ierr = 0
          call star_ptr(id, s, ierr)
@@ -92,6 +92,7 @@
          CE_companion_radius = s% x_ctrl(3)
          CE_companion_mass = s% x_ctrl(4)
          CE_n_acc_radii = s% x_ctrl(5)
+         CE_ang_mom_transferred = s% x_ctrl(6)
          CE_test_case = s% x_integer_ctrl(1)
 
          s% xtra1 = s% x_ctrl(1)
@@ -99,6 +100,7 @@
          s% xtra3 = s% x_ctrl(3)
          s% xtra4 = s% x_ctrl(4)
          s% xtra5 = s% x_ctrl(5)
+         s% xtra6 = s% x_ctrl(6)         
          s% ixtra1 = s% x_integer_ctrl(1)
 
 
@@ -119,6 +121,7 @@
          integer :: ierr
          type (star_info), pointer :: s
          real(dp) :: CE_energy_rate, CE_companion_position, CE_companion_radius, CE_companion_mass
+         real(dp) :: CE_ang_mom_transferred
          integer :: CE_test_case
          ierr = 0
          call star_ptr(id, s, ierr)
@@ -170,7 +173,7 @@
          ierr = 0
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
-         how_many_extra_history_columns = 2
+         how_many_extra_history_columns = 3
       end function how_many_extra_history_columns
       
       
@@ -192,6 +195,8 @@
          vals(1) = s% xtra1
          names(2) = 'CE_companion_position'
          vals(2) = s% xtra2
+         names(3) = 'CE_ang_mom_transferred'
+         vals(3) = s% xtra6
 
 
       end subroutine data_for_extra_history_columns

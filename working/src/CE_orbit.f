@@ -43,6 +43,7 @@
          type (star_info), pointer :: s
          integer :: k
          real(dp) :: CE_energy_rate, CE_companion_position, CE_companion_mass
+         real(dp) :: J_tmp, J_init, J_final
          real(dp) :: E_init, E_loss, E_final, E_tmp
          real(dp) :: M_inner, R_inner, M_outer, R_outer, M_final, R_final
          real(dp) :: M_slope, R_slope, M_int, R_int, M_encl
@@ -70,6 +71,11 @@
          M_encl = M_encl + s% dm(k-1) * (CE_companion_position*Rsun - s% r(k)) / (s% r(k-1) - s% r(k))
 
 
+         ! Calculate the angular momentum
+         J_tmp = (CE_companion_mass * Msun)**2 * M_encl**2 / (CE_companion_mass * Msun + M_encl) 
+         J_init = sqrt(standard_cgrav * J_tmp * CE_companion_position * Rsun)
+
+
          ! Calculate the energies
          E_init = -standard_cgrav * CE_companion_mass * Msun * M_encl / (2.0 * CE_companion_position * Rsun)
          E_loss = CE_energy_rate * s% dt
@@ -77,6 +83,7 @@
 
 
          ! Move from outside of star in to find cell containing companion
+         E_tmp = 0d0
          k = 1
          do while (E_tmp > E_final)
             M_inner = s% m(k)
@@ -92,6 +99,7 @@
          M_outer = s% m(k-1)
          R_outer = s% r(k-1)
 
+         ! We could choose to interpolate for R using M as the independent variable. Instead, here we
          ! linearly interpolate across cell (using k as the independent variable)
          M_slope = (M_outer - M_inner) / real((k-1) - (k-2))
          M_int = s% m(k-1) - M_slope * real(k-1)
@@ -109,13 +117,20 @@
 
          s% xtra2 = R_final/Rsun
 
+         ! Calculate the angular momentum lost to the star's envelope
+         J_tmp = (CE_companion_mass * Msun)**2 * M_final**2 / (CE_companion_mass * Msun + M_final) 
+         J_final = sqrt(standard_cgrav * J_tmp * R_final)
+
+         s% xtra6 = J_final - J_init
+
+
          ! For diagnostics
 
          write(*,*) "Final k: ", k_final
          write(*,*) "Previous Enclosed Mass: ", M_encl, " Final Enclosed Mass: ", M_final
          write(*,*) "Previous Separation = ", CE_companion_position, " Final Separation: ", R_final/Rsun 
          write(*,*) "Previous Orbital Energy = ", E_init, " Final Orbital Energy: ", E_final
-         write(*,*) "Dissipated Energy: ", E_loss
+         write(*,*) "Dissipated Energy: ", E_loss, " Dissipated Angular Momentum: ", s% xtra6
 
  
       end subroutine CE_orbit_adjust

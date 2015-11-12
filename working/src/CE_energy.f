@@ -185,25 +185,6 @@
          ! Save the total erg/second added in this time step
          s% xtra1 = CE_energy_rate
 
-         contains
-
-         real(dp) function TukeyWindow(x,a)
-            use const_def, only: dp, pi
-            real(dp), intent(in) :: x, a
-
-            if ((x .ge. -0.5) .and. (x .le. 0.5) .and. (2.*x+a .ge. 0) .and. (-2.*x+a .ge. 0)) then
-               TukeyWindow = 1.
-            else if ((x .ge. -0.5) .and. (x .le. 0.5) .and. (2.*x+a .lt. 0)) then
-               TukeyWindow = 0.5*(1.-sin(pi*x/a))
-            else if ((x .ge. -0.5) .and. (x .le. 0.5) .and. (2.*x+a .gt. 0) .and. (-2.*x+a .lt. 0)) then
-               TukeyWindow = 0.5*(1.+sin(pi*x/a))
-            else
-               TukeyWindow = 0.
-            endif
-
-         end function TukeyWindow
-
-
       end subroutine CE_inject_case2
 
       subroutine CE_inject_case3(id, ierr)
@@ -225,8 +206,6 @@
 
          ! Alternative energy source here
    
-
-
  
          ! Get input controls
          CE_energy_rate = s% xtra1
@@ -313,23 +292,25 @@
 
          end function AtoP
 
-         real(dp) function TukeyWindow(x,a)
-            use const_def, only: dp, pi
-            real(dp), intent(in) :: x, a
-
-            if ((x .ge. -0.5) .and. (x .le. 0.5) .and. (2.*x+a .ge. 0) .and. (-2.*x+a .ge. 0)) then
-               TukeyWindow = 1.
-            else if ((x .ge. -0.5) .and. (x .le. 0.5) .and. (2.*x+a .lt. 0)) then
-               TukeyWindow = 0.5*(1.-sin(pi*x/a))
-            else if ((x .ge. -0.5) .and. (x .le. 0.5) .and. (2.*x+a .gt. 0) .and. (-2.*x+a .lt. 0)) then
-               TukeyWindow = 0.5*(1.+sin(pi*x/a))
-            else
-               TukeyWindow = 0.
-            endif
-
-         end function TukeyWindow
 
       end subroutine CE_inject_case3
+
+
+      real(dp) function TukeyWindow(x,a)
+         use const_def, only: dp, pi
+         real(dp), intent(in) :: x, a
+
+         if ((x .ge. -0.5) .and. (x .le. 0.5) .and. (2.*x+a .ge. 0) .and. (-2.*x+a .ge. 0)) then
+            TukeyWindow = 1.
+         else if ((x .ge. -0.5) .and. (x .le. 0.5) .and. (2.*x+a .lt. 0)) then
+            TukeyWindow = 0.5*(1.-sin(pi*x/a))
+         else if ((x .ge. -0.5) .and. (x .le. 0.5) .and. (2.*x+a .gt. 0) .and. (-2.*x+a .lt. 0)) then
+            TukeyWindow = 0.5*(1.+sin(pi*x/a))
+         else
+            TukeyWindow = 0.
+         endif
+
+      end function TukeyWindow
 
 
 
