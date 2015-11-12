@@ -231,8 +231,9 @@
          ! Determine orbital period in seconds
          P = AtoP(M_encl, M2, CE_companion_position*Rsun)
 
-         ! Determine Keplerian velocity
+         ! Determine Keplerian velocity. Then subtract the local rotation velocity
          vel = 2.0 * pi * CE_companion_position*Rsun / P
+         vel = vel - s% omega(k) * s% rmid(k) ! local rotation velocity = omega * rmid
 
          ! Determine Mach number
          Mach = vel / s% csound(k-1) 
