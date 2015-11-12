@@ -84,7 +84,7 @@
                               s% dm(k-1)*s% energy(k-1))/ &
                         (s% dm(k) + s% dm(k-1))
                end if
-               val = val * f_energy - s% cgrav(k)*s% m_grav(k)/s% r(k) + &
+               val = val * f_energy - s% cgrav(k)*s% m(k)/s% r(k) + &
                            0.5d0*s% v(k)*s% v(k)
 
                if (val > 0.0d0) then
