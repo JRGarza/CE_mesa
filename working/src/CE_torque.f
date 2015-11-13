@@ -22,12 +22,12 @@
 !   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 !
 ! ***********************************************************************
- 
+
       module CE_torque
 
 
-         
-         
+
+
       ! NOTE: if you'd like to have some inlist controls for your routine,
       ! you can use the x_ctrl array of real(dp) variables that is in &controls
       ! e.g., in the &controls inlist, you can set
@@ -43,67 +43,100 @@
       !         if (ierr /= 0) then ! OOPS
       !            return
       !         end if
-      ! 
+      !
       ! for integer control values, you can use x_integer_ctrl
       ! for logical control values, you can use x_logical_ctrl
 
       use star_def
       use const_def
-
+      use CE_energy, only: AtoP, TukeyWindow
       implicit none
 
 
-      
-            
+
+
       contains
-      
+
 
       ! Angular momentum prescription from CE
       ! Based off example from mesa/star/other/other_torque.f
-              
+
       subroutine CE_inject_am(id, ierr)
-      
+
          use const_def, only: Rsun
          integer, intent(in) :: id
          integer, intent(out) :: ierr
          type (star_info), pointer :: s
          integer :: k
          real(dp) :: a_tukey, mass_to_be_spun, ff
-         real(dp) :: CE_companion_position, CE_companion_radius, CE_n_acc_radii, CE_ang_mom_transferred
-         
+         real(dp) :: CE_companion_position, CE_companion_mass, CE_n_acc_radii, CE_ang_mom_transferred
+         real(dp) :: time, R_acc, Mach, M_encl, M2, vel, A, P
+
          ierr = 0
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
-         
-         
+
+
          ! Load angular momentum dissipated in the envelope from the orbit decrease
          CE_companion_position = s% xtra2
-         CE_companion_radius = s% xtra3
+         CE_companion_mass = s% xtra4
          CE_n_acc_radii = s% xtra5
          CE_ang_mom_transferred = s% xtra6
 
+         write(*,*) "angular momentum", s% xtra6
 
-         
-         
+         ! Keplerian velocity calculation depends on mass contained within a radius
+         ! Include all the enclosed cells
+         ! Add to it the enclosed mass of the current cell
+         k = 1
+         do while (s% r(k) > CE_companion_position * Rsun)
+            k = k + 1
+         end do
+
+         M_encl = s% m(k)
+         M_encl = M_encl + s% dm(k-1) * (CE_companion_position*Rsun - s% r(k)) / (s% r(k-1) - s% r(k))
+
+         M2 = CE_companion_mass * Msun
+
+         ! Determine orbital period in seconds
+         P = AtoP(M_encl, M2, CE_companion_position*Rsun)
+
+         ! Determine Keplerian velocity. Then subtract the local rotation velocity
+         vel = 2.0 * pi * CE_companion_position*Rsun / P
+         vel = vel - s% omega(k) * s% rmid(k) ! local rotation velocity = omega * rmid
+         !write(*,*) "vel, k, omega, rmid, P",vel,k, s% omega(k), s% rmid(k), P
+
+
+         ! Determine Mach number
+         Mach = vel / s% csound(k-1)
+
+         ! Determine accretion radius
+         R_acc = 2.0 * standard_cgrav * M2 / (vel*vel)
+
+
+
          ! First calculate the mass in which the angular momentum will be deposited
          mass_to_be_spun = 0.0
          do k = 1, s% nz
-            ff = TukeyWindow((s% r(k) - CE_companion_position*Rsun)/(CE_n_acc_radii * CE_companion_radius*Rsun), a_tukey)
+            ff = TukeyWindow((s% r(k) - CE_companion_position*Rsun)/(CE_n_acc_radii * R_acc), a_tukey)
             mass_to_be_spun = mass_to_be_spun + s% dm(k) * ff
          end do
 
+
+
          ! Now redo the loop and add the extra specific heat
          do k = 1, s% nz
-            ff = TukeyWindow((s% r(k) - CE_companion_position*Rsun)/(CE_n_acc_radii * CE_companion_radius*Rsun), a_tukey)
+            ff = TukeyWindow((s% r(k) - CE_companion_position*Rsun)/(CE_n_acc_radii * R_acc), a_tukey)
+            write(*,*) k, ff, mass_to_be_spun
             s% extra_jdot(k) = CE_ang_mom_transferred / s% dt / mass_to_be_spun * ff
          end do
 
 
-         ! Need to add some controls here to make sure certain layers of the star are not 
+         ! Need to add some controls here to make sure certain layers of the star are not
          ! getting spun up past break up velocity
 
 
-         
+
 !         ! here is an (unrealistic) example of adding angular momentum to each cell
 !         do k = 1, s% nz
 !            ! note that can set extra_omegadot instead of extra_jdot if that is more convenient
@@ -111,31 +144,11 @@
 !            !s% extra_jdot(k) = 0 ! rate at which specific angular momentum is changed
 !            !s% extra_omegadot(k) = 0 ! rate at which omega is changed
 !         end do
-         
-         
-         contains
-         
-         real(dp) function TukeyWindow(x,a)
-            use const_def, only: dp, pi
-            real(dp), intent(in) :: x, a
 
-            if ((x .ge. -0.5) .and. (x .le. 0.5) .and. (2.*x+a .ge. 0) .and. (-2.*x+a .ge. 0)) then
-               TukeyWindow = 1.
-            else if ((x .ge. -0.5) .and. (x .le. 0.5) .and. (2.*x+a .lt. 0)) then
-               TukeyWindow = 0.5*(1.-sin(pi*x/a))
-            else if ((x .ge. -0.5) .and. (x .le. 0.5) .and. (2.*x+a .gt. 0) .and. (-2.*x+a .lt. 0)) then
-               TukeyWindow = 0.5*(1.+sin(pi*x/a))
-            else
-               TukeyWindow = 0.
-            endif
-            
-         end function TukeyWindow
-         
-         
+
+
+
       end subroutine CE_inject_am
 
 
       end module CE_torque
-
-
-

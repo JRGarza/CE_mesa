@@ -100,6 +100,8 @@
          M_outer = s% m(k-1)
          R_outer = s% r(k-1)
 
+
+
          ! We could choose to interpolate for R using M as the independent variable. Instead, here we
          ! linearly interpolate across cell (using k as the independent variable)
          M_slope = (M_outer - M_inner) / real((k-1) - (k-2))
@@ -115,6 +117,7 @@
          ! Now use the interpolations and the derived k_final, determine the resulting separation and enclosed mass
          R_final = R_slope * k_final + R_int
          M_final = M_slope * k_final + M_int
+
 
          s% xtra2 = R_final/Rsun
 
@@ -136,6 +139,7 @@
          write(*,*) "Previous Orbital Energy = ", E_init, " Final Orbital Energy: ", E_final
          write(*,*) "Previous Angular momentum = ", J_init, " Final Angular momentum: ", J_final
          write(*,*) "Dissipated Energy Rate: ", s% xtra1, " Dissipated Angular Momentum Rate: ", s% xtra6
+         write(*,*) "Dissipated Energy Rate: ", s% total_extra_heating, (s% total_energy-s% total_energy_start)/s% dt
 
 
       end subroutine CE_orbit_adjust

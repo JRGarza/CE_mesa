@@ -31,7 +31,7 @@
       new_omega = 0.
       set_omega = .true.
 
-
+      pgstar_flag = .true.
 
 
 / ! end of star_job namelist
@@ -56,7 +56,7 @@
                                  !#CE: companion in the region R > CE_companion_position - CE_companion_radius and
                                  !#CE: R < CE_companion_position + CE_companion_radius
                                  !#CE: 3: CE_energy_rate is calculated based on the companions position
-                                 !#CE: and the gravitational drag prescroption by Eve Ostriker (1999)
+                                 !#CE: and the gravitational drag prescription by Eve Ostriker (1999)
       x_logical_ctrl(1) = .false. !#CE: include_internal_energy: If true, then the internal energy is included when
                                  !#CE: when the outer parts of the envelope are bound or unbound.
 
@@ -72,7 +72,7 @@
       !varcontrol_target = 5d-3
       !mesh_delta_coeff = 0.5
       max_allowed_nz = 20000
-      max_years_for_timestep = 0.1
+      max_years_for_timestep = 1d-3
 !       delta_lgR_limit = 0.001
 !       delta_lgE_limit = 0.001
       he_core_boundary_h1_fraction = 1.d-10

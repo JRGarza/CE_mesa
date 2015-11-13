@@ -338,6 +338,7 @@
          vel = vel - s% omega(k) * s% rmid(k) ! local rotation velocity = omega * rmid
          !write(*,*) "vel, k, omega, rmid, P",vel,k, s% omega(k), s% rmid(k), P
 
+
          ! Determine Mach number
          Mach = vel / s% csound(k-1)
 
@@ -382,6 +383,7 @@
          s% xtra1 = CE_energy_rate
 
       end subroutine CE_inject_case4
+
 
 
 
