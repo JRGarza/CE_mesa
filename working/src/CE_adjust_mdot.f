@@ -22,20 +22,20 @@
 !   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 !
 ! ***********************************************************************
- 
+
       module CE_adjust_mdot
 
       use star_def
       use const_def
 
       implicit none
-      
-            
+
+
       contains
-      
+
       ! set use_other_adjust_mdot = .true. to enable this.
       ! your routine will be called after winds and before mass adjustment
-   
+
       subroutine CE_remove_unbound_envelope(id, ierr)
 
          integer, intent(in) :: id
@@ -56,7 +56,6 @@
          enddo
          s% mstar_dot = s% mstar_dot - (mass_to_remove) / (s% dt) !In gr/s
 
-         write(*,*) "CE_adjust_mdot ", mass_to_remove/Msun, (mass_to_remove/Msun) / (s% dt / secyer)
 
 
 
@@ -84,7 +83,7 @@
                               s% dm(k-1)*s% energy(k-1))/ &
                         (s% dm(k) + s% dm(k-1))
                end if
-               
+
                ! m_grav uses gravitational mass, not baryonic mass. This implicitly
                ! takes rotation into account
                val = val * f_energy - s% cgrav(k)*s% m_grav(k)/s% r(k) + &
@@ -117,7 +116,3 @@
 
 
       end module CE_adjust_mdot
-      
-      
-      
-      

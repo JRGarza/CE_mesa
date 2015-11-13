@@ -9,7 +9,7 @@
 !   by the free software foundation; either version 2 of the license, or
 !   (at your option) any later version.
 !
-!   mesa is distributed in the hope that it will be useful, 
+!   mesa is distributed in the hope that it will be useful,
 !   but without any warranty; without even the implied warranty of
 !   merchantability or fitness for a particular purpose.  see the
 !   gnu library general public license for more details.
@@ -19,7 +19,7 @@
 !   foundation, inc., 59 temple place, suite 330, boston, ma 02111-1307 usa
 !
 ! ***********************************************************************
- 
+
  ! copied the content from star/job/standard_run_satr_extras.inc here and made the necessary changes
 
       module run_star_extras
@@ -34,9 +34,9 @@
       use CE_after_struct_burn_mix
       use CE_before_struct_burn_mix
       use CE_adjust_mdot
-      
+
       implicit none
-      
+
       ! these routines are called by the standard run_star check_model
       contains
 
@@ -48,25 +48,25 @@
          ierr = 0
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
-         
+
          ! this is the place to set any procedure pointers you want to change
          ! e.g., other_wind, other_mixing, other_energy  (see star_data.inc)
 
-         ! Here we should point to the names of the "other_" functions to be used         
-         s% other_energy => CE_inject_energy         
+         ! Here we should point to the names of the "other_" functions to be used
+         s% other_energy => CE_inject_energy
          s% other_torque => CE_inject_am ! NEEDS TESTING
          s% other_before_struct_burn_mix => calc_recombination_before_struct_burn_mix
          s% other_after_struct_burn_mix => calc_recombination_after_struct_burn_mix
-         s% other_adjust_mdot => CE_remove_unbound_envelope   
+         s% other_adjust_mdot => CE_remove_unbound_envelope
       end subroutine extras_controls
-      
-      
 
 
 
-      
-      
-      
+
+
+
+
+
       integer function extras_startup(id, restart, ierr)
          integer, intent(in) :: id
          logical, intent(in) :: restart
@@ -87,20 +87,18 @@
 
          ! Reading values of parameters from the extra controls that we are using
          ! Note that "extra_heat" is the specific energy added to the the  cell in units of erg/s/gr
-         CE_energy_rate = s% x_ctrl(1)
          CE_companion_position = s% x_ctrl(2)
          CE_companion_radius = s% x_ctrl(3)
          CE_companion_mass = s% x_ctrl(4)
          CE_n_acc_radii = s% x_ctrl(5)
-         CE_ang_mom_transferred = s% x_ctrl(6)
          CE_test_case = s% x_integer_ctrl(1)
 
-         s% xtra1 = s% x_ctrl(1)
+         s% xtra1 = 0.0d0
          s% xtra2 = s% x_ctrl(2)
          s% xtra3 = s% x_ctrl(3)
          s% xtra4 = s% x_ctrl(4)
          s% xtra5 = s% x_ctrl(5)
-         s% xtra6 = s% x_ctrl(6)         
+         s% xtra6 = 0.0d0
          s% ixtra1 = s% x_integer_ctrl(1)
 
 
@@ -113,7 +111,7 @@
          endif
 
       end function extras_startup
-      
+
 
       ! returns either keep_going, retry, backup, or terminate.
       integer function extras_check_model(id, id_extra)
@@ -126,7 +124,7 @@
          ierr = 0
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
-         extras_check_model = keep_going         
+         extras_check_model = keep_going
          if (.false. .and. s% star_mass_h1 < 0.35d0) then
             ! stop when star hydrogen mass drops to specified level
             extras_check_model = terminate
@@ -151,7 +149,7 @@
          endif
 
          ! Adjust orbital separation based on energy deposited
-         !call CE_orbit_adjust(id, ierr)
+         call CE_orbit_adjust(id, ierr)
 
          ! if you want to check multiple conditions, it can be useful
          ! to set a different termination code depending on which
@@ -175,8 +173,8 @@
          if (ierr /= 0) return
          how_many_extra_history_columns = 3
       end function how_many_extra_history_columns
-      
-      
+
+
       subroutine data_for_extra_history_columns(id, id_extra, n, names, vals, ierr)
          integer, intent(in) :: id, id_extra, n
          character (len=maxlen_history_column_name) :: names(n)
@@ -186,11 +184,11 @@
          ierr = 0
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
-         
+
          !note: do NOT add the extras names to history_columns.list
          ! the history_columns.list is only for the built-in log column options.
          ! it must not include the new column names you are adding here.
-         
+
          names(1) = 'CE_energy_rate'
          vals(1) = s% xtra1
          names(2) = 'CE_companion_position'
@@ -201,7 +199,7 @@
 
       end subroutine data_for_extra_history_columns
 
-      
+
       integer function how_many_extra_profile_columns(id, id_extra)
          use star_def, only: star_info
          integer, intent(in) :: id, id_extra
@@ -212,8 +210,8 @@
          if (ierr /= 0) return
          how_many_extra_profile_columns = 2
       end function how_many_extra_profile_columns
-      
-      
+
+
       subroutine data_for_extra_profile_columns(id, id_extra, n, nz, names, vals, ierr)
          use star_def, only: star_info, maxlen_profile_column_name
          use const_def, only: dp
@@ -226,7 +224,7 @@
          ierr = 0
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
-         
+
          !note: do NOT add the extra names to profile_columns.list
          ! the profile_columns.list is only for the built-in profile column options.
          ! it must not include the new column names you are adding here.
@@ -246,7 +244,7 @@
          end do
 
       end subroutine data_for_extra_profile_columns
-      
+
 
       ! returns either keep_going or terminate.
       ! note: cannot request retry or backup; extras_check_model can do that.
@@ -260,7 +258,7 @@
          extras_finish_step = keep_going
          call store_extra_info(s)
 
-         ! to save a profile, 
+         ! to save a profile,
             ! s% need_to_save_profiles_now = .true.
          ! to update the star log,
             ! s% need_to_update_history_now = .true.
@@ -269,8 +267,8 @@
          ! by default, indicate where (in the code) MESA terminated
          if (extras_finish_step == terminate) s% termination_code = t_extras_finish_step
       end function extras_finish_step
-      
-      
+
+
       subroutine extras_after_evolve(id, id_extra, ierr)
          integer, intent(in) :: id, id_extra
          integer, intent(out) :: ierr
@@ -279,58 +277,58 @@
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
       end subroutine extras_after_evolve
-      
-      
+
+
       ! routines for saving and restoring extra data so can do restarts
-         
+
          ! put these defs at the top and delete from the following routines
          !integer, parameter :: extra_info_alloc = 1
          !integer, parameter :: extra_info_get = 2
          !integer, parameter :: extra_info_put = 3
-      
-      
+
+
       subroutine alloc_extra_info(s)
          integer, parameter :: extra_info_alloc = 1
          type (star_info), pointer :: s
          call move_extra_info(s,extra_info_alloc)
       end subroutine alloc_extra_info
-      
-      
+
+
       subroutine unpack_extra_info(s)
          integer, parameter :: extra_info_get = 2
          type (star_info), pointer :: s
          call move_extra_info(s,extra_info_get)
       end subroutine unpack_extra_info
-      
-      
+
+
       subroutine store_extra_info(s)
          integer, parameter :: extra_info_put = 3
          type (star_info), pointer :: s
          call move_extra_info(s,extra_info_put)
       end subroutine store_extra_info
-      
-      
+
+
       subroutine move_extra_info(s,op)
          integer, parameter :: extra_info_alloc = 1
          integer, parameter :: extra_info_get = 2
          integer, parameter :: extra_info_put = 3
          type (star_info), pointer :: s
          integer, intent(in) :: op
-         
+
          integer :: i, j, num_ints, num_dbls, ierr
-         
+
          i = 0
-         ! call move_int or move_flg    
+         ! call move_int or move_flg
          num_ints = i
-         
+
          i = 0
-         ! call move_dbl       
-         
+         ! call move_dbl
+
          num_dbls = i
-         
+
          if (op /= extra_info_alloc) return
          if (num_ints == 0 .and. num_dbls == 0) return
-         
+
          ierr = 0
          call star_alloc_extras(s% id, num_ints, num_dbls, ierr)
          if (ierr /= 0) then
@@ -339,9 +337,9 @@
             write(*,*) 'alloc_extras num_dbls', num_dbls
             stop 1
          end if
-         
+
          contains
-         
+
          subroutine move_dbl(dbl)
             real(dp) :: dbl
             i = i+1
@@ -352,7 +350,7 @@
                s% extra_work(i) = dbl
             end select
          end subroutine move_dbl
-         
+
          subroutine move_int(int)
             integer :: int
             i = i+1
@@ -363,7 +361,7 @@
                s% extra_iwork(i) = int
             end select
          end subroutine move_int
-         
+
          subroutine move_flg(flg)
             logical :: flg
             i = i+1
@@ -378,8 +376,7 @@
                end if
             end select
          end subroutine move_flg
-      
+
       end subroutine move_extra_info
-      
+
       end module run_star_extras
-      

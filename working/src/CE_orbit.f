@@ -22,11 +22,11 @@
 !   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 !
 ! ***********************************************************************
- 
+
       module CE_orbit
 
-         
-         
+
+
       use star_def
       use const_def
       use CE_energy
@@ -34,8 +34,8 @@
       implicit none
 
       contains
-      
-      
+
+
       subroutine CE_orbit_adjust(id, ierr)
          use const_def, only: standard_cgrav, Msun, Rsun
          integer, intent(in) :: id
@@ -48,6 +48,7 @@
          real(dp) :: M_inner, R_inner, M_outer, R_outer, M_final, R_final
          real(dp) :: M_slope, R_slope, M_int, R_int, M_encl
          real(dp) :: top, bottom, k_final
+         real(dp) :: CE_ang_mom_transferred
 
 
          ierr = 0
@@ -72,7 +73,7 @@
 
 
          ! Calculate the angular momentum
-         J_tmp = (CE_companion_mass * Msun)**2 * M_encl**2 / (CE_companion_mass * Msun + M_encl) 
+         J_tmp = (CE_companion_mass * Msun)**2 * M_encl**2 / (CE_companion_mass * Msun + M_encl)
          J_init = sqrt(standard_cgrav * J_tmp * CE_companion_position * Rsun)
 
 
@@ -108,7 +109,7 @@
 
          ! Given the final energy, E_final, determine the resulting k that solves the equation
          top = 2.0 * E_final * R_int + standard_cgrav * CE_companion_mass * Msun * M_int
-         bottom = 2.0 * E_final * R_slope + standard_cgrav * CE_companion_mass * Msun * M_slope 
+         bottom = 2.0 * E_final * R_slope + standard_cgrav * CE_companion_mass * Msun * M_slope
          k_final = -top / bottom
 
          ! Now use the interpolations and the derived k_final, determine the resulting separation and enclosed mass
@@ -118,21 +119,25 @@
          s% xtra2 = R_final/Rsun
 
          ! Calculate the angular momentum lost to the star's envelope
-         J_tmp = (CE_companion_mass * Msun)**2 * M_final**2 / (CE_companion_mass * Msun + M_final) 
+         J_tmp = (CE_companion_mass * Msun)**2 * M_final**2 / (CE_companion_mass * Msun + M_final)
          J_final = sqrt(standard_cgrav * J_tmp * R_final)
 
-         s% xtra6 = J_final - J_init
+         !The angular momentum that is lost from the orbit of the companion
+         ! is added to the envelope of the donor.
+         CE_ang_mom_transferred = -(J_final - J_init)
+         s% xtra6 = CE_ang_mom_transferred/s% dt
 
 
          ! For diagnostics
 
          write(*,*) "Final k: ", k_final
          write(*,*) "Previous Enclosed Mass: ", M_encl, " Final Enclosed Mass: ", M_final
-         write(*,*) "Previous Separation = ", CE_companion_position, " Final Separation: ", R_final/Rsun 
+         write(*,*) "Previous Separation = ", CE_companion_position, " Final Separation: ", R_final/Rsun
          write(*,*) "Previous Orbital Energy = ", E_init, " Final Orbital Energy: ", E_final
-         write(*,*) "Dissipated Energy: ", E_loss, " Dissipated Angular Momentum: ", s% xtra6
+         write(*,*) "Previous Angular momentum = ", J_init, " Final Angular momentum: ", J_final
+         write(*,*) "Dissipated Energy Rate: ", s% xtra1, " Dissipated Angular Momentum Rate: ", s% xtra6
 
- 
+
       end subroutine CE_orbit_adjust
 
       end module CE_orbit
