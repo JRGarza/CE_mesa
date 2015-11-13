@@ -48,5 +48,3 @@ E.g., add a line like this before the "include" line.
 STAR = star_co_wd
 Then the make will name the executable 'star_co_wd.
 You'll need to edit your 'rn' and 're' scripts to match the new name.
-
-
