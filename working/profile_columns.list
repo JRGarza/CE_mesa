@@ -152,7 +152,7 @@
    !zbar ! average charge
    !z2bar ! average charge^2
    !ye ! average charge per baryon = proton fraction
-   !opacity ! opacity measured at center of zone
+   opacity ! opacity measured at center of zone
    !dkap_dlnrho_at_face ! partial derivative of opacity wrt. ln rho (at T=const) at outer edge of cell
    !dkap_dlnt_at_face ! partial derivative of opacity wrt. ln T (at rho=const) at outer edge of cell
    !log_opacity ! log10(opacity)
@@ -280,8 +280,8 @@
    !dlnPgas_dt ! time derivative of log(Pgas) at fixed mass coordinate (Langranian)
    !dlnT_dt ! time derivative of log(temperature) at fixed mass coordinate (Langranian)
    !dlnR_dt ! time derivative of log(radius) at fixed mass coordinate (Langranian)
-   !dr_dt ! time derivative of radius at fixed mass coordinate (Langranian)
-   !dv_dt ! time derivative of velocity at fixed mass coordinate (Langranian)
+   dr_dt ! time derivative of radius at fixed mass coordinate (Langranian)
+   dv_dt ! time derivative of velocity at fixed mass coordinate (Langranian)
    
    !del_entropy ! entropy - entropy_start
    !ds_from_eps_grav ! -eps_grav/T/(avo*kerg)
@@ -508,8 +508,8 @@
       !cell_E_balance_actual
       !cell_E_balance_expected
 
-      !gradr_div_grada ! gradr/grada_at_face; > 1 => Schwarzschild unstable for convection
-      !gradr_sub_grada ! gradr - grada_at_face; > 0 => Schwarzschild unstable for convection
+      gradr_div_grada ! gradr/grada_at_face; > 1 => Schwarzschild unstable for convection
+      gradr_sub_grada ! gradr - grada_at_face; > 0 => Schwarzschild unstable for convection
       
       !dr ! r(outer edge) - r(inner edge); radial extent of cell in cm.
       !dv ! v(inner edge) - v(outer edge); rate at which delta_r is shrinking (cm/sec).

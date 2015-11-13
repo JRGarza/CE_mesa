@@ -145,7 +145,7 @@
          endif
 
          ! Adjust orbital separation based on energy deposited
-         call CE_orbit_adjust(id, ierr)
+         !call CE_orbit_adjust(id, ierr)
 
          ! if you want to check multiple conditions, it can be useful
          ! to set a different termination code depending on which
