@@ -55,12 +55,15 @@
 
       subroutine CE_remove_unbound_envelope(id, dt, res)
 
+        use const_def, only: Rsun, Msun
         integer, intent(in) :: id
         real(dp), intent(in) :: dt
         integer, intent(out) :: res ! keep_going, redo, retry, backup, terminate
          type (star_info), pointer :: s
          integer :: ierr, k
          real(dp) :: mass_to_remove
+         
+         real(dp) :: total_envelope_binding_energy
 
          ierr = 0
          call star_ptr(id, s, ierr)
@@ -73,8 +76,19 @@
             k=k+1
          enddo
 
+         k=1
+         total_envelope_binding_energy = 0.0
+         do while ((k < s% nz) .and. (s% X(k) > 0.5))
+            total_envelope_binding_energy = total_envelope_binding_energy + &
+                           (s% energy(k) - s% cgrav(k)*s% m_grav(k)/s% r(k) + &
+                           0.5d0*s% v(k)*s% v(k)) * s% dm(k)
+            k=k+1
+         enddo
+         write(*,*) "Total Envelope Binding Energy: ", total_envelope_binding_energy
+
+
          s% xtra7 = - (mass_to_remove) / dt !In gr/s
-         write(*,*) "***", s% xtra7, mass_to_remove, dt, s% dt
+!         write(*,*) "***", s% xtra7, mass_to_remove, dt, s% dt
 
          res = keep_going
 
@@ -106,8 +120,11 @@
                ! takes rotation into account
                val = val * f_energy - s% cgrav(k)*s% m_grav(k)/s% r(k) + &
                            0.5d0*s% v(k)*s% v(k)
-               write(*,*) val, 0.5d0*s% v(k)*s% v(k)/(s% cgrav(k)*s% m_grav(k)/s% r(k)),  &
-                          k, s% cgrav(k), s% m_grav(k), s% r(k), s% v(k)
+               write(*,*) "!!", val, 0.5d0*s% v(k)*s% v(k)/val, s% energy(k)/val, &
+                          k, s% cgrav(k), s% m_grav(k)/Msun, s% r(k)/Rsun, s% v(k)
+                           
+!               write(*,*) "!!", val, 0.5d0*s% v(k)*s% v(k)/(s% cgrav(k)*s% m_grav(k)/s% r(k)),  &
+!                          s% energy(k), k, s% cgrav(k), s% m_grav(k)/Msun, s% r(k)/Rsun, s% v(k)
 
                if (val > 0.0d0) then
                   is_bound = .false.

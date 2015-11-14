@@ -127,9 +127,12 @@
             s% extra_heat(k) = CE_energy_rate / mass_to_be_heated * EnvelopeWindow(s% m(k), m_bot)
          end do
 
+
          ! Save the total erg/second added in this time step
          s% xtra1 = CE_energy_rate
-
+         
+         
+         
          contains
 
          real(dp) function EnvelopeWindow(m_interior, m_bot)
@@ -345,6 +348,7 @@
          ! Determine accretion radius
          R_acc = 2.0 * standard_cgrav * M2 / (vel*vel)
 
+         write(*,*) "Accretion Radius: ", R_acc/Rsun
 
          F_DHL = pi * R_acc**2 * s% rho(k) * vel**2
 
@@ -404,17 +408,18 @@
          use const_def, only: dp, pi
          real(dp), intent(in) :: x, a
 
-         if ((x .ge. -0.5) .and. (x .le. 0.5) .and. (2.*x+a .ge. 0) .and. (-2.*x+a .ge. 0)) then
-            TukeyWindow = 1.
-         else if ((x .ge. -0.5) .and. (x .le. 0.5) .and. (2.*x+a .lt. 0)) then
-            TukeyWindow = 0.5*(1.-sin(pi*x/a))
-         else if ((x .ge. -0.5) .and. (x .le. 0.5) .and. (2.*x+a .gt. 0) .and. (-2.*x+a .lt. 0)) then
-            TukeyWindow = 0.5*(1.+sin(pi*x/a))
-         else
+         if ((x .le. -0.5) .or. (x .ge. 0.5)) then
             TukeyWindow = 0.
+         else if (x .le. -0.5 + a) then
+            TukeyWindow = 0.5 - 0.5*cos(pi*(x+0.5)/a)
+         else if (x .ge. 0.5 - a) then
+            TukeyWindow = 0.5 - 0.5*cos(-pi*(x-0.5)/a)
+         else
+            TukeyWindow = 1.
          endif
 
       end function TukeyWindow
+
 
 
 

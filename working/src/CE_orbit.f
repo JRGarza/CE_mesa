@@ -134,9 +134,10 @@
          ! For diagnostics
 
          write(*,*) "Final k: ", k_final
-         write(*,*) "Previous Enclosed Mass: ", M_encl, " Final Enclosed Mass: ", M_final
+         write(*,*) "Previous Enclosed Mass: ", M_encl/Msun, " Final Enclosed Mass: ", M_final/Msun
          write(*,*) "Previous Separation = ", CE_companion_position, " Final Separation: ", R_final/Rsun
          write(*,*) "Previous Orbital Energy = ", E_init, " Final Orbital Energy: ", E_final
+         write(*,*) "Total Stellar Energy = ", s% total_energy
          write(*,*) "Previous Angular momentum = ", J_init, " Final Angular momentum: ", J_final
          write(*,*) "Dissipated Energy Rate: ", s% xtra1, " Dissipated Angular Momentum Rate: ", s% xtra6
          write(*,*) "Dissipated Energy Rate: ", s% total_extra_heating, (s% total_energy-s% total_energy_start)/s% dt
