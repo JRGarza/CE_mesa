@@ -315,7 +315,7 @@
    !mass_correction_factor ! dm_gravitational/dm (dm is baryonic mass of cell)
 
    !xm ! mass exterior to point (Msun units)
-   !dq ! mass of zone as a fraction of total star mass
+   dq ! mass of zone as a fraction of total star mass
    !logxq ! log10(1-q)
    !logxm ! log10(xm)
 

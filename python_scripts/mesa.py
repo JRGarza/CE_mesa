@@ -127,6 +127,8 @@ def LoadOneProfile(filename, NY, Yaxis, Ymin, Ymax, Variable):
 	if (not "v_div_csound" in data_from_file.dtype.names and (Variable == 'v_div_csound' )):
 		raise ValueError("Column 'v_div_csound' is missing from the profile files")
 
+	if (not "dq" in data_from_file.dtype.names and (Variable == 'dq' )):
+		raise ValueError("Column 'dq' is missing from the profile files")
 
 
 	#Define the values that we want to itnerpolate along the  Y axis
@@ -363,7 +365,7 @@ class mesa(object):
 			raise ValueError(self._param['Xaxis']+"not a valid option for parameter Xaxis")
 		if not (self._param['Variable'] in ['eps_nuc', 'velocity', 'entropy', 'total_energy', 'j_rot', 'eps_recombination'
 				, 'ionization_energy', 'energy', 'potential_plus_kinetic', 'extra_heat', 'v_div_vesc',
-				'v_div_csound',	'pressure', 'temperature', 'density', 'tau', 'opacity', 'gamma1']):
+				'v_div_csound',	'pressure', 'temperature', 'density', 'tau', 'opacity', 'gamma1', 'dq']):
 			raise ValueError(self._param['Variable']+"not a valid option for parameter Variable")
 
 
@@ -571,6 +573,8 @@ class mesa(object):
 			cmap_label = "log(Temperature [K])"
 		elif self._param['Variable'] == "tau":
 			cmap_label = "log(optical depth)"
+		elif self._param['Variable'] == "dq":
+			cmap_label = "log(dq)"
 
 
 
@@ -910,8 +914,6 @@ class mesa(object):
 if __name__ == "__main__":
 
 
-#TODO add orbit line and R_acc to kipp diagrams
-#TODO add line to kipp that shows tau =1 or tau =2/3 surface
 #TODO Add linear cmap
 #TODO Rethink the way that data are loaded to mesa.py. Perhaps keep the original data to memory
 
@@ -922,12 +924,12 @@ if __name__ == "__main__":
 	#Options for Yaxis: 'mass', 'radius', 'q', 'log_mass', 'log_radius', 'log_q'
 	#Options for Variable: "eps_nuc", "velocity", "entropy", "total_energy, "j_rot", "eps_recombination", "ionization_energy",
 	#						"energy", "potential_plus_kinetic", "extra_heat", "v_div_vesc", "v_div_csound"
-	#						"pressure", "temperature", "density", "tau", "opacity", "gamma1"
+	#						"pressure", "temperature", "density", "tau", "opacity", "gamma1", "dq"
 
 
 	data_path = "/Users/tassos/repos/CE_mesa/working/LOGS/"
 	a = mesa(data_path=data_path, parallel=True, abundances=False, log_abundances = True, Yaxis='radius', Xaxis="model_number",
-		czones=False, Variable='gamma1', orbit=True, tau10 = True, tau100=True)
+		czones=False, Variable='dq', orbit=True, tau10 = True, tau100=True)
 	a.SetParameters(onscreen=True, cmap = 'jet', cmap_dynamic_range=5, signed_log_cmap=False)
 
 	a.Kippenhahn()
