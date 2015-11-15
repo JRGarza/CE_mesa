@@ -84,7 +84,7 @@
          E_init = -standard_cgrav * CE_companion_mass * Msun * M_encl / (2.0 * CE_companion_position * Rsun)
          E_loss = CE_energy_rate * s% dt
          E_final = E_init - E_loss
-
+         
 
          ! Move from outside of star in to find cell containing companion
          E_tmp = 0d0
@@ -140,6 +140,9 @@
          CE_ang_mom_transferred = -(J_final - J_init)
          s% xtra6 = CE_ang_mom_transferred/s% dt
 
+         ! Keep track of orbital energy and angular momentum
+         s% xtra8 = E_final
+         s% xtra10 = J_final
 
          ! For diagnostics
 

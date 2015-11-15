@@ -160,7 +160,6 @@
          ! Added timestep controls
          result = worst_result(result, CE_pick_next_timestep(s))
 
-!         CE_timestep_controls(id, ierr)
 
 
          ! if you want to check multiple conditions, it can be useful
