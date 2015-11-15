@@ -42,15 +42,28 @@
          integer, intent(out) :: ierr
          type (star_info), pointer :: s
          integer :: k
-         real(dp) :: mass_to_remove
+         real(dp) :: CE_mdot
+
 
          ierr = 0
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
 
+         !TODO add the factors used for smooth Mdot variations to xtra controlls
 
-         s% mstar_dot = s% mstar_dot - s% xtra7 !In gr/s
-         write(*,*) "********", s% xtra7, s% mstar_dot, s% xtra7_old
+         if (s% mstar_dot_old > -1.d-9 * Msun/secyer .and. s% xtra7 < -1.d-8* Msun/secyer) then
+            CE_mdot = -1.d-7* Msun/secyer
+            write(*,*) "*** ", s% mstar_dot_old, -1.d-9 * Msun/secyer, s% xtra7, -1.d-8* Msun/secyer,&
+            (s% mstar_dot_old > -1.d-9 * Msun/secyer .and. s% xtra7 < -1.d-8* Msun/secyer)
+          else if (s% xtra7 < 2.* s% mstar_dot_old  ) then
+            CE_mdot = 2.* s% mstar_dot_old
+          else if (s% xtra7 > 0.5 * s% mstar_dot_old  ) then
+            CE_mdot = 0.5* s% mstar_dot_old
+          endif
+
+          if (CE_mdot < -1d2 * Msun/secyer) CE_mdot = -1d2* Msun/secyer
+
+         s% mstar_dot = s% mstar_dot + CE_mdot !In gr/s
 
 
       end subroutine CE_other_adjust_mdot

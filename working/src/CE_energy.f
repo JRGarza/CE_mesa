@@ -71,7 +71,7 @@
          CE_test_case = s% x_integer_ctrl(1)
          CE_companion_position = s% xtra2
 
-         write(*,*) "Stellar radius, companion position: ", s% r(1)/Rsun, CE_companion_position    
+         write(*,*) "Stellar radius, companion position: ", s% r(1)/Rsun, CE_companion_position
 
          ! If companion is outside star, skip energy calculations
          if (CE_companion_position*Rsun > s% r(1)) return
@@ -139,9 +139,9 @@
 
          ! Save the total erg/second added in this time step
          s% xtra1 = CE_energy_rate
-         
-         
-         
+
+
+
          contains
 
          real(dp) function EnvelopeWindow(m_interior, m_bot)
@@ -249,7 +249,7 @@
          ! Determine Keplerian velocity. Then subtract the local rotation velocity
          vel = 2.0 * pi * CE_companion_position*Rsun / P
          vel = vel - s% omega(k) * s% rmid(k) ! local rotation velocity = omega * rmid
-         !write(*,*) "vel, k, omega, rmid, P",vel,k, s% omega(k), s% rmid(k), P
+
 
          ! Determine Mach number
          Mach = vel / s% csound(k-1)
@@ -273,8 +273,6 @@
 
          ! Total energy rate= drag force * velocity
          CE_energy_rate = F_drag * vel
-         write(*,*) "CE_energy_rate, Fdrag, vel,  dt",CE_energy_rate,F_drag, vel, s% dt
-         write(*,*) "Mach Number: ", vel/s% csound(k)
 
 
          ! Tukey window scale
@@ -347,12 +345,9 @@
 
          ! Determine orbital period in seconds
          P = AtoP(M_encl, M2, CE_companion_position*Rsun)
-
          ! Determine Keplerian velocity. Then subtract the local rotation velocity
          vel = 2.0 * pi * CE_companion_position*Rsun / P
          vel = vel - s% omega(k) * s% rmid(k) ! local rotation velocity = omega * rmid
-         !write(*,*) "vel, k, omega, rmid, P",vel,k, s% omega(k), s% rmid(k), P
-
 
          ! Determine Mach number
          Mach = vel / s% csound(k-1)
@@ -386,7 +381,7 @@
             ff = TukeyWindow((s% r(k) - CE_companion_position*Rsun)/(CE_n_acc_radii * R_acc), a_tukey)
             mass_to_be_heated = mass_to_be_heated + s% dm(k) * ff
          end do
-         
+
          ! If companion is outside star, set mass_to_be_heated arbitrarily low
          if (mass_to_be_heated == 0.) mass_to_be_heated = 1.0
 

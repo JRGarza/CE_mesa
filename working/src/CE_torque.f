@@ -69,7 +69,7 @@
          type (star_info), pointer :: s
          integer :: k
          real(dp) :: a_tukey, mass_to_be_spun, ff
-         real(dp) :: CE_companion_position, CE_companion_mass, CE_n_acc_radii, CE_ang_mom_transferred
+         real(dp) :: CE_companion_position, CE_companion_mass, CE_n_acc_radii, CE_torque
          real(dp) :: time, R_acc, Mach, M_encl, M2, vel, A, P
 
          ierr = 0
@@ -81,9 +81,9 @@
          CE_companion_position = s% xtra2
          CE_companion_mass = s% xtra4
          CE_n_acc_radii = s% xtra5
-         CE_ang_mom_transferred = s% xtra6
+         CE_torque = s% xtra6
 
-         write(*,*) "angular momentum", s% xtra6
+         write(*,*) "CE torque ", CE_torque
 
          ! Keplerian velocity calculation depends on mass contained within a radius
          ! Include all the enclosed cells
@@ -104,16 +104,9 @@
          ! Determine Keplerian velocity. Then subtract the local rotation velocity
          vel = 2.0 * pi * CE_companion_position*Rsun / P
          vel = vel - s% omega(k) * s% rmid(k) ! local rotation velocity = omega * rmid
-         !write(*,*) "vel, k, omega, rmid, P",vel,k, s% omega(k), s% rmid(k), P
-
-
-         ! Determine Mach number
-         Mach = vel / s% csound(k-1)
 
          ! Determine accretion radius
          R_acc = 2.0 * standard_cgrav * M2 / (vel*vel)
-
-
 
          ! First calculate the mass in which the angular momentum will be deposited
          mass_to_be_spun = 0.0
@@ -122,29 +115,11 @@
             mass_to_be_spun = mass_to_be_spun + s% dm(k) * ff
          end do
 
-
-
-         ! Now redo the loop and add the extra specific heat
+         ! Now redo the loop and add the extra torque
          do k = 1, s% nz
             ff = TukeyWindow((s% r(k) - CE_companion_position*Rsun)/(CE_n_acc_radii * R_acc), a_tukey)
-            write(*,*) k, ff, mass_to_be_spun
-            s% extra_jdot(k) = CE_ang_mom_transferred / s% dt / mass_to_be_spun * ff
+            s% extra_jdot(k) = CE_torque / mass_to_be_spun * ff
          end do
-
-
-         ! Need to add some controls here to make sure certain layers of the star are not
-         ! getting spun up past break up velocity
-
-
-
-!         ! here is an (unrealistic) example of adding angular momentum to each cell
-!         do k = 1, s% nz
-!            ! note that can set extra_omegadot instead of extra_jdot if that is more convenient
-!            ! set one or the other, not both.  set the one you are not using to 0 as in the following line.
-!            !s% extra_jdot(k) = 0 ! rate at which specific angular momentum is changed
-!            !s% extra_omegadot(k) = 0 ! rate at which omega is changed
-!         end do
-
 
 
 

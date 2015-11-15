@@ -25,7 +25,7 @@
 
       module CE_after_struct_burn_mix
 
-      use const_def, only: dp,ln10
+      use const_def, only: dp,ln10, Msun, secyer
       use star_def
       use ionization_def
 
@@ -61,20 +61,30 @@
         integer, intent(out) :: res ! keep_going, redo, retry, backup, terminate
          type (star_info), pointer :: s
          integer :: ierr, k
-         real(dp) :: mass_to_remove
-         
+         real(dp) :: mass_to_remove, CE_mdot
+
          real(dp) :: total_envelope_binding_energy
 
          ierr = 0
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
 
+        !  mass_to_remove = 0.0d0
+        !  do k=1, 10
+        !     mass_to_remove = mass_to_remove + s% dm(k) * logic2dbl(.not. is_bound(k))
+        !     write(*,*) "Shell bound ", k, is_bound(k)
+        !  enddo
+        !  if (mass_to_remove > 0.0d0) read(*,*)
+
+
          k=1
          mass_to_remove = 0.0d0
+
          do while ((k < s% nz) .and. (.not. is_bound(k)))
             mass_to_remove = mass_to_remove + s% dm(k)
             k=k+1
          enddo
+
 
          k=1
          total_envelope_binding_energy = 0.0
@@ -84,11 +94,12 @@
                            0.5d0*s% v(k)*s% v(k)) * s% dm(k)
             k=k+1
          enddo
-         write(*,*) "Total Envelope Binding Energy: ", total_envelope_binding_energy
 
 
-         s% xtra7 = - (mass_to_remove) / dt !In gr/s
-!         write(*,*) "***", s% xtra7, mass_to_remove, dt, s% dt
+         CE_mdot = - (mass_to_remove) / dt !In gr/s
+         s% xtra7 = CE_mdot
+
+
 
          res = keep_going
 
@@ -104,27 +115,14 @@
                include_internal_energy = s% x_logical_ctrl(1)
                f_energy = logic2dbl(include_internal_energy)
 
-               if (k == 1) then
-                  val = s% energy(k)
-               else if (k == s% nz) then
-                  val = (s% dm(k)*s% energy(k) + &
-                              0.5d0*s% dm(k-1)*s% energy(k-1))/ &
-                        (s% dm(k) + 0.5d0*s% dm(k-1))
-               else
-                  val = (s% dm(k)*s% energy(k) + &
-                              s% dm(k-1)*s% energy(k-1))/ &
-                        (s% dm(k) + s% dm(k-1))
-               end if
+               !When include_internal_energy = true, we shoud include the internal energy
+               !only when the shell is mechanically unstable, i.e. Gamma1<4./3.
+               if (s% gamma1(k) >= 4./3.) f_energy = 0.d0
 
                ! m_grav uses gravitational mass, not baryonic mass. This implicitly
                ! takes rotation into account
-               val = val * f_energy - s% cgrav(k)*s% m_grav(k)/s% r(k) + &
+               val = f_energy * s% energy(k) - s% cgrav(k)*s% m_grav(k)/s% r(k) + &
                            0.5d0*s% v(k)*s% v(k)
-               write(*,*) "!!", val, 0.5d0*s% v(k)*s% v(k)/val, s% energy(k)/val, &
-                          k, s% cgrav(k), s% m_grav(k)/Msun, s% r(k)/Rsun, s% v(k)
-                           
-!               write(*,*) "!!", val, 0.5d0*s% v(k)*s% v(k)/(s% cgrav(k)*s% m_grav(k)/s% r(k)),  &
-!                          s% energy(k), k, s% cgrav(k), s% m_grav(k)/Msun, s% r(k)/Rsun, s% v(k)
 
                if (val > 0.0d0) then
                   is_bound = .false.

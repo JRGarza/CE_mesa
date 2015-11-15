@@ -48,7 +48,7 @@
          real(dp) :: M_inner, R_inner, M_outer, R_outer, M_final, R_final
          real(dp) :: M_slope, R_slope, M_int, R_int, M_encl
          real(dp) :: top, bottom, k_final
-         real(dp) :: CE_ang_mom_transferred
+         real(dp) :: orbital_ang_mom_lost
 
 
          ierr = 0
@@ -93,14 +93,13 @@
             M_inner = s% m(k)
             R_inner = s% r(k)
             E_tmp = -standard_cgrav * CE_companion_mass * Msun * M_inner / (2.0 * R_inner)
-!            write(*,*) "Cell number: ", k, " Radius: ", s% r(k)/Rsun, " Mass: ", s% m(k), " Energy: ", E_tmp
             k = k + 1
          end do
 
 
          ! If companion is outside star, set k to 3
          if (k < 3) k=3
-         
+
 
          ! save end points of cell containing companion
          M_inner = s% m(k-2)
@@ -137,8 +136,9 @@
 
          !The angular momentum that is lost from the orbit of the companion
          ! is added to the envelope of the donor.
-         CE_ang_mom_transferred = -(J_final - J_init)
-         s% xtra6 = CE_ang_mom_transferred/s% dt
+         orbital_ang_mom_lost = J_final - J_init
+         !We save in s% xtra6 the total torque that will be applied to the Envelope
+         s% xtra6 = -orbital_ang_mom_lost/s% dt
 
 
          ! For diagnostics
@@ -150,7 +150,6 @@
          write(*,*) "Total Stellar Energy = ", s% total_energy
          write(*,*) "Previous Angular momentum = ", J_init, " Final Angular momentum: ", J_final
          write(*,*) "Dissipated Energy Rate: ", s% xtra1, " Dissipated Angular Momentum Rate: ", s% xtra6
-         write(*,*) "Dissipated Energy Rate: ", s% total_extra_heating, (s% total_energy-s% total_energy_start)/s% dt
 
 
       end subroutine CE_orbit_adjust

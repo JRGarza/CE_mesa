@@ -58,6 +58,28 @@
          s% other_before_struct_burn_mix => calc_recombination_before_struct_burn_mix
          s% other_after_struct_burn_mix => CE_other_after_struct_burn_mix
          s% other_adjust_mdot => CE_other_adjust_mdot
+
+         ! Reading values of parameters from the extra controls that we are using
+         ! Note that "extra_heat" is the specific energy added to the the  cell in units of erg/s/gr
+
+         !s% xtra1 -> CE_energy_rate. It is initially set to 0. It will be calculated when CE_energy is called
+         s% xtra1 = 0.0d0
+         !s% xtra2 -> CE_companion_position
+         s% xtra2 = s% x_ctrl(2)
+         !s% xtra3 -> CE_companion_radius
+         s% xtra3 = s% x_ctrl(3)
+         !s% xtra4 -> CE_companion_mass
+         s% xtra4 = s% x_ctrl(4)
+         !s% xtra5 -> CE_n_acc_radii
+         s% xtra5 = s% x_ctrl(5)
+         !s% xtra6 -> CE_torque. It is initially set to 0. It will be calculated when CE_torque is called
+         s% xtra6 = 0.0d0
+         !s% xtra7 -> CE_mdot. It is initially set to 0. It will be calculated when CE_adjust_mdot is called
+         s% xtra7 = 0.0d0
+
+         !s% xtra7 -> CE_test_case
+         s% ixtra1 = s% x_integer_ctrl(1)
+
       end subroutine extras_controls
 
 
@@ -85,21 +107,6 @@
             call unpack_extra_info(s)
          end if
 
-         ! Reading values of parameters from the extra controls that we are using
-         ! Note that "extra_heat" is the specific energy added to the the  cell in units of erg/s/gr
-         CE_companion_position = s% x_ctrl(2)
-         CE_companion_radius = s% x_ctrl(3)
-         CE_companion_mass = s% x_ctrl(4)
-         CE_n_acc_radii = s% x_ctrl(5)
-         CE_test_case = s% x_integer_ctrl(1)
-
-         s% xtra1 = 0.0d0
-         s% xtra2 = s% x_ctrl(2)
-         s% xtra3 = s% x_ctrl(3)
-         s% xtra4 = s% x_ctrl(4)
-         s% xtra5 = s% x_ctrl(5)
-         s% xtra6 = 0.0d0
-         s% ixtra1 = s% x_integer_ctrl(1)
 
 
          ! We need to increase the resolution around the area where the extra heat is deposited
