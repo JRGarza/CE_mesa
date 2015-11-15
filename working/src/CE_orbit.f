@@ -68,6 +68,9 @@
             k = k + 1
          end do
 
+         ! If companion is outside star, set k to 2
+         if (k == 1) k=2
+
          M_encl = s% m(k)
          M_encl = M_encl + s% dm(k-1) * (CE_companion_position*Rsun - s% r(k)) / (s% r(k-1) - s% r(k))
 
@@ -93,6 +96,11 @@
 !            write(*,*) "Cell number: ", k, " Radius: ", s% r(k)/Rsun, " Mass: ", s% m(k), " Energy: ", E_tmp
             k = k + 1
          end do
+
+
+         ! If companion is outside star, set k to 3
+         if (k < 3) k=3
+         
 
          ! save end points of cell containing companion
          M_inner = s% m(k-2)

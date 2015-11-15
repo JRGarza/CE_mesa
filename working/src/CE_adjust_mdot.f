@@ -48,6 +48,7 @@
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
 
+
          s% mstar_dot = s% mstar_dot - s% xtra7 !In gr/s
          write(*,*) "********", s% xtra7, s% mstar_dot, s% xtra7_old
 
