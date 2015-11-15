@@ -62,12 +62,21 @@
          integer, intent(out) :: ierr
          type (star_info), pointer :: s
          integer :: CE_test_case
+         real(dp) :: CE_companion_position
 
          ierr = 0
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
 
          CE_test_case = s% x_integer_ctrl(1)
+         CE_companion_position = s% xtra2
+
+         write(*,*) "Stellar radius, companion position: ", s% r(1)/Rsun, CE_companion_position    
+
+         ! If companion is outside star, skip energy calculations
+         if (CE_companion_position*Rsun > s% r(1)) return
+
+
 
          ! Call functions to calculate test cases
          if (CE_test_case == 1) then
@@ -127,9 +136,12 @@
             s% extra_heat(k) = CE_energy_rate / mass_to_be_heated * EnvelopeWindow(s% m(k), m_bot)
          end do
 
+
          ! Save the total erg/second added in this time step
          s% xtra1 = CE_energy_rate
-
+         
+         
+         
          contains
 
          real(dp) function EnvelopeWindow(m_interior, m_bot)
@@ -325,6 +337,9 @@
             k = k + 1
          end do
 
+         ! If companion is outside star, set k to 2
+         if (k == 1) k=2
+
          M_encl = s% m(k)
          M_encl = M_encl + s% dm(k-1) * (CE_companion_position*Rsun - s% r(k)) / (s% r(k-1) - s% r(k))
 
@@ -337,6 +352,7 @@
          vel = 2.0 * pi * CE_companion_position*Rsun / P
          vel = vel - s% omega(k) * s% rmid(k) ! local rotation velocity = omega * rmid
          !write(*,*) "vel, k, omega, rmid, P",vel,k, s% omega(k), s% rmid(k), P
+
 
          ! Determine Mach number
          Mach = vel / s% csound(k-1)
@@ -362,7 +378,7 @@
 
 
          ! Tukey window scale
-         a_tukey = 0.1
+         a_tukey = 0.5
 
          ! First calculate the mass in which the energy will be deposited
          mass_to_be_heated = 0.0
@@ -370,6 +386,9 @@
             ff = TukeyWindow((s% r(k) - CE_companion_position*Rsun)/(CE_n_acc_radii * R_acc), a_tukey)
             mass_to_be_heated = mass_to_be_heated + s% dm(k) * ff
          end do
+         
+         ! If companion is outside star, set mass_to_be_heated arbitrarily low
+         if (mass_to_be_heated == 0.) mass_to_be_heated = 1.0
 
          ! Now redo the loop and add the extra specific heat
          do k = 1, s% nz
@@ -377,11 +396,13 @@
             s% extra_heat(k) = CE_energy_rate / mass_to_be_heated * ff
          end do
 
+         write(*,*) "Accretion Radius: ", R_acc/Rsun, " Energy rate: ", CE_energy_rate
 
          ! Save the total erg/second added in this time step
          s% xtra1 = CE_energy_rate
 
       end subroutine CE_inject_case4
+
 
 
 
@@ -402,17 +423,18 @@
          use const_def, only: dp, pi
          real(dp), intent(in) :: x, a
 
-         if ((x .ge. -0.5) .and. (x .le. 0.5) .and. (2.*x+a .ge. 0) .and. (-2.*x+a .ge. 0)) then
-            TukeyWindow = 1.
-         else if ((x .ge. -0.5) .and. (x .le. 0.5) .and. (2.*x+a .lt. 0)) then
-            TukeyWindow = 0.5*(1.-sin(pi*x/a))
-         else if ((x .ge. -0.5) .and. (x .le. 0.5) .and. (2.*x+a .gt. 0) .and. (-2.*x+a .lt. 0)) then
-            TukeyWindow = 0.5*(1.+sin(pi*x/a))
-         else
+         if ((x .le. -0.5) .or. (x .ge. 0.5)) then
             TukeyWindow = 0.
+         else if (x .le. -0.5 + a) then
+            TukeyWindow = 0.5 - 0.5*cos(pi*(x+0.5)/a)
+         else if (x .ge. 0.5 - a) then
+            TukeyWindow = 0.5 - 0.5*cos(-pi*(x-0.5)/a)
+         else
+            TukeyWindow = 1.
          endif
 
       end function TukeyWindow
+
 
 
 

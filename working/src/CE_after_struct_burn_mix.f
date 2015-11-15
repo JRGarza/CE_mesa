@@ -22,7 +22,7 @@
 !   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 !
 ! ***********************************************************************
- 
+
       module CE_after_struct_burn_mix
 
       use const_def, only: dp,ln10
@@ -30,26 +30,138 @@
       use ionization_def
 
       implicit none
-      
-            
+
+
       contains
-      
+
       ! set use_other_after_struct_burn_mix = .true. to enable this.
       ! your routine will be called after the standard struct_burn_mix routine
-   
+
+
+      subroutine CE_other_after_struct_burn_mix(id, dt, res)
+         use const_def, only: dp
+         use star_def
+         integer, intent(in) :: id
+         real(dp), intent(in) :: dt
+         integer, intent(out) :: res ! keep_going, redo, retry, backup, terminate
+
+         call CE_remove_unbound_envelope(id, dt, res)
+         call calc_recombination_after_struct_burn_mix(id, dt, res)
+
+         res = keep_going
+      end subroutine CE_other_after_struct_burn_mix
+
+
+
+      subroutine CE_remove_unbound_envelope(id, dt, res)
+
+        use const_def, only: Rsun, Msun
+        integer, intent(in) :: id
+        real(dp), intent(in) :: dt
+        integer, intent(out) :: res ! keep_going, redo, retry, backup, terminate
+         type (star_info), pointer :: s
+         integer :: ierr, k
+         real(dp) :: mass_to_remove
+         
+         real(dp) :: total_envelope_binding_energy
+
+         ierr = 0
+         call star_ptr(id, s, ierr)
+         if (ierr /= 0) return
+
+         k=1
+         mass_to_remove = 0.0d0
+         do while ((k < s% nz) .and. (.not. is_bound(k)))
+            mass_to_remove = mass_to_remove + s% dm(k)
+            k=k+1
+         enddo
+
+         k=1
+         total_envelope_binding_energy = 0.0
+         do while ((k < s% nz) .and. (s% X(k) > 0.5))
+            total_envelope_binding_energy = total_envelope_binding_energy + &
+                           (s% energy(k) - s% cgrav(k)*s% m_grav(k)/s% r(k) + &
+                           0.5d0*s% v(k)*s% v(k)) * s% dm(k)
+            k=k+1
+         enddo
+         write(*,*) "Total Envelope Binding Energy: ", total_envelope_binding_energy
+
+
+         s% xtra7 = - (mass_to_remove) / dt !In gr/s
+!         write(*,*) "***", s% xtra7, mass_to_remove, dt, s% dt
+
+         res = keep_going
+
+
+         contains
+
+            logical function is_bound(k)
+               integer, intent(in) :: k
+               real(dp) :: val, f_energy
+               logical :: include_internal_energy
+
+
+               include_internal_energy = s% x_logical_ctrl(1)
+               f_energy = logic2dbl(include_internal_energy)
+
+               if (k == 1) then
+                  val = s% energy(k)
+               else if (k == s% nz) then
+                  val = (s% dm(k)*s% energy(k) + &
+                              0.5d0*s% dm(k-1)*s% energy(k-1))/ &
+                        (s% dm(k) + 0.5d0*s% dm(k-1))
+               else
+                  val = (s% dm(k)*s% energy(k) + &
+                              s% dm(k-1)*s% energy(k-1))/ &
+                        (s% dm(k) + s% dm(k-1))
+               end if
+
+               ! m_grav uses gravitational mass, not baryonic mass. This implicitly
+               ! takes rotation into account
+               val = val * f_energy - s% cgrav(k)*s% m_grav(k)/s% r(k) + &
+                           0.5d0*s% v(k)*s% v(k)
+               write(*,*) "!!", val, 0.5d0*s% v(k)*s% v(k)/val, s% energy(k)/val, &
+                          k, s% cgrav(k), s% m_grav(k)/Msun, s% r(k)/Rsun, s% v(k)
+                           
+!               write(*,*) "!!", val, 0.5d0*s% v(k)*s% v(k)/(s% cgrav(k)*s% m_grav(k)/s% r(k)),  &
+!                          s% energy(k), k, s% cgrav(k), s% m_grav(k)/Msun, s% r(k)/Rsun, s% v(k)
+
+               if (val > 0.0d0) then
+                  is_bound = .false.
+               else
+                  is_bound = .true.
+               endif
+
+            end function is_bound
+
+
+            real(dp) function logic2dbl(a)
+               logical, intent(in) :: a
+
+               if (a) then
+                  logic2dbl = 1.d0
+               else
+                  logic2dbl = 0.d0
+               end if
+            end function logic2dbl
+
+      end subroutine CE_remove_unbound_envelope
+
+
+
       subroutine calc_recombination_after_struct_burn_mix(id, dt, res)
          ! # Here we will consider only H and He in the calculation of ionazion energy. Let us that N_H, N_HI, N_HII are
          ! # the total number of H atoms, the  number of neutral H atoms and the number of ionized H atoms in a specific shell.
-         ! # For the Helium, the corresponding numbers would be N_He (total number of He atoms), N_HeI (number of neutral He atoms), 
+         ! # For the Helium, the corresponding numbers would be N_He (total number of He atoms), N_HeI (number of neutral He atoms),
          ! # N_HeII (number of singly ionized He atoms), and N_HeIII (number of doubly ionized He atoms). Also, lets define as
-         ! # Q_H the average charge per hydrogen particle (in units of electron charge) in a shell and f_HI the fraction of neutral 
+         ! # Q_H the average charge per hydrogen particle (in units of electron charge) in a shell and f_HI the fraction of neutral
          ! # H in a shell. For Helium the respective numbers are Q_He and F_HeI. Given these definitions we can write the equations:
          ! # For hydrogen
          ! # N_HI + N_HII = N_H
          ! # N_HI = f_HI * N_H
          ! # N_HII / NH = Q_H
          ! # For Helium these equations become:
-         ! # N_HeI + N_HeII + N_HeIII = N_He 
+         ! # N_HeI + N_HeII + N_HeIII = N_He
          ! # N_HeI = f_HeI * N_He
          ! # (N_HeII + 2*N_HeIII)/N_He = Q_He
          ! # Solving this simple system of equations can give us the number of H and He atoms at each ionization state:
@@ -113,7 +225,7 @@
                s% T(k), s% lnT(k)/ln10, ionization_res, ierr)
             if (ierr /= 0) ionization_res = 0
             get_ion_info = ionization_res(id)
-            
+
             if (ierr /= 0) stop "Error returned from subroutine eval_ionization"
          end function get_ion_info
 
@@ -127,7 +239,3 @@
 
 
       end module CE_after_struct_burn_mix
-      
-      
-      
-      

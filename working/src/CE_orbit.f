@@ -68,6 +68,9 @@
             k = k + 1
          end do
 
+         ! If companion is outside star, set k to 2
+         if (k == 1) k=2
+
          M_encl = s% m(k)
          M_encl = M_encl + s% dm(k-1) * (CE_companion_position*Rsun - s% r(k)) / (s% r(k-1) - s% r(k))
 
@@ -94,11 +97,18 @@
             k = k + 1
          end do
 
+
+         ! If companion is outside star, set k to 3
+         if (k < 3) k=3
+         
+
          ! save end points of cell containing companion
          M_inner = s% m(k-2)
          R_inner = s% r(k-2)
          M_outer = s% m(k-1)
          R_outer = s% r(k-1)
+
+
 
          ! We could choose to interpolate for R using M as the independent variable. Instead, here we
          ! linearly interpolate across cell (using k as the independent variable)
@@ -115,6 +125,7 @@
          ! Now use the interpolations and the derived k_final, determine the resulting separation and enclosed mass
          R_final = R_slope * k_final + R_int
          M_final = M_slope * k_final + M_int
+
 
          s% xtra2 = R_final/Rsun
          !Saving as s% xtra8 the enclosed mass so that we output it in the history data
@@ -133,11 +144,13 @@
          ! For diagnostics
 
          write(*,*) "Final k: ", k_final
-         write(*,*) "Previous Enclosed Mass: ", M_encl, " Final Enclosed Mass: ", M_final
+         write(*,*) "Previous Enclosed Mass: ", M_encl/Msun, " Final Enclosed Mass: ", M_final/Msun
          write(*,*) "Previous Separation = ", CE_companion_position, " Final Separation: ", R_final/Rsun
          write(*,*) "Previous Orbital Energy = ", E_init, " Final Orbital Energy: ", E_final
+         write(*,*) "Total Stellar Energy = ", s% total_energy
          write(*,*) "Previous Angular momentum = ", J_init, " Final Angular momentum: ", J_final
          write(*,*) "Dissipated Energy Rate: ", s% xtra1, " Dissipated Angular Momentum Rate: ", s% xtra6
+         write(*,*) "Dissipated Energy Rate: ", s% total_extra_heating, (s% total_energy-s% total_energy_start)/s% dt
 
 
       end subroutine CE_orbit_adjust

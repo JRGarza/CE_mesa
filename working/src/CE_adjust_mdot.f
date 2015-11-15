@@ -36,7 +36,7 @@
       ! set use_other_adjust_mdot = .true. to enable this.
       ! your routine will be called after winds and before mass adjustment
 
-      subroutine CE_remove_unbound_envelope(id, ierr)
+      subroutine CE_other_adjust_mdot(id, ierr)
 
          integer, intent(in) :: id
          integer, intent(out) :: ierr
@@ -48,69 +48,12 @@
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
 
-         k=1
-         mass_to_remove = 0.0d0
-         do while ((k < s% nz) .and. (.not. is_bound(k)))
-            mass_to_remove = mass_to_remove + s% dm(k)
-            k=k+1
-         enddo
-         s% mstar_dot = s% mstar_dot - (mass_to_remove) / (s% dt) !In gr/s
+
+         s% mstar_dot = s% mstar_dot - s% xtra7 !In gr/s
+         write(*,*) "********", s% xtra7, s% mstar_dot, s% xtra7_old
 
 
-
-
-
-
-         contains
-
-            logical function is_bound(k)
-               integer, intent(in) :: k
-               real(dp) :: val, f_energy
-               logical :: include_internal_energy
-
-
-               include_internal_energy = s% x_logical_ctrl(1)
-               f_energy = logic2dbl(include_internal_energy)
-
-               if (k == 1) then
-                  val = s% energy(k)
-               else if (k == s% nz) then
-                  val = (s% dm(k)*s% energy(k) + &
-                              0.5d0*s% dm(k-1)*s% energy(k-1))/ &
-                        (s% dm(k) + 0.5d0*s% dm(k-1))
-               else
-                  val = (s% dm(k)*s% energy(k) + &
-                              s% dm(k-1)*s% energy(k-1))/ &
-                        (s% dm(k) + s% dm(k-1))
-               end if
-
-               ! m_grav uses gravitational mass, not baryonic mass. This implicitly
-               ! takes rotation into account
-               val = val * f_energy - s% cgrav(k)*s% m_grav(k)/s% r(k) + &
-                           0.5d0*s% v(k)*s% v(k)
-
-               if (val > 0.0d0) then
-                  is_bound = .false.
-               else
-                  is_bound = .true.
-               endif
-
-            end function is_bound
-
-
-            real(dp) function logic2dbl(a)
-               logical, intent(in) :: a
-
-               if (a) then
-                  logic2dbl = 1.d0
-               else
-                  logic2dbl = 0.d0
-               end if
-            end function logic2dbl
-
-      end subroutine CE_remove_unbound_envelope
-
-
+      end subroutine CE_other_adjust_mdot
 
 
 
