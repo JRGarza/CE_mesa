@@ -34,6 +34,7 @@
       use CE_after_struct_burn_mix
       use CE_before_struct_burn_mix
       use CE_adjust_mdot
+      use CE_timestep
 
       implicit none
 
@@ -116,17 +117,20 @@
       ! returns either keep_going, retry, backup, or terminate.
       integer function extras_check_model(id, id_extra)
          integer, intent(in) :: id, id_extra
-         integer :: ierr
+         integer :: ierr, result
          type (star_info), pointer :: s
          real(dp) :: CE_energy_rate, CE_companion_position, CE_companion_radius, CE_companion_mass
          real(dp) :: CE_ang_mom_transferred
          integer :: CE_test_case
+         
          ierr = 0
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
-         extras_check_model = keep_going
+         
+         result = keep_going
+
+         ! stop when star hydrogen mass drops to specified level
          if (.false. .and. s% star_mass_h1 < 0.35d0) then
-            ! stop when star hydrogen mass drops to specified level
             extras_check_model = terminate
             write(*, *) 'have reached desired hydrogen mass'
             return
@@ -138,6 +142,7 @@
          CE_companion_position = s% xtra2
          CE_companion_radius = s% xtra3
          CE_companion_mass = s% xtra4
+         CE_ang_mom_transferred = s% xtra6
          CE_test_case = s% ixtra1
 
          ! We need to increase the resolution around the area where the extra heat is deposited
@@ -151,6 +156,13 @@
          ! Adjust orbital separation based on energy deposited
          call CE_orbit_adjust(id, ierr)
 
+
+         ! Added timestep controls
+         result = worst_result(result, CE_pick_next_timestep(s))
+
+!         CE_timestep_controls(id, ierr)
+
+
          ! if you want to check multiple conditions, it can be useful
          ! to set a different termination code depending on which
          ! condition was triggered.  MESA provides 9 customizeable
@@ -160,7 +172,9 @@
          ! termination_code_str(t_xtra1) = 'my termination condition'
 
          ! by default, indicate where (in the code) MESA terminated
-         if (extras_check_model == terminate) s% termination_code = t_extras_check_model
+         if (result == terminate) s% termination_code = t_extras_check_model
+         
+         extras_check_model = result
       end function extras_check_model
 
 
