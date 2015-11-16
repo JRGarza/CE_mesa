@@ -184,7 +184,7 @@
          ierr = 0
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
-         how_many_extra_history_columns = 4
+         how_many_extra_history_columns = 6
       end function how_many_extra_history_columns
 
 
@@ -204,12 +204,17 @@
 
          names(1) = 'CE_energy_rate'
          vals(1) = s% xtra1
-         names(2) = 'CE_companion_position_r'
-         vals(2) = s% xtra2
-         names(3) = 'CE_companion_position_m'
-         vals(3) = s% xtra8
-         names(4) = 'CE_ang_mom_transferred'
-         vals(4) = s% xtra6
+         names(2) = 'CE_torque'
+         vals(2) = s% xtra6
+         names(3) = 'CE_companion_position_r'
+         vals(3) = s% xtra2
+         names(4) = 'CE_companion_position_m'
+         vals(4) = s% xtra9
+         names(5) = 'CE_ang_mom_transferred'
+         vals(5) = s% xtra6
+         names(6) = 'envelope_binding_energy'
+         vals(6) = s% xtra11
+         
 
 
       end subroutine data_for_extra_history_columns

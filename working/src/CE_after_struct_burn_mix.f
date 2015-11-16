@@ -76,19 +76,20 @@
             k=k+1
          enddo
 
+         ! Diagnostic to determine envelope binding energy
+         ! Includes internal energy
          k=1
          total_envelope_binding_energy = 0.0
-         do while ((k < s% nz) .and. (s% X(k) > 0.5))
+         do while ((k < s% nz) .and. (s% m(k) > s% he_core_mass * Msun))
             total_envelope_binding_energy = total_envelope_binding_energy + &
                            (s% energy(k) - s% cgrav(k)*s% m_grav(k)/s% r(k) + &
                            0.5d0*s% v(k)*s% v(k)) * s% dm(k)
             k=k+1
          enddo
-         write(*,*) "Total Envelope Binding Energy: ", total_envelope_binding_energy
+         s% xtra11 = total_envelope_binding_energy ! In erg
 
 
-         s% xtra7 = - (mass_to_remove) / dt !In gr/s
-!         write(*,*) "***", s% xtra7, mass_to_remove, dt, s% dt
+         s% xtra7 = - (mass_to_remove) / dt ! In gr/s
 
          res = keep_going
 

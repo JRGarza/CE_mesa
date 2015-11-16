@@ -124,7 +124,7 @@
 
 
 
-         ! Now redo the loop and add the extra specific heat
+         ! Now redo the loop and add the extra specific angular momentum
          do k = 1, s% nz
             ff = TukeyWindow((s% r(k) - CE_companion_position*Rsun)/(CE_n_acc_radii * R_acc), a_tukey)
             write(*,*) k, ff, mass_to_be_spun

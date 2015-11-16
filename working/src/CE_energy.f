@@ -359,7 +359,7 @@
 
          ! Determine accretion radius
          R_acc = 2.0 * standard_cgrav * M2 / (vel*vel)
-
+         s% xtra12 = R_acc
 
          F_DHL = pi * R_acc**2 * s% rho(k) * vel**2
 

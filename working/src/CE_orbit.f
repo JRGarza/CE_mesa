@@ -128,8 +128,8 @@
 
 
          s% xtra2 = R_final/Rsun
-         !Saving as s% xtra8 the enclosed mass so that we output it in the history data
-         s% xtra8 = M_final/Msun
+         !Saving as s% xtra9 the enclosed mass so that we output it in the history data
+         s% xtra9 = M_final/Msun
 
          ! Calculate the angular momentum lost to the star's envelope
          J_tmp = (CE_companion_mass * Msun)**2 * M_final**2 / (CE_companion_mass * Msun + M_final)
