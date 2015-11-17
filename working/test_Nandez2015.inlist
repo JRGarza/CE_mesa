@@ -28,8 +28,11 @@
       new_rotation_flag = .true.
       change_rotation_flag = .true.
 
-      new_omega = 0.
+      new_omega = 1.d-12
       set_omega = .true.
+
+      set_initial_age = .true.
+      initial_age = 0.
 
 !      pgstar_flag = .true.
 
@@ -50,7 +53,7 @@
                                  !#CE: star from the center of the donor star in solar radii
       x_ctrl(3) = 0.5d0           !#CE: initial CE_companion_radius: The radius of the companion star in solar radii
       x_ctrl(4) = 0.319d0           !#CE: CE_companion_mass: The mass of the companion star in solar masses
-      x_ctrl(5) = 0.5d0           !#CE: CE_n_acc_radii: Number of accretion radii away from companion star to deposit
+      x_ctrl(5) = 1.0d0           !#CE: CE_n_acc_radii: Number of accretion radii away from companion star to deposit
                                  !#CE: heating into the star from orbital energy
       x_ctrl(8) = 1d-3           !#CE: Fractional orbital energy change allowed per step
       x_ctrl(9) = 1d-3           !#CE: Fractional orbital separation change allowed per step
@@ -71,11 +74,11 @@
       use_Type2_opacities = .true.
       Zbase = 0.02d0
 
-      max_model_number = 5000
+      max_model_number = 10000
       !varcontrol_target = 5d-3
       !mesh_delta_coeff = 0.5
       max_allowed_nz = 20000
-      max_years_for_timestep = 1d-3
+      max_years_for_timestep = 1d-5
 !       delta_lgR_limit = 0.001
 !       delta_lgE_limit = 0.001
       he_core_boundary_h1_fraction = 1.d-10

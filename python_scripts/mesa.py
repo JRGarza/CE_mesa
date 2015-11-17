@@ -929,7 +929,7 @@ if __name__ == "__main__":
 
 	data_path = "/Users/tassos/repos/CE_mesa/working/LOGS/"
 	a = mesa(data_path=data_path, parallel=True, abundances=False, log_abundances = True, Yaxis='radius', Xaxis="model_number",
-		czones=False, Variable='dq', orbit=True, tau10 = True, tau100=True)
-	a.SetParameters(onscreen=True, cmap = 'jet', cmap_dynamic_range=5, signed_log_cmap=False)
+		czones=False, Variable='v_div_vesc', orbit=True)
+	a.SetParameters(onscreen=True, cmap = 'jet', cmap_dynamic_range=0.5, signed_log_cmap=False)
 
 	a.Kippenhahn()
