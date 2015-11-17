@@ -49,6 +49,8 @@
 
       use star_def
       use const_def
+      use CE_orbit, only: AtoP, TukeyWindow, calc_quantities_at_comp_position
+
 
       implicit none
 
@@ -61,8 +63,9 @@
          integer, intent(in) :: id
          integer, intent(out) :: ierr
          type (star_info), pointer :: s
-         integer :: CE_test_case
-         real(dp) :: CE_companion_position
+         integer :: CE_test_case, k
+         real(dp) :: CE_companion_position, r_acc, v_rel, v_rel_div_csound, M_encl
+         real(dp) :: rho_at_companion, scale_height_at_companion
 
          ierr = 0
          call star_ptr(id, s, ierr)
@@ -75,7 +78,6 @@
 
          ! If companion is outside star, skip energy calculations
          if (CE_companion_position*Rsun > s% r(1)) return
-
 
 
          ! Call functions to calculate test cases
@@ -204,16 +206,17 @@
 
       subroutine CE_inject_case3(id, ierr)
 
-         use const_def, only: Rsun, Msun, pi, standard_cgrav
          integer, intent(in) :: id
          integer, intent(out) :: ierr
          type (star_info), pointer :: s
          integer :: k
          real(dp) :: CE_energy_rate, CE_companion_position, CE_companion_radius, CE_companion_mass
          real(dp) :: CE_n_acc_radii
-         real(dp) :: time, R_acc, Mach, M_encl, M2, vel, A, P
+         real(dp) :: time, M2
          real(dp) :: I, F_drag, F_coef
          real(dp) :: a_tukey, mass_to_be_heated, ff
+         real(dp) :: R_acc, v_rel, v_rel_div_csound, M_encl, rho_at_companion, scale_height_at_companion
+
 
          ierr = 0
          call star_ptr(id, s, ierr)
@@ -230,49 +233,32 @@
          CE_n_acc_radii = s% xtra5
 
 
-         ! Keplerian velocity calculation depends on mass contained within a radius
-         ! Include all the enclosed cells
-         ! Add to it the enclosed mass of the current cell
-         k = 1
-         do while (s% r(k) > CE_companion_position * Rsun)
-            k = k + 1
-         end do
+         call calc_quantities_at_comp_position(id, ierr)
 
-         M_encl = s% m(k)
-         M_encl = M_encl + s% dm(k-1) * (CE_companion_position*Rsun - s% r(k)) / (s% r(k-1) - s% r(k))
-
-         M2 = CE_companion_mass * Msun
-
-         ! Determine orbital period in seconds
-         P = AtoP(M_encl, M2, CE_companion_position*Rsun)
-
-         ! Determine Keplerian velocity. Then subtract the local rotation velocity
-         vel = 2.0 * pi * CE_companion_position*Rsun / P
-         vel = vel - s% omega(k) * s% rmid(k) ! local rotation velocity = omega * rmid
-
-
-         ! Determine Mach number
-         Mach = vel / s% csound(k-1)
-
-         ! Determine accretion radius
-         R_acc = 2.0 * standard_cgrav * M2 / (vel*vel)
+         R_acc = s% xtra12
+         M_encl = s% xtra13
+         v_rel = s% xtra14
+         v_rel_div_csound = s% xtra15
+         rho_at_companion = s% xtra16
+         scale_height_at_companion = s% xtra17
 
 
          ! Determine drag force
          ! Equations from Ostriker (1999) ApJ, 513, 252
          time = 1.0 ! FIX THIS: What is time here?
-         if (Mach .lt. 1.0) then
-            I = 0.5 * log((1.0+Mach)/(1.0-Mach)) - Mach
+         if (v_rel_div_csound .lt. 1.0) then
+            I = 0.5 * log((1.0+v_rel_div_csound)/(1.0-v_rel_div_csound)) - v_rel_div_csound
          else
-            I = 0.5 * log((Mach+1.0)/(Mach-1.0)) + log(vel*time / R_acc)
+            I = 0.5 * log((v_rel_div_csound+1.0)/(v_rel_div_csound-1.0)) + log(v_rel*time / R_acc)
          end if
 
+         M2 = CE_companion_mass * Msun
 
-         F_coef = 4.0 * pi * standard_cgrav * standard_cgrav * M2 * M2 * s% rho(k-1) / (vel*vel)
+         F_coef = 4.0 * pi * standard_cgrav * standard_cgrav * M2 * M2 * rho_at_companion / (v_rel*v_rel)
          F_drag = -F_coef * I
 
          ! Total energy rate= drag force * velocity
-         CE_energy_rate = F_drag * vel
+         CE_energy_rate = F_drag * v_rel
 
 
          ! Tukey window scale
@@ -308,10 +294,11 @@
          integer :: k
          real(dp) :: CE_energy_rate, CE_companion_position, CE_companion_radius, CE_companion_mass
          real(dp) :: CE_n_acc_radii
-         real(dp) :: time, R_acc, Mach, M_encl, M2, vel, A, P
-         real(dp) :: I, F_drag, F_coef
+         real(dp) :: M2
+         real(dp) :: I, F_drag
          real(dp) :: a_tukey, mass_to_be_heated, ff
          real(dp) :: F_DHL, f1, f2, f3, e_rho
+         real(dp) :: R_acc, v_rel, v_rel_div_csound, M_encl, rho_at_companion, scale_height_at_companion
          ierr = 0
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
@@ -327,49 +314,30 @@
          CE_n_acc_radii = s% xtra5
 
 
-         ! Keplerian velocity calculation depends on mass contained within a radius
-         ! Include all the enclosed cells
-         ! Add to it the enclosed mass of the current cell
-         k = 1
-         do while (s% r(k) > CE_companion_position * Rsun)
-            k = k + 1
-         end do
+         call calc_quantities_at_comp_position(id, ierr)
 
-         ! If companion is outside star, set k to 2
-         if (k == 1) k=2
+         R_acc = s% xtra12
+         M_encl = s% xtra13
+         v_rel = s% xtra14
+         v_rel_div_csound = s% xtra15
+         rho_at_companion = s% xtra16
+         scale_height_at_companion = s% xtra17
 
-         M_encl = s% m(k)
-         M_encl = M_encl + s% dm(k-1) * (CE_companion_position*Rsun - s% r(k)) / (s% r(k-1) - s% r(k))
 
-         M2 = CE_companion_mass * Msun
-
-         ! Determine orbital period in seconds
-         P = AtoP(M_encl, M2, CE_companion_position*Rsun)
-         ! Determine Keplerian velocity. Then subtract the local rotation velocity
-         vel = 2.0 * pi * CE_companion_position*Rsun / P
-         vel = vel - s% omega(k) * s% rmid(k) ! local rotation velocity = omega * rmid
-
-         ! Determine Mach number
-         Mach = vel / s% csound(k-1)
-
-         ! Determine accretion radius
-         R_acc = 2.0 * standard_cgrav * M2 / (vel*vel)
-         s% xtra12 = R_acc
-
-         F_DHL = pi * R_acc**2 * s% rho(k) * vel**2
+         F_DHL = pi * R_acc**2 * rho_at_companion * v_rel**2
 
 
          f1 =1.91791946d0
          f2 = -1.52814698d0
          f3 = 0.75992092
-         e_rho = R_acc / s% scale_height(k)
+         e_rho = R_acc / scale_height_at_companion
          F_drag = F_DHL*(f1 + f2*e_rho +f3*e_rho**2)
 
 
 
 
          ! Total energy rate= drag force * velocity
-         CE_energy_rate = F_drag * vel
+         CE_energy_rate = F_drag * v_rel
 
 
          ! Tukey window scale
@@ -400,35 +368,6 @@
 
 
 
-
-
-
-      real (dp) function AtoP(M1, M2, A)
-         real(dp), intent(in) :: M1 ! in g
-         real(dp), intent(in) :: M2 ! in g
-         real(dp), intent(in) :: A ! in cm
-
-         ! Kepler's 3rd Law - return orbital period in seconds
-         AtoP = 2.0*pi * sqrt(A*A*A / (standard_cgrav * (M1+M2)))
-
-      end function AtoP
-
-
-      real(dp) function TukeyWindow(x,a)
-         use const_def, only: dp, pi
-         real(dp), intent(in) :: x, a
-
-         if ((x .le. -0.5) .or. (x .ge. 0.5)) then
-            TukeyWindow = 0.
-         else if (x .le. -0.5 + a) then
-            TukeyWindow = 0.5 - 0.5*cos(pi*(x+0.5)/a)
-         else if (x .ge. 0.5 - a) then
-            TukeyWindow = 0.5 - 0.5*cos(-pi*(x-0.5)/a)
-         else
-            TukeyWindow = 1.
-         endif
-
-      end function TukeyWindow
 
 
 

@@ -95,8 +95,7 @@
          logical, intent(in) :: restart
          integer, intent(out) :: ierr
          type (star_info), pointer :: s
-         real(dp) :: CE_energy_rate, CE_companion_position, CE_companion_radius, CE_companion_mass
-         real(dp) :: CE_n_acc_radii, CE_ang_mom_transferred
+         real(dp) :: CE_companion_position, R_acc, CE_n_acc_radii
          integer :: CE_test_case
          ierr = 0
          call star_ptr(id, s, ierr)
@@ -108,15 +107,22 @@
             call unpack_extra_info(s)
          end if
 
-
+         CE_companion_position = s% xtra2
+         CE_test_case = s% ixtra1
+         CE_n_acc_radii = s% x_ctrl(5)
+         call calc_quantities_at_comp_position(id, ierr)
+         R_acc = s% xtra12
 
          ! We need to increase the resolution around the area where the extra heat is deposited
          ! We will do this at the startup and also in the extra_check model, since the position
          ! of the companion will be changing
-         if (CE_test_case == 2) then
-            s% R_function2_param1 = CE_companion_position/(s%r(1)/Rsun) + 2.*CE_companion_radius/(s%r(1)/Rsun)
-            s% R_function2_param2 = CE_companion_position/(s%r(1)/Rsun) - 2.*CE_companion_radius/(s%r(1)/Rsun)
+         if (CE_test_case == 2 .or. CE_test_case == 3 .or. CE_test_case == 4) then
+            s% R_function2_param1 = CE_companion_position/(s%r(1)/Rsun) + 1.2* CE_n_acc_radii * R_acc/s%r(1)
+            s% R_function2_param2 = CE_companion_position/(s%r(1)/Rsun) - 1.2* CE_n_acc_radii * R_acc/s%r(1)
          endif
+
+
+
 
       end function extras_startup
 
@@ -127,21 +133,15 @@
          integer :: ierr, result
          type (star_info), pointer :: s
          real(dp) :: CE_energy_rate, CE_companion_position, CE_companion_radius, CE_companion_mass
-         real(dp) :: CE_ang_mom_transferred
+         real(dp) :: CE_ang_mom_transferred, R_acc, CE_n_acc_radii
          integer :: CE_test_case
-         
+
          ierr = 0
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
-         
+
          result = keep_going
 
-         ! stop when star hydrogen mass drops to specified level
-         if (.false. .and. s% star_mass_h1 < 0.35d0) then
-            extras_check_model = terminate
-            write(*, *) 'have reached desired hydrogen mass'
-            return
-         end if
 
          ! Reading initial values of parameters from the extra controls that we are using
          ! Note that "extra_heat" is the specific energy added to the the  cell in units of erg/s/gr
@@ -152,12 +152,17 @@
          CE_ang_mom_transferred = s% xtra6
          CE_test_case = s% ixtra1
 
+
+         call calc_quantities_at_comp_position(id, ierr)
+         R_acc = s% xtra12
+
          ! We need to increase the resolution around the area where the extra heat is deposited
          ! We will do this at the startup and also in the extra_check model, since the position
          ! of the companion will be changing
-         if (CE_test_case == 2) then
-            s% R_function2_param1 = CE_companion_position/(s%r(1)/Rsun) + 2.*CE_companion_radius/(s%r(1)/Rsun)
-            s% R_function2_param2 = CE_companion_position/(s%r(1)/Rsun) - 2.*CE_companion_radius/(s%r(1)/Rsun)
+         CE_n_acc_radii = s% x_ctrl(5)
+         if (CE_test_case == 2 .or. CE_test_case == 3 .or. CE_test_case == 4) then
+            s% R_function2_param1 = CE_companion_position/(s%r(1)/Rsun) + 1.2* CE_n_acc_radii * R_acc/s%r(1)
+            s% R_function2_param2 = CE_companion_position/(s%r(1)/Rsun) - 1.2* CE_n_acc_radii * R_acc/s%r(1)
          endif
 
          ! Adjust orbital separation based on energy deposited
@@ -179,7 +184,7 @@
 
          ! by default, indicate where (in the code) MESA terminated
          if (result == terminate) s% termination_code = t_extras_check_model
-         
+
          extras_check_model = result
       end function extras_check_model
 
@@ -221,7 +226,7 @@
          vals(5) = s% xtra6
          names(6) = 'envelope_binding_energy'
          vals(6) = s% xtra11
-         
+
 
 
       end subroutine data_for_extra_history_columns

@@ -49,7 +49,7 @@
 
       use star_def
       use const_def
-      use CE_energy, only: AtoP, TukeyWindow
+      use CE_orbit, only: AtoP, TukeyWindow, calc_quantities_at_comp_position
       implicit none
 
 
@@ -70,43 +70,33 @@
          integer :: k
          real(dp) :: a_tukey, mass_to_be_spun, ff
          real(dp) :: CE_companion_position, CE_companion_mass, CE_n_acc_radii, CE_torque
-         real(dp) :: time, R_acc, Mach, M_encl, M2, vel, A, P
+         real(dp) :: R_acc, v_rel, v_rel_div_csound, M_encl, rho_at_companion, scale_height_at_companion
 
          ierr = 0
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
 
 
-         ! Load angular momentum dissipated in the envelope from the orbit decrease
          CE_companion_position = s% xtra2
          CE_companion_mass = s% xtra4
+
+         ! If companion is outside star, skip energy calculations
+         if (CE_companion_position*Rsun > s% r(1)) return
+
+
+
+         ! Load angular momentum dissipated in the envelope from the orbit decrease
          CE_n_acc_radii = s% xtra5
          CE_torque = s% xtra6
 
-         write(*,*) "CE torque ", CE_torque
+         call calc_quantities_at_comp_position(id, ierr)
 
-         ! Keplerian velocity calculation depends on mass contained within a radius
-         ! Include all the enclosed cells
-         ! Add to it the enclosed mass of the current cell
-         k = 1
-         do while (s% r(k) > CE_companion_position * Rsun)
-            k = k + 1
-         end do
-
-         M_encl = s% m(k)
-         M_encl = M_encl + s% dm(k-1) * (CE_companion_position*Rsun - s% r(k)) / (s% r(k-1) - s% r(k))
-
-         M2 = CE_companion_mass * Msun
-
-         ! Determine orbital period in seconds
-         P = AtoP(M_encl, M2, CE_companion_position*Rsun)
-
-         ! Determine Keplerian velocity. Then subtract the local rotation velocity
-         vel = 2.0 * pi * CE_companion_position*Rsun / P
-         vel = vel - s% omega(k) * s% rmid(k) ! local rotation velocity = omega * rmid
-
-         ! Determine accretion radius
-         R_acc = 2.0 * standard_cgrav * M2 / (vel*vel)
+         R_acc = s% xtra12
+         M_encl = s% xtra13
+         v_rel = s% xtra14
+         v_rel_div_csound = s% xtra15
+         rho_at_companion = s% xtra16
+         scale_height_at_companion = s% xtra17
 
          ! First calculate the mass in which the angular momentum will be deposited
          mass_to_be_spun = 0.0

@@ -29,7 +29,6 @@
 
       use star_def
       use const_def
-      use CE_energy
 
       implicit none
 
@@ -46,9 +45,10 @@
          real(dp) :: J_tmp, J_init, J_final
          real(dp) :: E_init, E_loss, E_final, E_tmp
          real(dp) :: M_inner, R_inner, M_outer, R_outer, M_final, R_final
-         real(dp) :: M_slope, R_slope, M_int, R_int, M_encl
+         real(dp) :: M_slope, R_slope, M_int, R_int
          real(dp) :: top, bottom, k_final
          real(dp) :: orbital_ang_mom_lost
+         real(dp) :: R_acc, v_rel, v_rel_div_csound, M_encl, rho_at_companion, scale_height_at_companion
 
 
          ierr = 0
@@ -60,19 +60,18 @@
          CE_companion_position = s% xtra2
          CE_companion_mass = s% xtra4
 
-         ! Mass for orbital energy calculation depends on mass contained within a radius
-         ! Include all the enclosed cells
-         ! Add to it the enclosed mass of the current cell
-         k = 1
-         do while (s% r(k) > CE_companion_position * Rsun)
-            k = k + 1
-         end do
+         ! If companion is outside star, skip energy calculations
+         if (CE_companion_position*Rsun > s% r(1)) return
 
-         ! If companion is outside star, set k to 2
-         if (k == 1) k=2
 
-         M_encl = s% m(k)
-         M_encl = M_encl + s% dm(k-1) * (CE_companion_position*Rsun - s% r(k)) / (s% r(k-1) - s% r(k))
+         call calc_quantities_at_comp_position(id, ierr)
+
+         R_acc = s% xtra12
+         M_encl = s% xtra13
+         v_rel = s% xtra14
+         v_rel_div_csound = s% xtra15
+         rho_at_companion = s% xtra16
+         scale_height_at_companion = s% xtra17
 
 
          ! Calculate the angular momentum
@@ -84,7 +83,7 @@
          E_init = -standard_cgrav * CE_companion_mass * Msun * M_encl / (2.0 * CE_companion_position * Rsun)
          E_loss = CE_energy_rate * s% dt
          E_final = E_init - E_loss
-         
+
 
          ! Move from outside of star in to find cell containing companion
          E_tmp = 0d0
@@ -156,5 +155,101 @@
 
 
       end subroutine CE_orbit_adjust
+
+
+
+      subroutine calc_quantities_at_comp_position(id, ierr)
+
+         integer, intent(in) :: id
+         integer, intent(out) :: ierr
+         type (star_info), pointer :: s
+         integer :: k
+         real(dp) :: CE_companion_position, CE_companion_mass, omega_at_companion, csound_at_companion, P, M2
+         real(dp) :: r_acc, v_rel, v_rel_div_csound, M_encl, rho_at_companion, scale_height_at_companion
+         ierr = 0
+         call star_ptr(id, s, ierr)
+         if (ierr /= 0) return
+
+
+         CE_companion_position = s% xtra2
+         CE_companion_mass = s% xtra4
+         ! Calculate quantities at the position of the companion
+
+         ! Keplerian velocity calculation depends on mass contained within a radius
+         ! Include all the enclosed cells
+         ! Add to it the enclosed mass of the current cell
+         k = 1
+         do while (s% r(k) > CE_companion_position * Rsun)
+            k = k + 1
+         end do
+
+         M_encl = s% m(k)
+         M_encl = M_encl + s% dm(k-1) * (CE_companion_position*Rsun - s% r(k)) / (s% r(k-1) - s% r(k))
+
+         M2 = CE_companion_mass * Msun
+
+         ! Determine orbital period in seconds
+         P = AtoP(M_encl, M2, CE_companion_position*Rsun)
+         ! Determine Keplerian velocity. Then subtract the local rotation velocity
+         v_rel = 2.0 * pi * CE_companion_position*Rsun / P
+         omega_at_companion = s% omega(k) * (CE_companion_position*Rsun - s% r(k)) * &
+              (s% omega(k-1)-s% omega(k)) / (s% r(k-1) - s% r(k))
+         rho_at_companion = s% rho(k) * (CE_companion_position*Rsun - s% r(k)) * &
+              (s% rho(k-1)-s% rho(k)) / (s% r(k-1) - s% r(k))
+         v_rel = v_rel - omega_at_companion * CE_companion_position*Rsun ! local rotation velocity = omega * r
+
+         ! Determine Mach number
+         csound_at_companion = s% csound(k) + (CE_companion_position*Rsun - s% r(k)) * &
+              (s% csound(k-1)-s% csound(k)) / (s% r(k-1) - s% r(k))
+         v_rel_div_csound = v_rel / csound_at_companion
+
+         ! Determine accretion radius
+         R_acc = 2.0 * standard_cgrav * M2 / (v_rel*v_rel)
+
+         scale_height_at_companion =  s% scale_height(k) + (CE_companion_position*Rsun - s% r(k)) * &
+              (s% scale_height(k-1)-s% scale_height(k)) / (s% r(k-1) - s% r(k))
+
+
+         !saving these values to xtra variable so that tey are used in different CE_inject cases,
+         ! in the torque calculations, and saved in the history file
+         s% xtra12 = R_acc
+         s% xtra13 = M_encl
+         s% xtra14 = v_rel
+         s% xtra15 = v_rel_div_csound
+         s% xtra16 = rho_at_companion
+         s% xtra17 = scale_height_at_companion
+
+      end subroutine calc_quantities_at_comp_position
+
+
+
+
+      real (dp) function AtoP(M1, M2, A)
+         real(dp), intent(in) :: M1 ! in g
+         real(dp), intent(in) :: M2 ! in g
+         real(dp), intent(in) :: A ! in cm
+
+         ! Kepler's 3rd Law - return orbital period in seconds
+         AtoP = 2.0*pi * sqrt(A*A*A / (standard_cgrav * (M1+M2)))
+
+      end function AtoP
+
+
+      real(dp) function TukeyWindow(x,a)
+         use const_def, only: dp, pi
+         real(dp), intent(in) :: x, a
+
+         if ((x .le. -0.5) .or. (x .ge. 0.5)) then
+            TukeyWindow = 0.
+         else if (x .le. -0.5 + a) then
+            TukeyWindow = 0.5 - 0.5*cos(pi*(x+0.5)/a)
+         else if (x .ge. 0.5 - a) then
+            TukeyWindow = 0.5 - 0.5*cos(-pi*(x-0.5)/a)
+         else
+            TukeyWindow = 1.
+         endif
+
+      end function TukeyWindow
+
 
       end module CE_orbit

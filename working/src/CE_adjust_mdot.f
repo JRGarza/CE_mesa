@@ -23,53 +23,52 @@
 !
 ! ***********************************************************************
 
-      module CE_adjust_mdot
+module CE_adjust_mdot
 
-      use star_def
-      use const_def
+   use star_def
+   use const_def
 
-      implicit none
-
-
-      contains
-
-      ! set use_other_adjust_mdot = .true. to enable this.
-      ! your routine will be called after winds and before mass adjustment
-
-      subroutine CE_other_adjust_mdot(id, ierr)
-
-         integer, intent(in) :: id
-         integer, intent(out) :: ierr
-         type (star_info), pointer :: s
-         integer :: k
-         real(dp) :: CE_mdot
+   implicit none
 
 
-         ierr = 0
-         call star_ptr(id, s, ierr)
-         if (ierr /= 0) return
+contains
 
-         !TODO add the factors used for smooth Mdot variations to xtra controlls
-         !TODO Add extra column to history where we output the estimated Mdot before corrections
+   ! set use_other_adjust_mdot = .true. to enable this.
+   ! your routine will be called after winds and before mass adjustment
 
-         if (s% mstar_dot_old > -1.d-9 * Msun/secyer .and. s% xtra7 < -1.d-8* Msun/secyer) then
-            CE_mdot = -1.d-7* Msun/secyer
-            write(*,*) "*** ", s% mstar_dot_old, -1.d-9 * Msun/secyer, s% xtra7, -1.d-8* Msun/secyer,&
-            (s% mstar_dot_old > -1.d-9 * Msun/secyer .and. s% xtra7 < -1.d-8* Msun/secyer)
-          else if (s% xtra7 < 2.* s% mstar_dot_old  ) then
-            CE_mdot = 2.* s% mstar_dot_old
-          else if (s% xtra7 > 0.5 * s% mstar_dot_old  ) then
-            CE_mdot = 0.5* s% mstar_dot_old
-          endif
+   subroutine CE_other_adjust_mdot(id, ierr)
 
-          if (CE_mdot < -1d2 * Msun/secyer) CE_mdot = -1d2* Msun/secyer
-
-         s% mstar_dot = s% mstar_dot + CE_mdot !In gr/s
+      integer, intent(in) :: id
+      integer, intent(out) :: ierr
+      type (star_info), pointer :: s
+      integer :: k
+      real(dp) :: CE_mdot, CE_mdot_limit, CE_mdot_factor_increase, CE_mdot_factor_decrease
 
 
-      end subroutine CE_other_adjust_mdot
+      ierr = 0
+      call star_ptr(id, s, ierr)
+      if (ierr /= 0) return
 
+      CE_mdot_factor_increase = s% x_ctrl(11)
+      CE_mdot_factor_decrease = s% x_ctrl(12)
+      CE_mdot_limit = s% x_ctrl(13)
+
+      if (s% mstar_dot_old > -CE_mdot_limit * Msun/secyer .and. s% xtra7 < -CE_mdot_limit * Msun/secyer) then
+         CE_mdot = -CE_mdot_limit * Msun/secyer
+      else if (s% xtra7 < 2.* s% mstar_dot_old  ) then
+         CE_mdot = CE_mdot_factor_increase * s% mstar_dot_old
+      else if (s% xtra7 > 1./CE_mdot_factor_decrease * s% mstar_dot_old  ) then
+         CE_mdot = 1./CE_mdot_factor_decrease* s% mstar_dot_old
+      endif
+
+      if (CE_mdot < -1d2 * Msun/secyer) CE_mdot = -1d2* Msun/secyer
+
+      s% mstar_dot = s% mstar_dot + CE_mdot !In gr/s
+
+
+   end subroutine CE_other_adjust_mdot
 
 
 
-      end module CE_adjust_mdot
+
+end module CE_adjust_mdot

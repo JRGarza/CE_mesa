@@ -17,15 +17,15 @@ endif
 #CE: here you need to add all the additional modules/objects written for CE_mesa
 # and located in WORK_SRC_DIR to be compiled
 # STAR_WORK_OBJS defined in makefile_header
-OBJS = CE_energy.o CE_torque.o CE_adjust_mdot.o CE_orbit.o CE_before_struct_burn_mix.o CE_after_struct_burn_mix.o CE_timestep.o $(STAR_WORK_OBJS) run.o
+OBJS = CE_orbit.o CE_energy.o CE_torque.o CE_adjust_mdot.o CE_before_struct_burn_mix.o CE_after_struct_burn_mix.o CE_timestep.o $(STAR_WORK_OBJS) run.o
 
 WORK_DIR = ..
 WORK_SRC_DIR = $(WORK_DIR)/src
 STAR_JOB_DIR = $(MESA_DIR)/star/job
 
 $(STAR) : $(OBJS)
-	$(LOADER) $(FCopenmp) -o $(WORK_DIR)/$(STAR) $(OBJS) $(LOAD_MESA) 
-	
+	$(LOADER) $(FCopenmp) -o $(WORK_DIR)/$(STAR) $(OBJS) $(LOAD_MESA)
+
 #################################################################
 
 
@@ -51,13 +51,3 @@ clean:
 
 remk:
 	-@rm -f run.o $(WORK_DIR)/$(STAR)
-	
-
-
-
-
-
-
-
-
-
