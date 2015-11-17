@@ -50,6 +50,7 @@
          if (ierr /= 0) return
 
          !TODO add the factors used for smooth Mdot variations to xtra controlls
+         !TODO Add extra column to history where we output the estimated Mdot before corrections
 
          if (s% mstar_dot_old > -1.d-9 * Msun/secyer .and. s% xtra7 < -1.d-8* Msun/secyer) then
             CE_mdot = -1.d-7* Msun/secyer
