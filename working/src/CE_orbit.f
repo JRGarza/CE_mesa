@@ -192,11 +192,14 @@
          P = AtoP(M_encl, M2, CE_companion_position*Rsun)
          ! Determine Keplerian velocity. Then subtract the local rotation velocity
          v_rel = 2.0 * pi * CE_companion_position*Rsun / P
-         omega_at_companion = s% omega(k) * (CE_companion_position*Rsun - s% r(k)) * &
+
+         omega_at_companion = s% omega(k) + (CE_companion_position*Rsun - s% r(k)) * &
               (s% omega(k-1)-s% omega(k)) / (s% r(k-1) - s% r(k))
-         rho_at_companion = s% rho(k) * (CE_companion_position*Rsun - s% r(k)) * &
-              (s% rho(k-1)-s% rho(k)) / (s% r(k-1) - s% r(k))
+
          v_rel = v_rel - omega_at_companion * CE_companion_position*Rsun ! local rotation velocity = omega * r
+
+         rho_at_companion = s% rho(k) + (CE_companion_position*Rsun - s% r(k)) * &
+              (s% rho(k-1)-s% rho(k)) / (s% r(k-1) - s% r(k))
 
          ! Determine Mach number
          csound_at_companion = s% csound(k) + (CE_companion_position*Rsun - s% r(k)) * &

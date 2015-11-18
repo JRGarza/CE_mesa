@@ -18,9 +18,10 @@ x_ctrl(8) = 1d-5             Fractional orbital energy change allowed per step
 x_ctrl(9) = 1d-5             Fractional orbital separation change allowed per step
 x_ctrl(10) = 1d-5            Fractional orbital angular momentum change allowed per step
 
-x_ctrl(11) = 2.d0            Maximum factor by which CE_mdot can increase in one timestep
-x_ctrl(12) = 2.d0            Maximum factor by which CE_mdot can decrease in one timestep
-x_ctrl(13) = 1d-8            maximum value for CE_mdot (in Msun/yr) if CE_mdot in previous timestep was 0
+x_ctrl(11) = 2.d0            CE_mdot_factor_increase: Maximum factor by which CE_mdot can increase in one timestep
+x_ctrl(12) = 2.d0            CE_mdot_factor_decrease:Maximum factor by which CE_mdot can decrease in one timestep
+x_ctrl(13) = 1d-8            CE_mdot_smooth_limit: value for CE_mdot (in Msun/yr) above which we apply smoothing
+x_ctrl(14) = 1d2             CE_mdot_max: maximum allowed value for CE_mdot (in Msun/yr)
 
 
 x_integer_ctrl(1) = 4        1: Uniform heating of the whole envelope.

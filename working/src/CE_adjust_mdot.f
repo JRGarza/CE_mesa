@@ -51,17 +51,18 @@ contains
 
       CE_mdot_factor_increase = s% x_ctrl(11)
       CE_mdot_factor_decrease = s% x_ctrl(12)
-      CE_mdot_limit = s% x_ctrl(13)
+      CE_mdot_smooth_limit = s% x_ctrl(13)
+      CE_mdot_max = s% x_ctrl(14)
 
-      if (s% mstar_dot_old > -CE_mdot_limit * Msun/secyer .and. s% xtra7 < -CE_mdot_limit * Msun/secyer) then
-         CE_mdot = -CE_mdot_limit * Msun/secyer
+      if (s% mstar_dot_old > -CE_mdot_smooth_limit * Msun/secyer .and. s% xtra7 < -CE_mdot_smooth_limit * Msun/secyer) then
+         CE_mdot = -CE_mdot_smooth_limit * Msun/secyer
       else if (s% xtra7 < 2.* s% mstar_dot_old  ) then
          CE_mdot = CE_mdot_factor_increase * s% mstar_dot_old
       else if (s% xtra7 > 1./CE_mdot_factor_decrease * s% mstar_dot_old  ) then
          CE_mdot = 1./CE_mdot_factor_decrease* s% mstar_dot_old
       endif
 
-      if (CE_mdot < -1d2 * Msun/secyer) CE_mdot = -1d2* Msun/secyer
+      if (CE_mdot < -CE_mdot_max * Msun/secyer) CE_mdot = -CE_mdot_max* Msun/secyer
 
       s% mstar_dot = s% mstar_dot + CE_mdot !In gr/s
 

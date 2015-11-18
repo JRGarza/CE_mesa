@@ -60,7 +60,8 @@
       x_ctrl(10) = 1d-3          !#CE: Fractional orbital angular momentum change allowed per step
       x_ctrl(11) = 2.d0           !#CE: Maximum factor by which CE_mdot can increase in one timestep
       x_ctrl(12) = 2.d0           !#CE: Maximum factor by which CE_mdot can decrease in one timestep
-      x_ctrl(13) = 1d-8          !#CE: maximum value for CE_mdot (in Msun/yr) if CE_mdot in previous timestep was 0
+      x_ctrl(13) = 1d-8           !#CE: CE_mdot_smooth_limit: value for CE_mdot (in Msun/yr) above which we apply smoothing
+      x_ctrl(14) = 1d2            !#CE: CE_mdot_max: maximum allowed value for CE_mdot (in Msun/yr)
       x_integer_ctrl(1) = 4      !#CE: 1: Uniform heating of the whole envelope, 2: Heating only in the position of the
                                  !#CE: companion in the region R > CE_companion_position - CE_companion_radius and
                                  !#CE: R < CE_companion_position + CE_companion_radius
@@ -81,7 +82,7 @@
       !varcontrol_target = 5d-3
       !mesh_delta_coeff = 0.5
       max_allowed_nz = 20000
-      max_years_for_timestep = 1d-5
+      max_years_for_timestep = 1d-3
 !       delta_lgR_limit = 0.001
 !       delta_lgE_limit = 0.001
       he_core_boundary_h1_fraction = 1.d-10
