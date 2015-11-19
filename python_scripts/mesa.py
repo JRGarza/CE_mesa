@@ -21,14 +21,14 @@ from scipy.interpolate import interp1d
 def LoadOneProfile(filename):
 	# This function needs to be outside the class, otherwise it is not picklable and it does nto work with pool.async
 
-	data_from_file=np.genfromtxt(filename, skiprows=5, names=True)
+	data_from_file=np.genfromtxt(filename, skip_header=5, names=True)
 
 	return data_from_file
 
 def InterpolateOneProfile(filename, NY, Yaxis, Ymin, Ymax, Variable):
 	# This function needs to be outside the class, otherwise it is not picklable and it does nto work with pool.async
 
-	data_from_file=np.genfromtxt(filename, skiprows=5, names=True)
+	data_from_file=np.genfromtxt(filename, skip_header=5, names=True)
 	# Add the fields log_mass, log_q and log_radius, in case they are not stored in the profile files
 
 	if (not "log_mass" in data_from_file.dtype.names):
@@ -319,10 +319,10 @@ class mesa(object):
 
 	def LoadData(self):
 		# Read history with numpy so that we keep the column names and then convert then convert to a record array
-		self.history = np.genfromtxt(self._param['data_path']+"history.data", skiprows=5, names=True)
+		self.history = np.genfromtxt(self._param['data_path']+"history.data", skip_header=5, names=True)
 
 		# Read list of available profile files
-		profile_index = np.loadtxt(self._param['data_path']+"profiles.index",skiprows=1,usecols=(0,2),
+		profile_index = np.genfromtxt(self._param['data_path']+"profiles.index",skip_header=1,usecols=(0,2),
 								dtype=[('model_number',int),('file_index',int)])
 		if not len(profile_index["file_index"]):
 			raise(self._param['data_path']+"profiles.index"+" does not contain information about enough profiles files")
