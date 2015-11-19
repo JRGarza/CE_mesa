@@ -25,114 +25,114 @@ def LoadOneProfile(filename):
 
 	return data_from_file
 
-def InterpolateOneProfile(filename, NY, Yaxis, Ymin, Ymax, Variable):
+def InterpolateOneProfile(profile, NY, Yaxis, Ymin, Ymax, Variable):
 	# This function needs to be outside the class, otherwise it is not picklable and it does nto work with pool.async
 
-	data_from_file=np.genfromtxt(filename, skip_header=5, names=True)
+
 	# Add the fields log_mass, log_q and log_radius, in case they are not stored in the profile files
 
-	if (not "log_mass" in data_from_file.dtype.names):
+	if (not "log_mass" in profile.dtype.names):
 		try:
-			data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'log_mass',
-							data = np.log10(data_from_file['mass']), asrecarray=True)
+			profile = numpy.lib.recfunctions.append_fields(profile,'log_mass',
+							data = np.log10(profile['mass']), asrecarray=True)
 		except Exception:
 			raise ValueError("Column 'mass' is missing from the profile files")
 
-	if (not "log_q" in data_from_file.dtype.names):
+	if (not "log_q" in profile.dtype.names):
 		try:
-			data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'log_q',
-							data = np.log10(data_from_file['q']), asrecarray=True)
+			profile = numpy.lib.recfunctions.append_fields(profile,'log_q',
+							data = np.log10(profile['q']), asrecarray=True)
 		except Exception:
 			raise ValueError("Column 'q' is missing from the profile files")
 
-	if (not "log_radius" in data_from_file.dtype.names):
+	if (not "log_radius" in profile.dtype.names):
 		try:
-			data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'log_radius',
-							data = np.log10(data_from_file['radius']), asrecarray=True)
+			profile = numpy.lib.recfunctions.append_fields(profile,'log_radius',
+							data = np.log10(profile['radius']), asrecarray=True)
 		except Exception:
 			try:
-				data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'log_radius',
-								data = data_from_file['logR'], asrecarray=True)
+				profile = numpy.lib.recfunctions.append_fields(profile,'log_radius',
+								data = profile['logR'], asrecarray=True)
 			except Exception:
 				raise ValueError("Column 'logR' or 'log_radius' or 'radius' is missing from the profile files")
 
-	if (not "radius" in data_from_file.dtype.names):
+	if (not "radius" in profile.dtype.names):
 		try:
-			data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'radius',
-							data = 10.**data_from_file['log_radius'], asrecarray=True)
+			profile = numpy.lib.recfunctions.append_fields(profile,'radius',
+							data = 10.**profile['log_radius'], asrecarray=True)
 		except Exception:
 			try:
-				data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'radius',
-								data = 10.**data_from_file['logR'], asrecarray=True)
+				profile = numpy.lib.recfunctions.append_fields(profile,'radius',
+								data = 10.**profile['logR'], asrecarray=True)
 			except Exception:
 				raise ValueError("Column 'logR' or 'log_radius' or 'radius' is missing from the profile files")
 
-	if (not "j_rot" in data_from_file.dtype.names and (Variable == 'log_j_rot' or Variable == 'j_rot')):
+	if (not "j_rot" in profile.dtype.names and (Variable == 'log_j_rot' or Variable == 'j_rot')):
 		try:
-			data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'j_rot',
-							data = 10.**data_from_file['log_j_rot'], asrecarray=True)
+			profile = numpy.lib.recfunctions.append_fields(profile,'j_rot',
+							data = 10.**profile['log_j_rot'], asrecarray=True)
 		except Exception:
 			raise ValueError("Column 'log_j_rot' is missing from the profile files")
 
 
-	if (not "potential_plus_kinetic" in data_from_file.dtype.names and (Variable == 'potential_plus_kinetic' )):
+	if (not "potential_plus_kinetic" in profile.dtype.names and (Variable == 'potential_plus_kinetic' )):
 		try:
-			data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'potential_plus_kinetic',
-							data = data_from_file['total_energy'] - data_from_file['energy'], asrecarray=True)
+			profile = numpy.lib.recfunctions.append_fields(profile,'potential_plus_kinetic',
+							data = profile['total_energy'] - profile['energy'], asrecarray=True)
 		except Exception:
 			raise ValueError("Column 'total_energy' and/or 'energy' is missing from the profile files")
 
-	if (not "v_div_vesc" in data_from_file.dtype.names and (Variable == 'v_div_vesc' )):
+	if (not "v_div_vesc" in profile.dtype.names and (Variable == 'v_div_vesc' )):
 		G = const.G.to('cm3/(g s2)').value
 		Msun = const.M_sun.to('g').value
 		Rsun = const.R_sun.to('cm').value
 		try:
-			data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'v_div_vesc',
-							data = data_from_file['velocity']/np.sqrt(2.*G*(data_from_file['mass']*Msun)/(data_from_file['radius']*Rsun)), asrecarray=True)
+			profile = numpy.lib.recfunctions.append_fields(profile,'v_div_vesc',
+							data = profile['velocity']/np.sqrt(2.*G*(profile['mass']*Msun)/(profile['radius']*Rsun)), asrecarray=True)
 		except Exception:
 			raise ValueError("Column 'radius' and/or 'velocity' is missing from the profile files")
 
 	if Variable == 'temperature' :
 		try:
-			data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'temperature',
-							data = 10.**data_from_file['logT'], asrecarray=True)
+			profile = numpy.lib.recfunctions.append_fields(profile,'temperature',
+							data = 10.**profile['logT'], asrecarray=True)
 		except Exception:
 			raise ValueError("Column 'logT' is missing from the profile files")
 
 	if Variable == 'pressure' :
 		try:
-			data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'pressure',
-							data = 10.**data_from_file['logP'], asrecarray=True)
+			profile = numpy.lib.recfunctions.append_fields(profile,'pressure',
+							data = 10.**profile['logP'], asrecarray=True)
 		except Exception:
 			raise ValueError("Column 'logP' is missing from the profile files")
 
 	if Variable == 'density' :
 		try:
-			data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'density',
-							data = 10.**data_from_file['logRho'], asrecarray=True)
+			profile = numpy.lib.recfunctions.append_fields(profile,'density',
+							data = 10.**profile['logRho'], asrecarray=True)
 		except Exception:
 			raise ValueError("Column 'logRho' is missing from the profile files")
 
 	if Variable == 'gamma1' :
 		try:
-			data_from_file['gamma1'] = data_from_file['gamma1']-4./3.
+			profile['gamma1'] = profile['gamma1']-4./3.
 		except Exception:
 			raise ValueError("Column 'gamma1' is missing from the profile files")
 
 	if Variable == 'tau' :
 		try:
-			data_from_file = numpy.lib.recfunctions.append_fields(data_from_file,'tau',
-							data = 10.**data_from_file['logtau'], asrecarray=True)
+			profile = numpy.lib.recfunctions.append_fields(profile,'tau',
+							data = 10.**profile['logtau'], asrecarray=True)
 		except Exception:
 			raise ValueError("Column 'logtau' is missing from the profile files")
 
-	if (not "opacity" in data_from_file.dtype.names and (Variable == 'opacity' )):
+	if (not "opacity" in profile.dtype.names and (Variable == 'opacity' )):
 		raise ValueError("Column 'opacity' is missing from the profile files")
 
-	if (not "v_div_csound" in data_from_file.dtype.names and (Variable == 'v_div_csound' )):
+	if (not "v_div_csound" in profile.dtype.names and (Variable == 'v_div_csound' )):
 		raise ValueError("Column 'v_div_csound' is missing from the profile files")
 
-	if (not "dq" in data_from_file.dtype.names and (Variable == 'dq' )):
+	if (not "dq" in profile.dtype.names and (Variable == 'dq' )):
 		raise ValueError("Column 'dq' is missing from the profile files")
 
 
@@ -140,14 +140,14 @@ def InterpolateOneProfile(filename, NY, Yaxis, Ymin, Ymax, Variable):
 	Y_to_interp = (np.arange(1,NY+1).astype(float))/float(NY+2) * (Ymax-Ymin) + Ymin
 
 	# Find the elements of Y_to_iterp that are valid for the specific profile data file.
-	valid_points  = np.where((Y_to_interp < np.max(data_from_file[Yaxis])) &
-							(Y_to_interp > np.min(data_from_file[Yaxis])))
+	valid_points  = np.where((Y_to_interp < np.max(profile[Yaxis])) &
+							(Y_to_interp > np.min(profile[Yaxis])))
 
-	invalid_points  = np.where((Y_to_interp > np.max(data_from_file[Yaxis])) &
-							(Y_to_interp < np.min(data_from_file[Yaxis])))
+	invalid_points  = np.where((Y_to_interp > np.max(profile[Yaxis])) &
+							(Y_to_interp < np.min(profile[Yaxis])))
 
 
-	interp_func = interp1d(data_from_file[Yaxis], data_from_file[Variable])
+	interp_func = interp1d(profile[Yaxis], profile[Variable])
 
 	data1 = np.zeros(NY)
 	data1[:] = float('nan')
@@ -173,6 +173,7 @@ class mesa(object):
 
 		self.CheckParameters()
 		self.LoadData()
+		self.InterpolateData()
 
 
 	@property
@@ -273,7 +274,7 @@ class mesa(object):
 
 
 	def help(self):
-#TODO: add a list of all parameters, the default values and the possible option, add a list of functions, and an example
+	#TODO: add a list of all parameters, the default values and the possible option, add a list of functions, and an example
 		pass
 
 
@@ -307,7 +308,7 @@ class mesa(object):
 		#Check if any of the parameters that changed require reloading and reinterrpolating the data
 		for key in kwargs:
 			if key in ['data_path','NX','NY','Xaxis','Yaxis','Variable','Xaxis_dynamic_range','Yaxis_dynamic_range']:
-				self.LoadData()
+				self.InterpolateData()
 				break
 
 
@@ -322,16 +323,31 @@ class mesa(object):
 		self.history = np.genfromtxt(self._param['data_path']+"history.data", skip_header=5, names=True)
 
 		# Read list of available profile files
-		profile_index = np.genfromtxt(self._param['data_path']+"profiles.index",skip_header=1,usecols=(0,2),
+		self._profile_index = np.genfromtxt(self._param['data_path']+"profiles.index",skip_header=1,usecols=(0,2),
 								dtype=[('model_number',int),('file_index',int)])
-		if not len(profile_index["file_index"]):
+		if not len(self._profile_index["file_index"]):
 			raise(self._param['data_path']+"profiles.index"+" does not contain information about enough profiles files")
 
-		Nprofile = len(profile_index["file_index"])
 
 		#Create an array fromt eh history data that gives you the age of each model for wich you have output a profile
 		model_age_from_history =  interp1d(self.history["model_number"], self.history["star_age"])
-		profile_age = model_age_from_history(profile_index["model_number"])
+		self.profile_age = model_age_from_history(self._profile_index["model_number"])
+
+		#Check that the age is increasing in consecutive profiles. If not, then MESA ma have done a back up in which
+		#case we should remove these profiles
+		idx_profiles_to_keep = np.where(self.profile_age[:-1] < self.profile_age[1:])[0]
+		self._profile_index = self._profile_index[:][idx_profiles_to_keep]
+		self.profile_age = self.profile_age[idx_profiles_to_keep]
+
+		#Check that the age is increasing in lines of history.data. If not, then MESA ma have done a back up in which
+		#case we should remove these profiles
+		idx_history_lines_to_keep = np.where(self.history['star_age'][:-1] < self.history['star_age'][1:])[0]
+		self.history = self.history[:][idx_history_lines_to_keep]
+
+
+
+		self.Nprofile = len(self._profile_index["file_index"])
+
 
 		self.profiles=[]
 		#Load the profile files and interpolate along the Y axis
@@ -339,15 +355,15 @@ class mesa(object):
 		    # Creates jobserver with ncpus workers
 		    pool = Pool(processes=cpu_count())
 		    print "Process running in parallel on ", cpu_count(), " cores"
-		    filenames = [self._param['data_path']+"profile"+str(profile_index["file_index"][i])+".data" for i in range(Nprofile)]
+		    filenames = [self._param['data_path']+"profile"+str(self._profile_index["file_index"][i])+".data" for i in range(self.Nprofile)]
 		    results = [pool.apply_async(LoadOneProfile, args = (filename,)) for filename in filenames]
 		    Nresults=len(results)
 		    for i in range(0,Nresults):
 		        self.profiles.append(results[i].get())
 		else:
 			print "Process running serially"
-			for i in range(Nprofile):
-				filename = self._param['data_path']+"profile"+str(profile_index["file_index"][i])+".data"
+			for i in range(self.Nprofile):
+				filename = self._param['data_path']+"profile"+str(self._profile_index["file_index"][i])+".data"
 				self.profiles.append(LoadOneProfile(filename))
 
 
@@ -356,24 +372,24 @@ class mesa(object):
 	def InterpolateData(self):
 		# Set the maximum and the minimum of the X axis
 		if self._param['Xaxis'] == "model_number":
-			self._Xmax = np.max(profile_index["model_number"])
-			self._Xmin = np.min(profile_index["model_number"])
+			self._Xmax = np.max(self._profile_index["model_number"])
+			self._Xmin = np.min(self._profile_index["model_number"])
 		elif self._param['Xaxis'] == "star_age":
-			self._Xmax = np.max(profile_age)
-			self._Xmin = np.min(profile_age)
+			self._Xmax = np.max(self.profile_age)
+			self._Xmin = np.min(self.profile_age)
 		elif self._param['Xaxis'] == "inv_star_age":
-			self._Xmax = np.min(profile_age[-1] - profile_age)
-			self._Xmin = np.max(profile_age[-1] - profile_age)
+			self._Xmax = np.min(self.profile_age[-1] - self.profile_age)
+			self._Xmin = np.max(self.profile_age[-1] - self.profile_age)
 		elif self._param['Xaxis'] == "log_model_number":
-			self._Xmax = np.max(np.log10(profile_index["model_number"]))
-			self._Xmin = max([np.min(np.log10(profile_index["model_number"])),
+			self._Xmax = np.max(np.log10(self._profile_index["model_number"]))
+			self._Xmin = max([np.min(np.log10(self._profile_index["model_number"])),
 							self._Xmax-self._param['Xaxis_dynamic_range']])
 		elif self._param['Xaxis'] == "log_star_age":
-			self._Xmax = np.max(np.log10(profile_age))
-			self._Xmin = max([np.min(np.log10(profile_age)), self._Xmax-self._param['Xaxis_dynamic_range']])
+			self._Xmax = np.max(np.log10(self.profile_age))
+			self._Xmin = max([np.min(np.log10(self.profile_age)), self._Xmax-self._param['Xaxis_dynamic_range']])
 		elif self._param['Xaxis'] == "log_inv_star_age":
-			self._Xmin = np.max(np.log10(profile_age[-1] - profile_age))
-			self._Xmax = max([np.min(np.log10(profile_age[-1] - profile_age)),
+			self._Xmin = np.max(np.log10(2.*self.profile_age[-1] - self.profile_age[-2] - self.profile_age))
+			self._Xmax = max([np.min(np.log10(2.*self.profile_age[-1] - self.profile_age[-2] - self.profile_age)),
 							self._Xmin-self._param['Xaxis_dynamic_range']])
 		else:
 			raise(self._param['Xaxis']+" is not a valid option for Xaxis")
@@ -406,10 +422,8 @@ class mesa(object):
 		X_to_interp = (np.arange(1,self._param['NX']+1).astype(float))/float(self._param['NX']+2) * (self._Xmax-self._Xmin) + self._Xmin
 
 		self._data = np.zeros((self._param['NX'],self._param['NY']))
-		data_all = np.zeros((Nprofile,self._param['NY']))
+		data_all = np.zeros((self.Nprofile,self._param['NY']))
 		data_all[:,:] = float('nan')
-
-
 
 
 
@@ -418,17 +432,15 @@ class mesa(object):
 		    # Creates jobserver with ncpus workers
 		    pool = Pool(processes=cpu_count())
 		    print "Process running in parallel on ", cpu_count(), " cores"
-		    filenames = [self._param['data_path']+"profile"+str(profile_index["file_index"][i])+".data" for i in range(Nprofile)]
-		    results = [pool.apply_async(LoadOneProfile, args = (filename, self._param['NY'], self._param['Yaxis'],
-		    			self._Ymin, self._Ymax, self._param['Variable'],)) for filename in filenames]
+		    results = [pool.apply_async(InterpolateOneProfile, args = (profile, self._param['NY'], self._param['Yaxis'],
+		    			self._Ymin, self._Ymax, self._param['Variable'],)) for profile in self.profiles]
 		    Nresults=len(results)
 		    for i in range(0,Nresults):
 		        data_all[i,:] = results[i].get()
 		else:
 			print "Process running serially"
-			for i in range(Nprofile):
-				filename = self._param['data_path']+"profile"+str(profile_index["file_index"][i])+".data"
-				data_all[i,:] = LoadOneProfile(filename, self._param['NY'], self._param['Yaxis'], self._Ymin,
+			for i in range(self.Nprofile):
+				data_all[i,:] = InterpolateOneProfile(self.profiles[i], self._param['NY'], self._param['Yaxis'], self._Ymin,
 													self._Ymax, self._param['Variable'])
 
 
@@ -438,17 +450,17 @@ class mesa(object):
 
 		for i in range(self._param['NY']):
 			if self._param['Xaxis'] == "model_number":
-				Xaxis_values = interp1d(profile_index["model_number"].astype(float), data_all[:,i])
+				Xaxis_values = interp1d(self._profile_index["model_number"].astype(float), data_all[:,i])
 			elif self._param['Xaxis'] == "star_age":
-				Xaxis_values = interp1d(profile_age, data_all[:,i])
+				Xaxis_values = interp1d(self.profile_age, data_all[:,i])
 			elif self._param['Xaxis'] == "inv_star_age":
-				Xaxis_values = interp1d(profile_age[-1]-profile_age, data_all[:,i])
+				Xaxis_values = interp1d(self.profile_age[-1]-self.profile_age, data_all[:,i])
 			elif self._param['Xaxis'] == "log_model_number":
-				Xaxis_values = interp1d(np.log10(profile_index["model_number"].astype(float)), data_all[:,i])
+				Xaxis_values = interp1d(np.log10(self._profile_index["model_number"].astype(float)), data_all[:,i])
 			elif self._param['Xaxis'] == "log_star_age":
-				Xaxis_values = interp1d(np.log10(profile_age), data_all[:,i])
+				Xaxis_values = interp1d(np.log10(self.profile_age), data_all[:,i])
 			elif self._param['Xaxis'] == "log_inv_star_age":
-				Xaxis_values = interp1d(np.log10(profile_age[-1]-profile_age), data_all[:,i])
+				Xaxis_values = interp1d(np.log10(2.*self.profile_age[-1]-self.profile_age[-2]-self.profile_age), data_all[:,i])
 			self._data[:,i] = Xaxis_values(X_to_interp)
 
 
@@ -563,7 +575,7 @@ class mesa(object):
 		cbar1.ax.xaxis.set_tick_params(labelsize = self._param['font_small'])
 
 
-#				Xaxis_values = interp1d(profile_index["model_number"].astype(float), data_all[:,i])
+#				Xaxis_values = interp1d(self._profile_index["model_number"].astype(float), data_all[:,i])
 
 		#Plotting the orbit of the companion star inside the common envelope
 		if self._param['orbit']:
@@ -578,7 +590,7 @@ class mesa(object):
 			elif self._param['Xaxis'] == "log_star_age":
 				X_axis_orbit = np.log10(self.history['star_age'])
 			elif self._param['Xaxis'] == "log_inv_star_age":
-				X_axis_orbit = np.log10(self.history['star_age'][-1]-self.history['star_age'])
+				X_axis_orbit = np.log10(2.*self.history['star_age'][-1]-self.history['star_age'][-2]-self.history['star_age'])
 
 
 
@@ -613,7 +625,7 @@ class mesa(object):
 			elif self._param['Xaxis'] == "log_star_age":
 				X_axis_tau10 = np.log10(self.history['star_age'])
 			elif self._param['Xaxis'] == "log_inv_star_age":
-				X_axis_tau10 = np.log10(self.history['star_age'][-1]-self.history['star_age'])
+				X_axis_tau10 = np.log10(2.*self.history['star_age'][-1]-self.history['star_age'][-2]-self.history['star_age'])
 
 
 
@@ -646,7 +658,7 @@ class mesa(object):
 			elif self._param['Xaxis'] == "log_star_age":
 				X_axis_tau100 = np.log10(self.history['star_age'])
 			elif self._param['Xaxis'] == "log_inv_star_age":
-				X_axis_tau100 = np.log10(self.history['star_age'][-1]-self.history['star_age'])
+				X_axis_tau100 = np.log10(2.*self.history['star_age'][-1]- self.history['star_age'][-2] -self.history['star_age'])
 
 
 
@@ -682,7 +694,7 @@ class mesa(object):
 			elif self._param['Xaxis'] == "log_star_age":
 				X_axis_czones = np.log10(self.history['star_age'])
 			elif self._param['Xaxis'] == "log_inv_star_age":
-				X_axis_czones = np.log10(self.history['star_age'][-1]-self.history['star_age'])
+				X_axis_czones = np.log10(2.*self.history['star_age'][-1]-self.history['star_age'][-2]-self.history['star_age'])
 
 
 			if self._param['Yaxis'] == "mass":
@@ -757,7 +769,7 @@ class mesa(object):
 			elif self._param['Xaxis'] == "log_star_age":
 				X_axis_abundances = np.log10(self.history['star_age'])
 			elif self._param['Xaxis'] == "log_inv_star_age":
-				X_axis_abundances = np.log10(self.history['star_age'][-1]-self.history['star_age'])
+				X_axis_abundances = np.log10(2.*self.history['star_age'][-1]-self.history['star_age'][-1]-self.history['star_age'])
 
 
 
@@ -869,8 +881,8 @@ if __name__ == "__main__":
 
 
 	data_path = "/Users/tassos/repos/CE_mesa/working/LOGS/"
-	a = mesa(data_path=data_path, parallel=True, abundances=False, log_abundances = True, Yaxis='radius', Xaxis="log_inv_star_age",
-		czones=False, Variable='eps_recombination', orbit=True)
-	# a.SetParameters(onscreen=True, cmap = 'jet', cmap_dynamic_range=5, signed_log_cmap=False)
-	#
-	# a.Kippenhahn()
+	a = mesa(data_path=data_path, parallel=True, abundances=False, log_abundances = True, Yaxis='radius', Xaxis="inv_star_age",
+		czones=False, Variable='extra_heat', orbit=True)
+	a.SetParameters(onscreen=True, cmap = 'jet', cmap_dynamic_range=5, signed_log_cmap=True)
+
+	a.Kippenhahn()
