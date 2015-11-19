@@ -1,0 +1,4 @@
+** 18/11/2015 - Tassos
+
+- Corrected a typo in the calc_quantities_at_comp_position subroutine, in the interpolation for omega_at_companion and rho_at_companion. Added one more xtra control that defines the maximum allowed mdot.
+- That should be something on large, the order of 1d2-1d3 Msun/yr, but will protect the code from large spikes in the calculated Mdot and not allow it to go to regimes where it cannot handle.
