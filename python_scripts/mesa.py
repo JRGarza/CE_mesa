@@ -18,9 +18,14 @@ from scipy.interpolate import interp1d
 
 
 
+def LoadOneProfile(filename):
+	# This function needs to be outside the class, otherwise it is not picklable and it does nto work with pool.async
 
+	data_from_file=np.genfromtxt(filename, skiprows=5, names=True)
 
-def LoadOneProfile(filename, NY, Yaxis, Ymin, Ymax, Variable):
+	return data_from_file
+
+def InterpolateOneProfile(filename, NY, Yaxis, Ymin, Ymax, Variable):
 	# This function needs to be outside the class, otherwise it is not picklable and it does nto work with pool.async
 
 	data_from_file=np.genfromtxt(filename, skiprows=5, names=True)
@@ -149,85 +154,6 @@ def LoadOneProfile(filename, NY, Yaxis, Ymin, Ymax, Variable):
 	data1[valid_points] = interp_func(Y_to_interp[valid_points])
 
 	return data1
-
-
-def IonizationEnergy(data_from_file):
-	# Here we will consider only H and He in the calculation of ionazion energy. Let us that N_H, N_HI, N_HII are
-	# the total number of H atoms, the  number of neutral H atoms and the number of ionized H atoms in a specific shell.
-	# For the Helium, the corresponding numbers would be N_He (total number of He atoms), N_HeI (number of neutral He atoms),
-	# N_HeII (number of singly ionized He atoms), and N_HeIII (number of doubly ionized He atoms). Also, lets define as
-	# Q_H the average charge per hydrogen particle (in units of electron charge) in a shell and f_HI the fraction of neutral
-	# H in a shell. For Helium the respective numbers are Q_He and F_HeI. Given these definitions we can write the equations:
-	# For hydrogen
-	# N_HI + N_HII = N_H
-	# N_HI = f_HI * N_H
-	# N_HII / NH = Q_H
-	# For Helium these equations become:
-	# N_HeI + N_HeII + N_HeIII = N_He
-	# N_HeI = f_HeI * N_He
-	# (N_HeII + 2*N_HeIII)/N_He = Q_He
-	# Solving this simple system of equations can give us the number of H and He atoms at each ionization state:
-	# N_HII = Q_H * NH
-	# N_HeII = (2.-2.*f_HeI -Q_He) * N_He
-	# N_HeIII = (Q_He + f_HeI -1.) * N_He
-
-	erg_in_ev =1.60217657e-12 # ergs in 1 eV
-	Eion_HII_pp = 13.5924 * erg_in_ev # Ionization energy HI -> HII of one atom in ergs
-	Eion_HeII_pp = 24.5874 * erg_in_ev # Ionization energy HI -> HII of one atom in ergs
-	Eion_HeIII_pp = 54.417760 * erg_in_ev # Ionization energy HI -> HII of one atom in ergs
-	e_charge = 1.60217657e-19 # electron chanrge in coulomb
-	He_mass = 6.64648e-24 # Mass of He atom in gr
-	H_mass = 1.67372e-24 # Mass of H atom in gr
-
-	N_H = data_from_file['dm']*data_from_file['x_mass_fraction_H']/H_mass
-	N_He = data_from_file['dm']*data_from_file['y_mass_fraction_He']/He_mass
-
-	Q_H = data_from_file['avg_charge_H']
-	# Due to approximations in the mass of the different ions, Q_H may become slightly negative or above 1.
-	# We check for this here
-	idx_values_above_1 = np.where(Q_H > 1.)
-	if len(idx_values_above_1) > 0:
-		Q_H[idx_values_above_1] =1.0
-	idx_values_below_0 = np.where(Q_H < 0.)
-	if len(idx_values_below_0) > 0:
-		Q_H[idx_values_below_0] =0.0
-
-	Q_He = data_from_file['avg_charge_He']
-	# Due to approximations in the mass of the different ions, Q_He may become slightly negative or above 2.
-	# We check for this here
-	idx_values_above_2 = np.where(Q_He > 2.)
-	if len(idx_values_above_2) > 0:
-		Q_He[idx_values_above_2] =2.0
-	idx_values_below_0 = np.where(Q_He < 0.)
-	if len(idx_values_below_0) > 0:
-		Q_He[idx_values_below_0] =0.0
-
-	f_HI = data_from_file['neutral_fraction_H']
-	# Due to approximations in the mass of the different ions, f_HI may become slightly negative or above 1.
-	# We check for this here
-	idx_values_above_1 = np.where(f_HI > 1.)
-	if len(idx_values_above_1) > 0:
-		f_HI[idx_values_above_1] =1.0
-	idx_values_below_0 = np.where(f_HI < 0.)
-	if len(idx_values_below_0) > 0:
-		f_HI[idx_values_below_0] =0.0
-
-	f_HeI = data_from_file['neutral_fraction_He']
-	# Due to approximations in the mass of the different ions, f_HeI may become slightly negative or above 1.
-	# We check for this here
-	idx_values_above_1 = np.where(f_HeI > 1.)
-	if len(idx_values_above_1) > 0:
-		f_HeI[idx_values_above_1] =1.0
-	idx_values_below_0 = np.where(f_HeI < 0.)
-	if len(idx_values_below_0) > 0:
-		f_HeI[idx_values_below_0] =0.0
-
-	N_HII = Q_H * N_H
-	N_HeII = (2.-2.*f_HeI -Q_He) * N_He
-	N_HeIII = (Q_He + f_HeI -1.) * N_He
-
-	return (N_HII*Eion_HII_pp + N_HeII*Eion_HeII_pp + N_HeIII*(Eion_HeII_pp+Eion_HeIII_pp)) / data_from_file['dm']+1e-99
-
 
 
 class mesa(object):
@@ -407,6 +333,27 @@ class mesa(object):
 		model_age_from_history =  interp1d(self.history["model_number"], self.history["star_age"])
 		profile_age = model_age_from_history(profile_index["model_number"])
 
+		self.profiles=[]
+		#Load the profile files and interpolate along the Y axis
+		if self._param['parallel'] :
+		    # Creates jobserver with ncpus workers
+		    pool = Pool(processes=cpu_count())
+		    print "Process running in parallel on ", cpu_count(), " cores"
+		    filenames = [self._param['data_path']+"profile"+str(profile_index["file_index"][i])+".data" for i in range(Nprofile)]
+		    results = [pool.apply_async(LoadOneProfile, args = (filename,)) for filename in filenames]
+		    Nresults=len(results)
+		    for i in range(0,Nresults):
+		        self.profiles.append(results[i].get())
+		else:
+			print "Process running serially"
+			for i in range(Nprofile):
+				filename = self._param['data_path']+"profile"+str(profile_index["file_index"][i])+".data"
+				self.profiles.append(LoadOneProfile(filename))
+
+
+
+
+	def InterpolateData(self):
 		# Set the maximum and the minimum of the X axis
 		if self._param['Xaxis'] == "model_number":
 			self._Xmax = np.max(profile_index["model_number"])
@@ -784,12 +731,6 @@ class mesa(object):
 
 
 
-
-
-
-
-
-
 		#Plot surface and central abundances
 		if self._param['abundances']:
 			ax2 = ax1.twinx()
@@ -928,8 +869,8 @@ if __name__ == "__main__":
 
 
 	data_path = "/Users/tassos/repos/CE_mesa/working/LOGS/"
-	a = mesa(data_path=data_path, parallel=True, abundances=False, log_abundances = True, Yaxis='radius', Xaxis="model_number",
-		czones=False, Variable='v_div_vesc', orbit=True)
-	a.SetParameters(onscreen=True, cmap = 'jet', cmap_dynamic_range=0.5, signed_log_cmap=False)
-
-	a.Kippenhahn()
+	a = mesa(data_path=data_path, parallel=True, abundances=False, log_abundances = True, Yaxis='radius', Xaxis="log_inv_star_age",
+		czones=False, Variable='eps_recombination', orbit=True)
+	# a.SetParameters(onscreen=True, cmap = 'jet', cmap_dynamic_range=5, signed_log_cmap=False)
+	#
+	# a.Kippenhahn()

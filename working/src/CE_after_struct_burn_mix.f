@@ -180,7 +180,7 @@
          He_mass = 6.64648d-24 !# Mass of He atom in gr
          H_mass = 1.67372d-24 !# Mass of H atom in gr
 
-         s% xtra2_array = 0.
+         s% xtra2_array = 0.d0
          do k = 1, s% nz
             N_H = s% dm(k) * s% X(k) / H_mass
             N_He = s% dm(k) * s% Y(k) / He_mass
@@ -189,8 +189,8 @@
             neutral_fraction_H = get_ion_info(ion_ifneut_H,k)
             neutral_fraction_He = get_ion_info(ion_ifneut_He,k)
             N_HII = avg_charge_H * N_H
-            N_HeII = (2.-2.* neutral_fraction_He - avg_charge_He) * N_He
-            N_HeIII = (avg_charge_He + neutral_fraction_He -1.) * N_He
+            N_HeII = (2.d0-2.d0* neutral_fraction_He - avg_charge_He) * N_He
+            N_HeIII = (avg_charge_He + neutral_fraction_He -1.d0) * N_He
              ! We save the specific energy stored in ionized H and He at the end of the timestep in xtra2_array
             s% xtra2_array(k) = (N_HII*Eion_HII_pp + N_HeII*Eion_HeII_pp + N_HeIII*(Eion_HeII_pp+Eion_HeIII_pp)) / s% dm(k)
             s% xtra2_array(k) = (s% xtra1_array(k) - s% xtra2_array(k))/ dt
