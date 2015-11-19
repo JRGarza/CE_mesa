@@ -43,6 +43,7 @@ contains
       type (star_info), pointer :: s
       integer :: k
       real(dp) :: CE_mdot, CE_mdot_limit, CE_mdot_factor_increase, CE_mdot_factor_decrease
+      real(dp) :: CE_mdot_smooth_limit, CE_mdot_max
 
 
       ierr = 0
