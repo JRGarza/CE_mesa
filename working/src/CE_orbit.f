@@ -207,8 +207,7 @@
          v_rel_div_csound = v_rel / csound_at_companion
 
          ! Determine accretion radius
-         R_acc = 2.0 * standard_cgrav * M2 / (v_rel*v_rel)
-
+         R_acc = 2.0 * standard_cgrav * M2 / ((v_rel*v_rel)+csound_at_companion*csound_at_companion)
          scale_height_at_companion =  s% scale_height(k) + (CE_companion_position*Rsun - s% r(k)) * &
               (s% scale_height(k-1)-s% scale_height(k)) / (s% r(k-1) - s% r(k))
 
