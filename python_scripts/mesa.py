@@ -163,7 +163,8 @@ class mesa(object):
 					'Variable':'eps_nuc', 'cmap':'coolwarm', 'cmap_dynamic_range':10, 'Xaxis_dynamic_range':float('Inf'),
 					'Yaxis_dynamic_range':4, 'figure_format':"eps", 'font_small':16, 'font_large':20, 'file_out':'figure',
 					'onscreen':False, 'parallel':True, 'abundances':False, 'log_abundances':True, 'czones':False,
-					'signed_log_cmap':True, 'orbit':False, 'tau10':True, 'tau100':False}
+					'signed_log_cmap':True, 'orbit':False, 'tau10':True, 'tau100':False, 'Nprofiles_to_plot':10,
+					'profiles_to_plot':[]}
 
 		for key in kwargs:
 			if (key in self._param):
@@ -268,6 +269,13 @@ class mesa(object):
 	def signed_log_cmap(self):
 	    return self._param['tau100']
 
+	@property
+	def Nprofiles_to_plot(self):
+	    return self._param['Nprofiles_to_plot']
+
+	@property
+	def profiles_to_plot(self):
+	    return self._param['profiles_to_plot']
 
 
 
@@ -845,6 +853,22 @@ class mesa(object):
 
 #		fig1.tight_layout()
 		fig1.savefig(self._param['file_out']+"."+self._param['figure_format'], format=self._param['figure_format'])
+
+
+		# fig2 = plt.figure()
+		# ax2 = fig2.add_subplot(111)
+		# fig2.subplots_adjust(top=0.99, left=0.12, right=0.99, bottom=0.12)
+		# ax2.set_xlabel(Ylabel,fontsize=self._param['font_small'])
+		# ax2.set_ylabel(cmap_label,fontsize=self._param['font_small'])
+		# ax2.xaxis.set_tick_params(labelsize = self._param['font_small'])
+		# ax2.yaxis.set_tick_params(labelsize = self._param['font_small'])
+		# ax2.set_xlim([self._Ymin,self._Ymax])
+		# ax2.set_ylim([np.nanmax(data_to_plot)-self._param['cmap_dynamic_range'],np.nanmax(data_to_plot)])
+		#
+		# ax2.plot(10.**self.profiles[10]['logR'], np.log10(self.profiles[10]['extra_heat']), linewidth=3, color='black')
+
+
+
 		if self._param['onscreen']:
 			plt.show()
 			fig.canvas.manager.window.raise_()
@@ -883,6 +907,6 @@ if __name__ == "__main__":
 	data_path = "/Users/tassos/repos/CE_mesa/working/LOGS/"
 	a = mesa(data_path=data_path, parallel=True, abundances=False, log_abundances = True, Yaxis='radius', Xaxis="inv_star_age",
 		czones=False, Variable='extra_heat', orbit=True)
-	a.SetParameters(onscreen=True, cmap = 'jet', cmap_dynamic_range=5, signed_log_cmap=True)
+	a.SetParameters(onscreen=True, cmap = 'jet', cmap_dynamic_range=5, signed_log_cmap=False)
 
 	a.Kippenhahn()
