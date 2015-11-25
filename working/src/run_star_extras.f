@@ -117,8 +117,8 @@
          ! We will do this at the startup and also in the extra_check model, since the position
          ! of the companion will be changing
          if (CE_test_case == 2 .or. CE_test_case == 3 .or. CE_test_case == 4) then
-            s% R_function2_param1 = CE_companion_position/(s%r(1)/Rsun) + 1.2* CE_n_acc_radii * R_acc/s%r(1)
-            s% R_function2_param2 = CE_companion_position/(s%r(1)/Rsun) - 1.2* CE_n_acc_radii * R_acc/s%r(1)
+            s% R_function2_param1 = CE_companion_position/(s%r(1)/Rsun) + 2.0* CE_n_acc_radii * R_acc/s%r(1)
+            s% R_function2_param2 = CE_companion_position/(s%r(1)/Rsun) - 2.0* CE_n_acc_radii * R_acc/s%r(1)
          endif
 
 
@@ -161,8 +161,8 @@
          ! of the companion will be changing
          CE_n_acc_radii = s% x_ctrl(5)
          if (CE_test_case == 2 .or. CE_test_case == 3 .or. CE_test_case == 4) then
-            s% R_function2_param1 = CE_companion_position/(s%r(1)/Rsun) + 1.2* CE_n_acc_radii * R_acc/s%r(1)
-            s% R_function2_param2 = CE_companion_position/(s%r(1)/Rsun) - 1.2* CE_n_acc_radii * R_acc/s%r(1)
+            s% R_function2_param1 = CE_companion_position/(s%r(1)/Rsun) + 2.0* CE_n_acc_radii * R_acc/s%r(1)
+            s% R_function2_param2 = CE_companion_position/(s%r(1)/Rsun) - 2.0* CE_n_acc_radii * R_acc/s%r(1)
          endif
 
          ! Adjust orbital separation based on energy deposited
