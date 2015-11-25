@@ -93,10 +93,10 @@
       mx2_bot
 
       ! radius -- values are radii in Rsun units
-      !conv_mx1_top_r
-      !conv_mx1_bot_r
-      !conv_mx2_top_r
-      !conv_mx2_bot_r
+      conv_mx1_top_r
+      conv_mx1_bot_r
+      conv_mx2_top_r
+      conv_mx2_bot_r
       !mx1_top_r
       !mx1_bot_r
       !mx2_top_r

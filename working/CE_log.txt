@@ -2,3 +2,10 @@
 
 - Corrected a typo in the calc_quantities_at_comp_position subroutine, in the interpolation for omega_at_companion and rho_at_companion. Added one more xtra control that defines the maximum allowed mdot.
 - That should be something on large, the order of 1d2-1d3 Msun/yr, but will protect the code from large spikes in the calculated Mdot and not allow it to go to regimes where it cannot handle.
+
+** 19/11/2015 - Tassos
+
+Changes to mesa.py:
+- loadtxt is substituted by genfromtxt, and the option skiprows is changed to skip_header, in order to keep compatibility with newer numpy versions
+- All profiles are now loaded and save to memory when initializing the class, and only the interpolation is redone if needed. * Profiles are available as self.profiles and history data as self.history
+- sometimes MESA is doing backups and in the output of both profiles and history it might appear as if a later model has a smaller age than an earlier one. this is causing issues in the interpolation and so these profile files and lines from history are now removed automatically. - a division with zero warning was appearing when using log_inv_star_age as the log axis, and the age of the last model was caclulated as 0. We are now adding to all elements of the X-axis the dt of the last model
