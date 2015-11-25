@@ -1,0 +1,51 @@
+Notes on Bodenheimer & Taam (1984):
+
+From intro, our code is a solid improvement over 1D codes
+	- Angular momentum transport in particular
+	- May break down when “companion is deep inside
+		the envelope” so there is “insufficient time for
+		circulation currents, convective transport, or
+		instabilities to redistribute the energy and 
+		angular momentum in spherical shells”
+	- More subtle differences - opacity tables, reaction
+		networks	
+
+- 2D - only 50x50 or 70x70 grid cells
+- *** use self-gravity *** - use Poisson’s equation for potential
+	- Bodenheimer & Woosley (1983) - 2D SN code
+- artificial viscosity for treatment of shocks
+- Crazy outer boundary condition - only modeling a small 
+	portion of the giant star
+- Outward radial flow acceleration occurs near stellar surface
+
+- Test 1: NS went from 3.87e11 to 3.78e11
+- “In general, the envelope can accommodate the angular
+	momentum lost from the orbital potion if it is transferred
+	outward toward the stellar surface. However, if uniform
+	specific angular momentum throughout the entire 
+	envelope is assumed, with overall conservation of 
+	angular momentum from the orbital decay, an unphysical
+	situation occurs once the neutron star has spiraled deep
+	into the envelope because eventually the relative velocity
+	between the neutron star orbit and the local region of the
+	envelope goes to zero.” pg(5-6)
+- In their 1D tests, energy only required subsonic advection
+- The envelope ejection conclusion is based on the velocities
+	- Their “long” run seems to confirm - still don’t run to
+		envelope ejection
+- Test 2: super-sonic radial velocities
+	- Higher enthalpy, heat capacities at higher densities, so
+		higher density material can advect more heat
+		at slower velocities.
+- Envelope can adjust, without ejecting
+
+Discussion
+- Advection of energy is more important than radiative diffusion
+- Energy efficiently transfers from orbital to gas kinetic
+- I wonder: Do we need self-gravity to see equatorial outflow?
+- z-axis redistribution of angular momentum is slow
+	- Timescale for readjustment is long
+	- Kippenhahn & Thomas (1981)
+
+Comments: 
+Clearly 2D (and 3D) effects are important, but complete physics is not possible. We should discuss stellar rotation - specifically how MESA’s implementation of sheller rotation makes Bodenheimer & Taam (1984)’s pessimism inapplicable. Need to show a calculation for angular momentum and energy transport timescale across a shell.
