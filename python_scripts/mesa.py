@@ -158,6 +158,38 @@ def InterpolateOneProfile(profile, NY, Yaxis, Ymin, Ymax, Variable):
 
 class mesa(object):
 	def __init__(self, **kwargs):
+		"""An object containing the output data from a MESA run.
+
+		Upon initialization, class loads data, interpolates along axes, and
+		stores interpolated data in instance of class.
+
+		Args:
+		data_path (str) -- file path of data directory (default "./")
+		NX (int) -- number of data points on the x-axis (default 1024)
+		NY (int) -- number of data points on the y-axis (default 1024)
+		Yaxis (str) -- y-axis plotting variable (default 'mass')
+		Xaxis (str) -- x-axis plotting variable (default 'star_age')
+		Variable (str) -- z-axis (color) plotting variable (default 'eps_nuc')
+		cmap (str) -- color scheme (default 'coolwarm')
+		cmap_dynamic_range (flt) -- range in decades for cmap (default 10)
+		Xaxis_dynamic_range (flt) -- x-axis range (default float('Inf'))
+		Yaxis_dynamic_range (flt) -- y-axis range (default 4)
+		figure_format (str) -- figure output format (default "eps")
+		font_small (int) -- figure small font size (default 16)
+		font_large (int) -- figure large font size (default 20)
+		file_out (str) -- output figure name (default 'figure')
+		onscreen (bool) -- plot figure on screen (default False)
+		parallel (bool) -- create object using multiple processors (default True)
+		abundances (bool) -- include abundance data in object (default False)
+		log_abundances (bool) -- abudance data stored as logs (default True)
+		czones (bool) - include convective zone data (default False)
+		signed_log_cmap (bool) - use absolute value for color map (default True)
+		orbit (bool) -- include secondary's position, for profile plots (default False)
+		tau10 (bool) -- include optical depth of 10 in plot (default True)
+		tau100 (bool) -- include optical depth of 100 in plot (default False)
+		Nprofiles_to_plot (int) -- number of profiles to plot (default 10)
+		profiles_to_plot (list[int]) -- profile numbers to be plotted (default [])
+		"""
 
 		self._param = {'data_path':"./", 'NX':1024, 'NY':1024, 'Yaxis':'mass', 'Xaxis':'star_age',
 					'Variable':'eps_nuc', 'cmap':'coolwarm', 'cmap_dynamic_range':10, 'Xaxis_dynamic_range':float('Inf'),
@@ -290,6 +322,18 @@ class mesa(object):
 
 
 	def CheckParameters(self):
+		"""Check parameters to make sure valid options have been assigned.
+
+		Possible values:
+		Xaxis -- model_number, star_age, inv_star_age, log_model_number,
+			log_star_age, log_inv_star_age
+		Yaxis -- mass, radius, q, log_mass, log_radius, log_q
+		Variable -- eps_nuc, velocity, entropy, total_energy, j_rot,
+			eps_recombination, ionization_energy, energy, potential_plus_kinetic,
+			extra_heat, v_div_vesc, v_div_csound, pressure, temperature, density,
+			tau, opacity, gamma1, dq
+		cmap -- colors allowed by colormap module in matplotlib
+		"""
 		cmaps=[m for m in cm.datad]
 		if not (self._param['cmap'] in cmaps):
 			raise ValueError(self._param['cmap']+"not a valid option for parameter cmap")
@@ -307,6 +351,7 @@ class mesa(object):
 		return
 
 	def SetParameters(self,**kwargs):
+		"""Change the value of a parameter held by instance of mesa class"""
 		for key in kwargs:
 			if (key in self._param):
 				self._param[key] = kwargs[key]
@@ -327,6 +372,11 @@ class mesa(object):
 
 
 	def LoadData(self):
+		"""Load data from mesa outputs.
+
+		Data is loaded from both history.data and individual
+		profile*.data files. 'profiles.index' is used.
+		"""
 		# Read history with numpy so that we keep the column names and then convert then convert to a record array
 		self.history = np.genfromtxt(self._param['data_path']+"history.data", skip_header=5, names=True)
 
@@ -378,6 +428,11 @@ class mesa(object):
 
 
 	def InterpolateData(self):
+		"""Data is interpolated
+
+		Interpolations are performed in 1D, across
+		the defined x-axis.
+		"""
 		# Set the maximum and the minimum of the X axis
 		if self._param['Xaxis'] == "model_number":
 			self._Xmax = np.max(self._profile_index["model_number"])
@@ -474,6 +529,10 @@ class mesa(object):
 
 
 	def Kippenhahn(self):
+		"""Generate a Kippenhahn diagram
+
+		Resulting plot is created and outputed.
+		"""
 		######################################################################
 		# Set the labels of the two axis
 		if self._param['Yaxis'] == "mass":
