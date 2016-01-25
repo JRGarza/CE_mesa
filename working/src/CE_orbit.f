@@ -60,7 +60,9 @@
          CE_companion_position = s% xtra2
          CE_companion_mass = s% xtra4
 
-         ! If companion is outside star, skip energy calculations
+         ! If the star is in the initial relaxation phase, skip orbit calculations
+         if (s% doing_relax) return
+         ! If companion is outside star, skip orbit calculations
          if (CE_companion_position*Rsun > s% r(1)) return
 
 
@@ -147,10 +149,12 @@
 
          write(*,*) "Final k: ", k_final
          write(*,*) "Previous Enclosed Mass: ", M_encl/Msun, " Final Enclosed Mass: ", M_final/Msun
-         write(*,*) "Previous Separation = ", CE_companion_position, " Final Separation: ", R_final/Rsun
+         write(*,*) "Previous Separation = ", CE_companion_position, " Final Separation: ", R_final/Rsun, &
+                     " Stellar Radius: ", s% r(1)/Rsun
          write(*,*) "Previous Orbital Energy = ", E_init, " Final Orbital Energy: ", E_final
          write(*,*) "Total Stellar Energy = ", s% total_energy
          write(*,*) "Previous Angular momentum = ", J_init, " Final Angular momentum: ", J_final
+         write(*,*) "Relative Velocity: ", v_rel, " Mach Number: ", v_rel_div_csound, " Accretion Radius: ", r_acc
          write(*,*) "Dissipated Energy Rate: ", s% xtra1, " Dissipated Angular Momentum Rate: ", s% xtra6
 
 
@@ -174,6 +178,23 @@
          CE_companion_position = s% xtra2
          CE_companion_mass = s% xtra4
          ! Calculate quantities at the position of the companion
+
+         ! If companion is outside star the set default values and return
+         if (CE_companion_position*Rsun > s% r(1)) then
+            !saving these values to xtra variable so that tey are used in different CE_inject cases,
+            ! in the torque calculations, and saved in the history file
+            s% xtra12 = 0.0d0 !R_acc
+            s% xtra13 = s% m(1) !M_encl
+            s% xtra14 = 0.0d0 !v_rel
+            s% xtra15 = 0.0d0 !v_rel_div_csound
+            s% xtra16 = 0.0d0 !rho_at_companion
+            s% xtra17 = 0.0d0 !scale_height_at_companion
+            return
+         endif
+
+
+
+
 
          ! Keplerian velocity calculation depends on mass contained within a radius
          ! Include all the enclosed cells

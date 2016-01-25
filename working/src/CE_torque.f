@@ -80,7 +80,10 @@
          CE_companion_position = s% xtra2
          CE_companion_mass = s% xtra4
 
-         ! If companion is outside star, skip energy calculations
+
+         ! If the star is in the initial relaxation phase, skip torque calculations
+         if (s% doing_relax) return
+         ! If companion is outside star, skip torque calculations
          if (CE_companion_position*Rsun > s% r(1)) return
 
 
