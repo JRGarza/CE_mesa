@@ -117,11 +117,11 @@
 
 
          !s% xtra2 -> CE_companion_position = CE_companion_initial_position * Rsatr
-         s% xtra2 = s% x_ctrl(2) * s% r(1)
+         s% xtra2 = s% x_ctrl(2) * s% r(1) / Rsun
 
 
          s% job% relax_omega = .true.
-         s% job% new_omega = s% x_ctrl(15) * 2.*pi/AtoP(s% m(1),s% xtra4*Msun,s% xtra2)
+         s% job% new_omega = s% x_ctrl(15) * 2.*pi/AtoP(s% m(1),s% xtra4*Msun,s% xtra2 * Rsun)
          ! We set a very small timestep during the relaxation phase, so that the star does not evolve significantly
          s% job% relax_omega_max_yrs_dt = 1d-8
          s% job% set_initial_dt = .True.
