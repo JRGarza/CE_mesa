@@ -19,6 +19,16 @@ from scipy.interpolate import interp1d
 
 
 def LoadOneProfile(filename):
+	"""Load one profile.
+
+	Use numpy's genfromtxt to read input file. Top 5 lines are skipped.
+
+	Args:
+	filename (str) -- name of the file to be loaded
+
+	Returns:
+	data stored as a numpy array
+	"""
 	# This function needs to be outside the class, otherwise it is not picklable and it does nto work with pool.async
 
 	data_from_file=np.genfromtxt(filename, skip_header=5, names=True)
@@ -26,6 +36,24 @@ def LoadOneProfile(filename):
 	return data_from_file
 
 def InterpolateOneProfile(profile, NY, Yaxis, Ymin, Ymax, Variable):
+	"""Interpolate along a stellar profile.
+
+	Args:
+	profile (ndarray) -- the data structure holding a stellar profile
+	NY (int) -- the number of data points to interpolate
+	Yaxis (str) -- the independent variable along which to interpolate.
+		Possible values: mass, radius, q, log_mass, log_radius, log_q
+	Ymin (flt) -- the minimum independent variable value
+	Ymax (flt) -- the maximum independent variable value
+	Variable (str) -- the variable to be interpolated
+		Possible values: eps_nuc, velocity, entropy, total_energy, j_rot,
+			eps_recombination, ionization_energy, energy, potential_plus_kinetic,
+			extra_heat, v_div_vesc, v_div_csound, pressure, temperature, density,
+			tau, opacity, gamma1, dq
+
+	Returns:
+	data interpolated along profile as a 1-D numpy array of length NY
+	"""
 	# This function needs to be outside the class, otherwise it is not picklable and it does nto work with pool.async
 
 
