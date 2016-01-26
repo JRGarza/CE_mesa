@@ -25,6 +25,7 @@
       module run_star_extras
 
       use star_lib
+      use run_star_support, only: failed
       use star_def
       use const_def
       ! Add here all the external modules for CE_mesa here
@@ -65,8 +66,6 @@
 
          !s% xtra1 -> CE_energy_rate. It is initially set to 0. It will be calculated when CE_energy is called
          s% xtra1 = 0.0d0
-         !s% xtra2 -> CE_companion_position
-         s% xtra2 = s% x_ctrl(2)
          !s% xtra3 -> CE_companion_radius
          s% xtra3 = s% x_ctrl(3)
          !s% xtra4 -> CE_companion_mass
@@ -80,6 +79,15 @@
 
          !s% xtra7 -> CE_test_case
          s% ixtra1 = s% x_integer_ctrl(1)
+
+         ! s% job% relax_omega = .true.
+         ! s% job% new_omega = s% x_ctrl(15) * 2.*pi/AtoP(1.496112*Msun,s% xtra4*Msun,s% xtra2*Rsun)
+         ! write(*,*) s% job% new_omega, s%x_ctrl(15), 1.496112*Msun,s% xtra4*Msun,s% xtra2*Rsun
+         ! ! We set a very small timestep during the relaxation phase, so that the star does not evolve significantly
+         ! s% job% relax_omega_max_yrs_dt = 1d-8
+          s% job% set_initial_dt = .True.
+          s% job% years_for_initial_dt = 1d-8
+
 
       end subroutine extras_controls
 
@@ -106,6 +114,31 @@
          else ! it is a restart
             call unpack_extra_info(s)
          end if
+
+
+         !s% xtra2 -> CE_companion_position = CE_companion_initial_position * Rsatr
+         s% xtra2 = s% x_ctrl(2) * s% r(1) / Rsun
+
+
+         s% job% relax_omega = .true.
+         s% job% new_omega = s% x_ctrl(15) * 2.*pi/AtoP(s% m(1),s% xtra4*Msun,s% xtra2 * Rsun)
+         ! We set a very small timestep during the relaxation phase, so that the star does not evolve significantly
+         s% job% relax_omega_max_yrs_dt = 1d-8
+         s% job% set_initial_dt = .True.
+         s% job% years_for_initial_dt = 1d-8
+
+         ! We are calling here the relax_omega, because we want to first have loaded the model so that we know its radius, and mass.
+         if (s% rotation_flag .and. s% job% relax_omega) then
+            write(*,*) 'new_omega =', s% job% new_omega
+            call star_relax_uniform_omega( &
+               id, 0, s% job% new_omega, s% job% num_steps_to_relax_rotation,&
+               s% job% relax_omega_max_yrs_dt, ierr)
+            if (failed('star_relax_uniform_omega',ierr)) return
+         end if
+         !After relaxation is done, the timestep automatically increases to a "large" timestep. Here we are tryying to make this
+         !transition smoother
+         s% dt_next = 1d-8 * secyer
+
 
          CE_companion_position = s% xtra2
          CE_test_case = s% ixtra1
@@ -141,7 +174,6 @@
          if (ierr /= 0) return
 
          result = keep_going
-
 
          ! Reading initial values of parameters from the extra controls that we are using
          ! Note that "extra_heat" is the specific energy added to the the  cell in units of erg/s/gr

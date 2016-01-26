@@ -28,8 +28,8 @@
       new_rotation_flag = .true.
       change_rotation_flag = .true.
 
-      new_omega = 1.d-12
-      set_omega = .true.
+      ! new_omega = 1.d-12
+      ! set_omega = .true.
 
       set_initial_age = .true.
       initial_age = 0.
@@ -42,14 +42,15 @@
 &controls
 
       use_other_energy = .true.
-      use_other_torque = .false.
+      use_other_torque = .true.
       use_other_before_struct_burn_mix = .true.
       use_other_after_struct_burn_mix = .true.
       use_other_adjust_mdot = .true.
 
       x_ctrl(1) = 3.1687536e+38  !#CE: CE_energy_rate: The rate at which energy is deposited in the star
                                  !#CE: in units of erg/s.
-      x_ctrl(2) = 30.1          !#CE: CE_companion_position: The distance of the center of the companion
+      x_ctrl(2) = 0.99         !#CE: CE_companion_initial_position: The initial distance of the center of the companion,
+                                 !#CE: in units of the primary's radius
                                  !#CE: star from the center of the donor star in solar radii
       x_ctrl(3) = 0.5d0           !#CE: initial CE_companion_radius: The radius of the companion star in solar radii
       x_ctrl(4) = 0.319d0           !#CE: CE_companion_mass: The mass of the companion star in solar masses
@@ -61,7 +62,9 @@
       x_ctrl(11) = 2.d0           !#CE: Maximum factor by which CE_mdot can increase in one timestep
       x_ctrl(12) = 2.d0           !#CE: Maximum factor by which CE_mdot can decrease in one timestep
       x_ctrl(13) = 1d-8           !#CE: CE_mdot_smooth_limit: value for CE_mdot (in Msun/yr) above which we apply smoothing
-      x_ctrl(14) = 1d2            !#CE: CE_mdot_max: maximum allowed value for CE_mdot (in Msun/yr)
+      x_ctrl(14) = 1d3            !#CE: CE_mdot_max: maximum allowed value for CE_mdot (in Msun/yr)
+      x_ctrl(15) = 0.1           !#CE: f_sync_init: Degree of syncronization (Omega_spin/Omega_orb) between
+                                 !#CE: rotation of the star and the orbit at the beginning of the simulation
       x_integer_ctrl(1) = 4      !#CE: 1: Uniform heating of the whole envelope, 2: Heating only in the position of the
                                  !#CE: companion in the region R > CE_companion_position - CE_companion_radius and
                                  !#CE: R < CE_companion_position + CE_companion_radius
@@ -82,7 +85,7 @@
       !varcontrol_target = 5d-3
       !mesh_delta_coeff = 0.5
       max_allowed_nz = 20000
-      max_years_for_timestep = 1d-3
+      !max_years_for_timestep = 1d-3
 !       delta_lgR_limit = 0.001
 !       delta_lgE_limit = 0.001
       he_core_boundary_h1_fraction = 1.d-10
@@ -93,6 +96,16 @@
       max_num_profile_models = 1000
       terminal_cnt = 1
       write_header_frequency = 10
+
+      !Angular momentum transport controls
+      am_nu_visc_factor = 1
+      am_D_mix_factor = 0.0333333333333333d00
+      D_DSI_factor = 1.
+      D_SH_factor = 1.
+      D_SSI_factor = 1.
+      D_ES_factor = 1.
+      D_GSF_factor = 1.
+      D_ST_factor = 1.
 
 
       mixing_length_alpha = 2.

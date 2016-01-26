@@ -7,7 +7,7 @@
 &star_job
 
     read_extra_star_job_inlist1 = .true.
-    extra_star_job_inlist1_name = 'test_Nandez2015.inlist'
+    extra_star_job_inlist1_name = 'test_Taam1978_caseI.inlist'
 
 / ! end of star_job namelist
 
@@ -15,7 +15,7 @@
 &controls
 
     read_extra_controls_inlist1 = .true.
-    extra_controls_inlist1_name = 'test_Nandez2015.inlist'
+    extra_controls_inlist1_name = 'test_Taam1978_caseI.inlist'
 
 / ! end of controls namelist
 

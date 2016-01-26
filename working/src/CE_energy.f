@@ -74,10 +74,13 @@
          CE_test_case = s% x_integer_ctrl(1)
          CE_companion_position = s% xtra2
 
-         write(*,*) "Stellar radius, companion position: ", s% r(1)/Rsun, CE_companion_position
-
+         ! If the star is in the initial relaxation phase, skip energy calculations
+         if (s% doing_relax) return
          ! If companion is outside star, skip energy calculations
          if (CE_companion_position*Rsun > s% r(1)) return
+
+
+
 
 
          ! Call functions to calculate test cases
@@ -291,7 +294,7 @@
          integer, intent(in) :: id
          integer, intent(out) :: ierr
          type (star_info), pointer :: s
-         integer :: k
+         integer :: k, k_bottom
          real(dp) :: CE_energy_rate, CE_companion_position, CE_companion_radius, CE_companion_mass
          real(dp) :: CE_n_acc_radii
          real(dp) :: M2
@@ -348,18 +351,21 @@
          do k = 1, s% nz
             ff = TukeyWindow((s% r(k) - CE_companion_position*Rsun)/(CE_n_acc_radii * R_acc), a_tukey)
             mass_to_be_heated = mass_to_be_heated + s% dm(k) * ff
+            !Energy should be deposited only on the envelope of the star and not in the core
+            !When we reach the core boundary we exit the loop
+            if (s% m(k) < s% he_core_mass * Msun) exit
          end do
-
+         !this is the limit in k of the boundary between core and envelope
+         k_bottom = k-1
          ! If companion is outside star, set mass_to_be_heated arbitrarily low
          if (mass_to_be_heated == 0.) mass_to_be_heated = 1.0
 
          ! Now redo the loop and add the extra specific heat
-         do k = 1, s% nz
+         do k = 1, k_bottom
             ff = TukeyWindow((s% r(k) - CE_companion_position*Rsun)/(CE_n_acc_radii * R_acc), a_tukey)
             s% extra_heat(k) = CE_energy_rate / mass_to_be_heated * ff
          end do
 
-         write(*,*) "Accretion Radius: ", R_acc/Rsun, " Energy rate: ", CE_energy_rate
 
          ! Save the total erg/second added in this time step
          s% xtra1 = CE_energy_rate

@@ -992,8 +992,8 @@ if __name__ == "__main__":
 
 
 	data_path = "/Users/tassos/repos/CE_mesa/working/LOGS/"
-	a = mesa(data_path=data_path, parallel=True, abundances=False, log_abundances = True, Yaxis='radius', Xaxis="inv_star_age",
-		czones=False, Variable='extra_heat', orbit=True)
+	a = mesa(data_path=data_path, parallel=True, abundances=False, log_abundances = True, Yaxis='mass', Xaxis="log_inv_star_age",
+		czones=False, Variable='v_div_vesc', orbit=True)
 	a.SetParameters(onscreen=True, cmap = 'jet', cmap_dynamic_range=5, signed_log_cmap=False)
 
 	a.Kippenhahn()
