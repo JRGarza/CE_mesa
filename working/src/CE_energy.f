@@ -64,8 +64,7 @@
          integer, intent(out) :: ierr
          type (star_info), pointer :: s
          integer :: CE_test_case, k
-         real(dp) :: CE_companion_position, r_acc, v_rel, v_rel_div_csound, M_encl
-         real(dp) :: rho_at_companion, scale_height_at_companion
+         real(dp) :: CE_companion_position
 
          ierr = 0
          call star_ptr(id, s, ierr)
@@ -218,7 +217,8 @@
          real(dp) :: time, M2
          real(dp) :: I, F_drag, F_coef
          real(dp) :: a_tukey, mass_to_be_heated, ff
-         real(dp) :: R_acc, v_rel, v_rel_div_csound, M_encl, rho_at_companion, scale_height_at_companion
+         real(dp) :: R_acc, R_acc_low, R_acc_high
+         real(dp) :: v_rel, v_rel_div_csound, M_encl, rho_at_companion, scale_height_at_companion
 
 
          ierr = 0
@@ -238,12 +238,16 @@
 
          call calc_quantities_at_comp_position(id, ierr)
 
-         R_acc = s% xtra12
-         M_encl = s% xtra13
-         v_rel = s% xtra14
-         v_rel_div_csound = s% xtra15
-         rho_at_companion = s% xtra16
-         scale_height_at_companion = s% xtra17
+         R_acc_low = s% xtra12
+         R_acc_high = s% xtra13
+         M_encl = s% xtra14
+         v_rel = s% xtra15
+         v_rel_div_csound = s% xtra16
+         rho_at_companion = s% xtra17
+         scale_height_at_companion = s% xtra18
+
+         ! This is incorrect, but for now, not completely crazy
+         R_acc = (R_acc_low + R_acc_high) / 2.0
 
 
          ! Determine drag force
@@ -301,7 +305,8 @@
          real(dp) :: I, F_drag
          real(dp) :: a_tukey, mass_to_be_heated, ff
          real(dp) :: F_DHL, f1, f2, f3, e_rho
-         real(dp) :: R_acc, v_rel, v_rel_div_csound, M_encl, rho_at_companion, scale_height_at_companion
+         real(dp) :: R_acc, R_acc_low, R_acc_high
+         real(dp) :: v_rel, v_rel_div_csound, M_encl, rho_at_companion, scale_height_at_companion
          ierr = 0
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
@@ -319,18 +324,21 @@
 
          call calc_quantities_at_comp_position(id, ierr)
 
-         R_acc = s% xtra12
-         M_encl = s% xtra13
-         v_rel = s% xtra14
-         v_rel_div_csound = s% xtra15
-         rho_at_companion = s% xtra16
-         scale_height_at_companion = s% xtra17
+         R_acc_low = s% xtra12
+         R_acc_high = s% xtra13
+         M_encl = s% xtra14
+         v_rel = s% xtra15
+         v_rel_div_csound = s% xtra16
+         rho_at_companion = s% xtra17
+         scale_height_at_companion = s% xtra18
 
 
+         ! For a first approximation, let's use the average R_acc
+         R_acc = (R_acc_low + R_acc_high) / 2.0
          F_DHL = pi * R_acc**2 * rho_at_companion * v_rel**2
 
 
-         f1 =1.91791946d0
+         f1 = 1.91791946d0
          f2 = -1.52814698d0
          f3 = 0.75992092
          e_rho = R_acc / scale_height_at_companion
@@ -349,6 +357,12 @@
          ! First calculate the mass in which the energy will be deposited
          mass_to_be_heated = 0.0
          do k = 1, s% nz
+            if (s% r(k) < CE_companion_position*Rsun) then
+               R_acc = R_acc_low
+            else
+               R_acc = R_acc_high
+            end if
+
             ff = TukeyWindow((s% r(k) - CE_companion_position*Rsun)/(CE_n_acc_radii * R_acc), a_tukey)
             mass_to_be_heated = mass_to_be_heated + s% dm(k) * ff
             !Energy should be deposited only on the envelope of the star and not in the core
@@ -362,6 +376,12 @@
 
          ! Now redo the loop and add the extra specific heat
          do k = 1, k_bottom
+            if (s% r(k) < CE_companion_position*Rsun) then
+               R_acc = R_acc_low
+            else
+               R_acc = R_acc_high
+            end if
+
             ff = TukeyWindow((s% r(k) - CE_companion_position*Rsun)/(CE_n_acc_radii * R_acc), a_tukey)
             s% extra_heat(k) = CE_energy_rate / mass_to_be_heated * ff
          end do
