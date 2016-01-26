@@ -105,7 +105,13 @@
             
             ! We save the specific energy stored in ionized H and He at the beggining of the timestep in xtra1_array
             s% xtra1_array(k) = (N_HII*Eion_HII_pp + N_HeII*Eion_HeII_pp + N_HeIII*(Eion_HeII_pp+Eion_HeIII_pp)) / s% dm(k)
+            
+            s% xtra3_array(k) = N_HII*Eion_HII_pp / s% dm(k)
+            s% xtra4_array(k) = N_HeII*Eion_HeII_pp / s% dm(k)
+            s% xtra5_array(k) = N_HeIII*(Eion_HeII_pp+Eion_HeIII_pp) / s% dm(k)
+
          end do
+
 
          res = keep_going
 

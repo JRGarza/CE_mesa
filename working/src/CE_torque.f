@@ -70,7 +70,8 @@
          integer :: k
          real(dp) :: a_tukey, mass_to_be_spun, ff
          real(dp) :: CE_companion_position, CE_companion_mass, CE_n_acc_radii, CE_torque
-         real(dp) :: R_acc, v_rel, v_rel_div_csound, M_encl, rho_at_companion, scale_height_at_companion
+         real(dp) :: R_acc, R_acc_low, R_acc_high
+         real(dp) :: v_rel, v_rel_div_csound, M_encl, rho_at_companion, scale_height_at_companion
 
          ierr = 0
          call star_ptr(id, s, ierr)
@@ -94,22 +95,33 @@
 
          call calc_quantities_at_comp_position(id, ierr)
 
-         R_acc = s% xtra12
-         M_encl = s% xtra13
-         v_rel = s% xtra14
-         v_rel_div_csound = s% xtra15
-         rho_at_companion = s% xtra16
-         scale_height_at_companion = s% xtra17
+         R_acc_low = s% xtra12
+         R_acc_high = s% xtra13
+         M_encl = s% xtra14
+         v_rel = s% xtra15
+         v_rel_div_csound = s% xtra16
+         rho_at_companion = s% xtra17
+         scale_height_at_companion = s% xtra18
 
          ! First calculate the mass in which the angular momentum will be deposited
          mass_to_be_spun = 0.0
          do k = 1, s% nz
+            if (s% r(k) < CE_companion_position*Rsun) then
+               R_acc = R_acc_low
+            else
+               R_acc = R_acc_high
+            end if
             ff = TukeyWindow((s% r(k) - CE_companion_position*Rsun)/(CE_n_acc_radii * R_acc), a_tukey)
             mass_to_be_spun = mass_to_be_spun + s% dm(k) * ff
          end do
 
          ! Now redo the loop and add the extra torque
          do k = 1, s% nz
+            if (s% r(k) < CE_companion_position*Rsun) then
+               R_acc = R_acc_low
+            else
+               R_acc = R_acc_high
+            end if
             ff = TukeyWindow((s% r(k) - CE_companion_position*Rsun)/(CE_n_acc_radii * R_acc), a_tukey)
             s% extra_jdot(k) = CE_torque / mass_to_be_spun * ff
          end do
