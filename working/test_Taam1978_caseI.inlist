@@ -33,13 +33,16 @@
 
       set_initial_age = .true.
       initial_age = 0.
-
+      set_initial_model_number = .true.
+      initial_model_number = 0
 !      pgstar_flag = .true.
 
 
 / ! end of star_job namelist
 
 &controls
+
+
 
       use_other_energy = .true.
       use_other_torque = .true.
@@ -82,8 +85,8 @@
       Zbase = 0.02d0
 
       max_model_number = 10000
-      !varcontrol_target = 5d-3
-      !mesh_delta_coeff = 0.5
+      varcontrol_target = 5d-3
+      mesh_delta_coeff = 0.5
       max_allowed_nz = 20000
       !max_years_for_timestep = 1d-3
 !       delta_lgR_limit = 0.001
