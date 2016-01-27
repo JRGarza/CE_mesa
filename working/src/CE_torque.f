@@ -103,6 +103,9 @@
          rho_at_companion = s% xtra17
          scale_height_at_companion = s% xtra18
 
+         ! Tukey window scale
+         a_tukey = 0.5
+
          ! First calculate the mass in which the angular momentum will be deposited
          mass_to_be_spun = 0.0
          do k = 1, s% nz

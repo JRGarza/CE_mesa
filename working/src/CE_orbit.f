@@ -258,6 +258,8 @@
          end do
          R_acc_high = R_rel
 
+
+
          ! Accretion radius for a constant density medium
 !         R_acc = 2.0 * standard_cgrav * M2 / ((v_rel*v_rel)+csound_at_companion*csound_at_companion)
 
