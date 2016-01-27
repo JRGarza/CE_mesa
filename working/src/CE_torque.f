@@ -114,7 +114,7 @@
             else
                R_acc = R_acc_high
             end if
-            ff = TukeyWindow((s% r(k) - CE_companion_position*Rsun)/(CE_n_acc_radii * R_acc), a_tukey)
+            ff = TukeyWindow((s% r(k) - CE_companion_position*Rsun)/(CE_n_acc_radii * 2.0 * R_acc), a_tukey)
             mass_to_be_spun = mass_to_be_spun + s% dm(k) * ff
          end do
 
@@ -125,7 +125,7 @@
             else
                R_acc = R_acc_high
             end if
-            ff = TukeyWindow((s% r(k) - CE_companion_position*Rsun)/(CE_n_acc_radii * R_acc), a_tukey)
+            ff = TukeyWindow((s% r(k) - CE_companion_position*Rsun)/(CE_n_acc_radii * 2.0 * R_acc), a_tukey)
             s% extra_jdot(k) = CE_torque / mass_to_be_spun * ff
          end do
 

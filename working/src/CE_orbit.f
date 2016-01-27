@@ -261,7 +261,6 @@
          ! Accretion radius for a constant density medium
 !         R_acc = 2.0 * standard_cgrav * M2 / ((v_rel*v_rel)+csound_at_companion*csound_at_companion)
 
-
          !saving these values to xtra variable so that tey are used in different CE_inject cases,
          ! in the torque calculations, and saved in the history file
          s% xtra12 = R_acc_low

@@ -363,7 +363,7 @@
                R_acc = R_acc_high
             end if
 
-            ff = TukeyWindow((s% r(k) - CE_companion_position*Rsun)/(CE_n_acc_radii * R_acc), a_tukey)
+            ff = TukeyWindow((s% r(k) - CE_companion_position*Rsun)/(CE_n_acc_radii * 2.0 * R_acc), a_tukey)
             mass_to_be_heated = mass_to_be_heated + s% dm(k) * ff
             !Energy should be deposited only on the envelope of the star and not in the core
             !When we reach the core boundary we exit the loop
@@ -382,7 +382,7 @@
                R_acc = R_acc_high
             end if
 
-            ff = TukeyWindow((s% r(k) - CE_companion_position*Rsun)/(CE_n_acc_radii * R_acc), a_tukey)
+            ff = TukeyWindow((s% r(k) - CE_companion_position*Rsun)/(CE_n_acc_radii * 2.0 * R_acc), a_tukey)
             s% extra_heat(k) = CE_energy_rate / mass_to_be_heated * ff
          end do
 
