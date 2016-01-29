@@ -49,16 +49,17 @@ s% xtra8                  E_final: The orbital energy of the binary
 s% xtra9                  CE_companion_position_m: The mass coordinate of the companion position
 s% xtra10                 J_final: The orbital angular momentum of the binary
 s% xtra11                 total_envelope_binding_energy: Envelope binding energy (erg)
-s% xtra12                 R_acc_low: Inner accretion radius (cm) calculated in CE_energy.f
-s% xtra13                 R_acc_high: Outer accretion radius (cm) calculated in CE_energy.f
-s% xtra14                 v_rel: Relative velocity (cm/s) of the companion to the local rotational velocity
+s% xtra12                 R_acc: Accretion radius (cm) at position of NS calculated in CE_energy.f
+s% xtra13                 R_acc_low: Inner accretion radius (cm) calculated in CE_energy.f
+s% xtra14                 R_acc_high: Outer accretion radius (cm) calculated in CE_energy.f
+s% xtra15                 v_rel: Relative velocity (cm/s) of the companion to the local rotational velocity
                           of the envelope. Calculated in CE_energy.f
-s% xtra15                 M_enc: mass enclosed in the interior of the orbit (cm). Calculated in CE_energy.f
-s% xtra16                 v_rel_div_csound: relative velocity of the companion to the to the local rotational
+s% xtra16                 M_enc: mass enclosed in the interior of the orbit (cm). Calculated in CE_energy.f
+s% xtra17                 v_rel_div_csound: relative velocity of the companion to the to the local rotational
                           velocity of the envelope divided by the local sound speed. Calculated in CE_energy.f
-s% xtra17                 rho_at_companion (gr/cm^3): density of the envelope at the position of the companion
-s% xtra18                 scale_height_at_companion (cm): pressure scale height of the envelope at the position of the companion
-
+s% xtra18                 rho_at_companion (gr/cm^3): density of the envelope at the position of the companion
+s% xtra19                 scale_height_at_companion (cm): pressure scale height of the envelope at the position of the companion
+s% xtra20                 L_acc (erg/s): Accretion luminosity calculated in CE_energy.f
 
 
 s% ixtra1                 CE_test_case: Energy deposition scheme - see above at x_integer_ctrl(1)
