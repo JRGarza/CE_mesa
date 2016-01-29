@@ -6,10 +6,10 @@
       saved_model_name = '/home/evol/fragkos/disk1/repos/CE_mesa/data/Taam1978_caseII.mod'
 
       save_model_when_terminate = .true.
-      save_model_filename = 'test_Taam1978_caseI_final.mod'
+      save_model_filename = 'test_Taam1978_caseII_final.mod'
 
       write_profile_when_terminate = .true.
-      filename_for_profile_when_terminate = 'test_Taam1978_caseI_final.data'
+      filename_for_profile_when_terminate = 'test_Taam1978_caseII_final.data'
 
       history_columns_file = './history_columns.list'
       profile_columns_file = './profile_columns.list'

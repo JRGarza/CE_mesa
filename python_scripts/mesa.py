@@ -163,6 +163,22 @@ def InterpolateOneProfile(profile, NY, Yaxis, Ymin, Ymax, Variable):
 	if (not "dq" in profile.dtype.names and (Variable == 'dq' )):
 		raise ValueError("Column 'dq' is missing from the profile files")
 
+	if (not "log_L_div_Ledd" in profile.dtype.names and (Variable == 'L_div_Ledd' )):
+		raise ValueError("Column 'log_L_div_Ledd' is missing from the profile files")
+
+	if (not "log_thermal_time_to_surface" in profile.dtype.names and (Variable == 't_thermal' )):
+		raise ValueError("Column 'log_thermal_time_to_surface' is missing from the profile files")
+
+	if (not "log_acoustic_radius" in profile.dtype.names and (Variable == 't_dynamical' )):
+		raise ValueError("Column 'log_thermal_time_to_surface' is missing from the profile files")
+
+	if (not "log_acoustic_depth" in profile.dtype.names and (Variable == 't_dynamical_down' )):
+		raise ValueError("Column 'log_thermal_time_to_surface' is missing from the profile files")
+
+	if (((not "log_thermal_time_to_surface" in profile.dtype.names) or (not "log_acoustic_radius" in profile.dtype.names)) and (Variable == 't_thermal_div_t_dynamical' )):
+		raise ValueError("Column 'log_thermal_time_to_surface' and/or 'log_acoustic_radius' are missing from the profile files")
+
+
 
 	#Define the values that we want to itnerpolate along the  Y axis
 	Y_to_interp = (np.arange(1,NY+1).astype(float))/float(NY+2) * (Ymax-Ymin) + Ymin
