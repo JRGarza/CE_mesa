@@ -64,7 +64,7 @@
       x_ctrl(10) = 1d-3          !#CE: Fractional orbital angular momentum change allowed per step
       x_ctrl(11) = 2.d0           !#CE: Maximum factor by which CE_mdot can increase in one timestep
       x_ctrl(12) = 2.d0           !#CE: Maximum factor by which CE_mdot can decrease in one timestep
-      x_ctrl(13) = 1d-8           !#CE: CE_mdot_smooth_limit: value for CE_mdot (in Msun/yr) above which we apply smoothing
+      x_ctrl(13) = 1d8           !#CE: CE_mdot_smooth_limit: value for CE_mdot (in Msun/yr) above which we apply smoothing
       x_ctrl(14) = 1d3            !#CE: CE_mdot_max: maximum allowed value for CE_mdot (in Msun/yr)
       x_ctrl(15) = 0.1           !#CE: f_sync_init: Degree of syncronization (Omega_spin/Omega_orb) between
                                  !#CE: rotation of the star and the orbit at the beginning of the simulation

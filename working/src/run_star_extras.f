@@ -61,7 +61,6 @@
          s% other_after_struct_burn_mix => CE_other_after_struct_burn_mix
          s% other_adjust_mdot => CE_other_adjust_mdot
 
-<<<<<<< HEAD
          ! Reading values of parameters from the extra controls that we are using
          ! Note that "extra_heat" is the specific energy added to the the  cell in units of erg/s/gr
 
@@ -86,16 +85,10 @@
          ! s% job% relax_omega = .true.
          ! s% job% new_omega = s% x_ctrl(15) * 2.*pi/AtoP(1.496112*Msun,s% xtra4*Msun,s% xtra2*Rsun)
          ! write(*,*) s% job% new_omega, s%x_ctrl(15), 1.496112*Msun,s% xtra4*Msun,s% xtra2*Rsun
-         ! ! We set a very small timestep during the relaxation phase, so that the star does not evolve significantly
-         ! s% job% relax_omega_max_yrs_dt = 1d-8
-          s% job% set_initial_dt = .True.
-          s% job% years_for_initial_dt = 1d-8
-=======
          ! ! ! We set a very small timestep during the relaxation phase, so that the star does not evolve significantly
          ! ! s% job% relax_omega_max_yrs_dt = 1d-8
          !  s% job% set_initial_dt = .True.
          !  s% job% years_for_initial_dt = 1d-8
->>>>>>> fixed a problem in the logic of smoothing out ce_mdot ** fixed the restart process from a photo. now it does not do the synchronization. ** added several quantities in profile and history
 
 
       end subroutine extras_controls
@@ -126,7 +119,25 @@
 
 
          !If we are restarting from a photo, the rest of the synchronization and relaxing steps should be skipped
-         if (restart) return
+         write(*,*) restart
+         if (restart) then
+
+            s% job% set_initial_model_number = .false.
+
+            s% job% change_v_flag = .true.
+            s% job% change_initial_v_flag = .false.
+            s% job% new_v_flag = .true.
+
+            s% job% new_rotation_flag = .false.
+            s% job% change_rotation_flag = .false.
+
+            s% job% set_initial_age = .false.
+            s% job% set_initial_model_number = .false.
+
+            return
+         endif
+
+         pause
 
          ! Reading values of parameters from the extra controls that we are using
          ! Note that "extra_heat" is the specific energy added to the the  cell in units of erg/s/gr
@@ -165,6 +176,8 @@
                s% job% relax_omega_max_yrs_dt, ierr)
             if (failed('star_relax_uniform_omega',ierr)) return
          end if
+         s% job% relax_omega = .false.
+
          !After relaxation is done, the timestep automatically increases to a "large" timestep. Here we are tryying to make this
          !transition smoother
          s% dt_next = 1d-8 * secyer
