@@ -48,7 +48,7 @@
          real(dp) :: M_slope, R_slope, M_int, R_int
          real(dp) :: top, bottom, k_final
          real(dp) :: orbital_ang_mom_lost
-         real(dp) :: R_acc_low, R_acc_high
+         real(dp) :: R_acc, R_acc_low, R_acc_high
          real(dp) :: v_rel, v_rel_div_csound, M_encl, rho_at_companion, scale_height_at_companion
 
 
@@ -69,13 +69,14 @@
 
          call calc_quantities_at_comp_position(id, ierr)
 
-         R_acc_low = s% xtra12
-         R_acc_high = s% xtra13
-         M_encl = s% xtra14
-         v_rel = s% xtra15
-         v_rel_div_csound = s% xtra16
-         rho_at_companion = s% xtra17
-         scale_height_at_companion = s% xtra18
+         R_acc = s% xtra12
+         R_acc_low = s% xtra13
+         R_acc_high = s% xtra14
+         M_encl = s% xtra15
+         v_rel = s% xtra16
+         v_rel_div_csound = s% xtra17
+         rho_at_companion = s% xtra18
+         scale_height_at_companion = s% xtra19
 
 
          ! Calculate the angular momentum
@@ -173,7 +174,7 @@
          integer :: j, k
          real(dp) :: CE_companion_position, CE_companion_mass, omega_at_companion, csound_at_companion, P, M2
          real(dp) :: v_rel, v_rel_div_csound, v_rel_at_companion
-         real(dp) :: R_rel, R_acc_low, R_acc_high
+         real(dp) :: R_rel, R_acc, R_acc_low, R_acc_high
          real(dp) :: M_encl, rho_at_companion, scale_height_at_companion
          ierr = 0
          call star_ptr(id, s, ierr)
@@ -188,13 +189,14 @@
          if (CE_companion_position*Rsun > s% r(1)) then
             !saving these values to xtra variable so that tey are used in different CE_inject cases,
             ! in the torque calculations, and saved in the history file
-            s% xtra12 = 0.0d0 !R_acc_low
-            s% xtra13 = 0.0d0 !R_acc_high
-            s% xtra14 = s% m(1) !M_encl
-            s% xtra15 = 0.0d0 !v_rel
-            s% xtra16 = 0.0d0 !v_rel_div_csound
-            s% xtra17 = 0.0d0 !rho_at_companion
-            s% xtra18 = 0.0d0 !scale_height_at_companion
+            s% xtra12 = 0.0d0 !R_acc
+            s% xtra13 = 0.0d0 !R_acc_low
+            s% xtra14 = 0.0d0 !R_acc_high
+            s% xtra15 = s% m(1) !M_encl
+            s% xtra16 = 0.0d0 !v_rel
+            s% xtra17 = 0.0d0 !v_rel_div_csound
+            s% xtra18 = 0.0d0 !rho_at_companion
+            s% xtra19 = 0.0d0 !scale_height_at_companion
             return
          endif
 
@@ -236,7 +238,13 @@
          scale_height_at_companion =  s% scale_height(k) + (CE_companion_position*Rsun - s% r(k)) * &
               (s% scale_height(k-1)-s% scale_height(k)) / (s% r(k-1) - s% r(k))
 
+
          ! Determine accretion radius
+
+         ! Accretion radius for a constant density medium
+         R_acc = 2.0 * standard_cgrav * M2 /
+             & ((v_rel_at_companion*v_rel_at_companion) + csound_at_companion*csound_at_companion)
+
          ! To be done appropriately, inner R_acc needs to be calculated separately from the outer R_acc
          ! Find lower R_acc, starting at the star's position
          j = k
@@ -258,18 +266,17 @@
          end do
          R_acc_high = R_rel
 
-         ! Accretion radius for a constant density medium
-!         R_acc = 2.0 * standard_cgrav * M2 / ((v_rel*v_rel)+csound_at_companion*csound_at_companion)
 
          !saving these values to xtra variable so that tey are used in different CE_inject cases,
          ! in the torque calculations, and saved in the history file
-         s% xtra12 = R_acc_low
-         s% xtra13 = R_acc_high
-         s% xtra14 = M_encl
-         s% xtra15 = v_rel_at_companion
-         s% xtra16 = v_rel_div_csound
-         s% xtra17 = rho_at_companion
-         s% xtra18 = scale_height_at_companion
+         s% xtra12 = R_acc
+         s% xtra13 = R_acc_low
+         s% xtra14 = R_acc_high
+         s% xtra15 = M_encl
+         s% xtra16 = v_rel_at_companion
+         s% xtra17 = v_rel_div_csound
+         s% xtra18 = rho_at_companion
+         s% xtra19 = scale_height_at_companion
 
       end subroutine calc_quantities_at_comp_position
 

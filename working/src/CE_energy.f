@@ -238,16 +238,17 @@
 
          call calc_quantities_at_comp_position(id, ierr)
 
-         R_acc_low = s% xtra12
-         R_acc_high = s% xtra13
-         M_encl = s% xtra14
-         v_rel = s% xtra15
-         v_rel_div_csound = s% xtra16
-         rho_at_companion = s% xtra17
-         scale_height_at_companion = s% xtra18
+         R_acc = s% xtra12
+         R_acc_low = s% xtra13
+         R_acc_high = s% xtra14
+         M_encl = s% xtra15
+         v_rel = s% xtra16
+         v_rel_div_csound = s% xtra17
+         rho_at_companion = s% xtra18
+         scale_height_at_companion = s% xtra19
 
-         ! This is incorrect, but for now, not completely crazy
-         R_acc = (R_acc_low + R_acc_high) / 2.0
+!         ! This is incorrect, but for now, not completely crazy
+!         R_acc = (R_acc_low + R_acc_high) / 2.0
 
 
          ! Determine drag force
@@ -324,17 +325,18 @@
 
          call calc_quantities_at_comp_position(id, ierr)
 
-         R_acc_low = s% xtra12
-         R_acc_high = s% xtra13
-         M_encl = s% xtra14
-         v_rel = s% xtra15
-         v_rel_div_csound = s% xtra16
-         rho_at_companion = s% xtra17
-         scale_height_at_companion = s% xtra18
+         R_acc = s% xtra12
+         R_acc_low = s% xtra13
+         R_acc_high = s% xtra14
+         M_encl = s% xtra15
+         v_rel = s% xtra16
+         v_rel_div_csound = s% xtra17
+         rho_at_companion = s% xtra18
+         scale_height_at_companion = s% xtra19
 
 
-         ! For a first approximation, let's use the average R_acc
-         R_acc = (R_acc_low + R_acc_high) / 2.0
+!         ! For a first approximation, let's use the average R_acc
+!         R_acc = (R_acc_low + R_acc_high) / 2.0
          F_DHL = pi * R_acc**2 * rho_at_companion * v_rel**2
 
 

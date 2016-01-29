@@ -228,7 +228,7 @@
          ierr = 0
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
-         how_many_extra_history_columns = 6
+         how_many_extra_history_columns = 9
       end function how_many_extra_history_columns
 
 
@@ -258,7 +258,12 @@
          vals(5) = s% xtra6
          names(6) = 'envelope_binding_energy'
          vals(6) = s% xtra11
-
+         names(7) = 'R_acc'
+         vals(7) = s% xtra12
+         names(8) = 'R_acc_low'
+         vals(8) = s% xtra13
+         names(9) = 'R_acc_high'
+         vals(9) = s% xtra14
 
 
       end subroutine data_for_extra_history_columns
