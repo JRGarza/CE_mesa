@@ -242,8 +242,8 @@
          ! Determine accretion radius
 
          ! Accretion radius for a constant density medium
-         R_acc = 2.0 * standard_cgrav * M2 /
-             & ((v_rel_at_companion*v_rel_at_companion) + csound_at_companion*csound_at_companion)
+         R_acc = 2.0 * standard_cgrav * M2 / &
+             ((v_rel_at_companion*v_rel_at_companion) + csound_at_companion*csound_at_companion)
 
          ! To be done appropriately, inner R_acc needs to be calculated separately from the outer R_acc
          ! Find lower R_acc, starting at the star's position
