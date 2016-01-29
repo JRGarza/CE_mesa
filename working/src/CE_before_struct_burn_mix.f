@@ -22,33 +22,33 @@
 !   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 !
 ! ***********************************************************************
- 
+
       module CE_before_struct_burn_mix
 
       use const_def, only: dp,ln10
       use star_def
       use ionization_def
-    
+
       implicit none
-            
+
       contains
-      
+
       ! set use_other_before_struct_burn_mix = .true. to enable this.
       ! your routine will be called before the standard struct_burn_mix routine
-   
+
       subroutine calc_recombination_before_struct_burn_mix(id, dt, res)
          ! # Here we will consider only H and He in the calculation of ionazion energy. Let us that N_H, N_HI, N_HII are
          ! # the total number of H atoms, the  number of neutral H atoms and the number of ionized H atoms in a specific shell.
-         ! # For the Helium, the corresponding numbers would be N_He (total number of He atoms), N_HeI (number of neutral He atoms), 
+         ! # For the Helium, the corresponding numbers would be N_He (total number of He atoms), N_HeI (number of neutral He atoms),
          ! # N_HeII (number of singly ionized He atoms), and N_HeIII (number of doubly ionized He atoms). Also, lets define as
-         ! # Q_H the average charge per hydrogen particle (in units of electron charge) in a shell and f_HI the fraction of neutral 
+         ! # Q_H the average charge per hydrogen particle (in units of electron charge) in a shell and f_HI the fraction of neutral
          ! # H in a shell. For Helium the respective numbers are Q_He and F_HeI. Given these definitions we can write the equations:
          ! # For hydrogen
          ! # N_HI + N_HII = N_H
          ! # N_HI = f_HI * N_H
          ! # N_HII / NH = Q_H
          ! # For Helium these equations become:
-         ! # N_HeI + N_HeII + N_HeIII = N_He 
+         ! # N_HeI + N_HeII + N_HeIII = N_He
          ! # N_HeI = f_HeI * N_He
          ! # (N_HeII + 2*N_HeIII)/N_He = Q_He
          ! # Solving this simple system of equations can give us the number of H and He atoms at each ionization state:
@@ -83,7 +83,7 @@
          ! # N_HI = f_HI * N_H
          ! # N_HII / NH = Q_H
          ! # For Helium these equations become:
-         ! # N_HeI + N_HeII + N_HeIII = N_He 
+         ! # N_HeI + N_HeII + N_HeIII = N_He
          ! # N_HeI = f_HeI * N_He
          ! # (N_HeII + 2*N_HeIII)/N_He = Q_He
          ! # Solving this simple system of equations can give us the number of H and He atoms at each ionization state:
@@ -91,7 +91,12 @@
          ! # N_HeII = (2.-2.*f_HeI -Q_He) * N_He
          ! # N_HeIII = (Q_He + f_HeI -1.) * N_He
 
+         ! Set arrays to zero
          s% xtra1_array = 0.d0
+         s% xtra2_array = 0.d0
+         s% xtra3_array = 0.d0
+         s% xtra4_array = 0.d0
+         s% xtra5_array = 0.d0
          do k = 1, s% nz
             N_H = s% dm(k) * s% X(k) / H_mass
             N_He = s% dm(k) * s% Y(k) / He_mass
@@ -102,10 +107,16 @@
             N_HII = avg_charge_H * N_H
             N_HeII = (2.d0-2.d0* neutral_fraction_He - avg_charge_He) * N_He
             N_HeIII = (avg_charge_He + neutral_fraction_He -1.d0) * N_He
-            
+
             ! We save the specific energy stored in ionized H and He at the beggining of the timestep in xtra1_array
             s% xtra1_array(k) = (N_HII*Eion_HII_pp + N_HeII*Eion_HeII_pp + N_HeIII*(Eion_HeII_pp+Eion_HeIII_pp)) / s% dm(k)
+
+            s% xtra3_array(k) = N_HII*Eion_HII_pp / s% dm(k)
+            s% xtra4_array(k) = N_HeII*Eion_HeII_pp / s% dm(k)
+            s% xtra5_array(k) = N_HeIII*(Eion_HeII_pp+Eion_HeIII_pp) / s% dm(k)
+
          end do
+
 
          res = keep_going
 
@@ -136,7 +147,3 @@
 
 
       end module CE_before_struct_burn_mix
-      
-      
-      
-      

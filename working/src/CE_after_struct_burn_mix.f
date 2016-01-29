@@ -181,6 +181,7 @@
          H_mass = 1.67372d-24 !# Mass of H atom in gr
 
          s% xtra2_array = 0.d0
+
          do k = 1, s% nz
             N_H = s% dm(k) * s% X(k) / H_mass
             N_He = s% dm(k) * s% Y(k) / He_mass
@@ -191,9 +192,15 @@
             N_HII = avg_charge_H * N_H
             N_HeII = (2.d0-2.d0* neutral_fraction_He - avg_charge_He) * N_He
             N_HeIII = (avg_charge_He + neutral_fraction_He -1.d0) * N_He
-             ! We save the specific energy stored in ionized H and He at the end of the timestep in xtra2_array
+
+            ! We save the specific energy stored in ionized H and He at the end of the timestep in xtra2_array
             s% xtra2_array(k) = (N_HII*Eion_HII_pp + N_HeII*Eion_HeII_pp + N_HeIII*(Eion_HeII_pp+Eion_HeIII_pp)) / s% dm(k)
             s% xtra2_array(k) = (s% xtra1_array(k) - s% xtra2_array(k))/ dt
+
+            ! We save the difference in ionization energy for each species in xtra_arrays 3, 4, and 5
+            s% xtra3_array(k) = (N_HII*Eion_HII_pp / s% dm(k) - s% xtra3_array(k)) / dt
+            s% xtra4_array(k) = (N_HeII*Eion_HeII_pp / s% dm(k) - s% xtra4_array(k)) / dt
+            s% xtra5_array(k) = (N_HeIII*(Eion_HeII_pp+Eion_HeIII_pp) / s% dm(k) - s% xtra5_array(k)) / dt
 
          end do
          !And now calculate the specific energy release from recombination and store it again in xtra2_array.
@@ -209,6 +216,7 @@
             real(dp) :: ionization_res(num_ion_vals)
 
             ierr = 0
+
             call eval_ionization( &
                1d0 - (s% X(k) + s% Y(k)), s% X(k), s% Rho(k), s% lnd(k)/ln10, &
                s% T(k), s% lnT(k)/ln10, ionization_res, ierr)

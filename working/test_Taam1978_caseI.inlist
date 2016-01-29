@@ -75,6 +75,8 @@
                                  !#CE: and the gravitational drag prescription by Eve Ostriker (1999)
       x_logical_ctrl(1) = .false. !#CE: include_internal_energy: If true, then the internal energy is included when
                                  !#CE: when the outer parts of the envelope are bound or unbound.
+      x_logical_ctrl(2) = .false. !#CE: include accretion luminosity: If true, then accretion energy onto the NS
+                                  !#CE: is taken into account when calculating the energy donated to the envelope
 
       !#CE: increase the resolution around the position of the companion where the energy is deposited.
       !#CE: The other two parameters (R_function2_param1 and R_function2_param2) are set automatically

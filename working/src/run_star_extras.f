@@ -76,6 +76,8 @@
          s% xtra6 = 0.0d0
          !s% xtra7 -> CE_mdot. It is initially set to 0. It will be calculated when CE_adjust_mdot is called
          s% xtra7 = 0.0d0
+         !s% xtra20 -> L_acc. Accretion luminosity, calculated in CE_energy
+         s% xtra20 = 0.0
 
          !s% xtra7 -> CE_test_case
          s% ixtra1 = s% x_integer_ctrl(1)
@@ -228,7 +230,7 @@
          ierr = 0
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
-         how_many_extra_history_columns = 6
+         how_many_extra_history_columns = 10
       end function how_many_extra_history_columns
 
 
@@ -248,17 +250,24 @@
 
          names(1) = 'CE_energy_rate'
          vals(1) = s% xtra1
-         names(2) = 'CE_torque'
-         vals(2) = s% xtra6
-         names(3) = 'CE_companion_position_r'
-         vals(3) = s% xtra2
-         names(4) = 'CE_companion_position_m'
-         vals(4) = s% xtra9
-         names(5) = 'CE_ang_mom_transferred'
-         vals(5) = s% xtra6
-         names(6) = 'envelope_binding_energy'
-         vals(6) = s% xtra11
-
+         names(2) = 'L_accretion'
+         vals(2) = s% xtra20
+         names(3) = 'CE_torque'
+         vals(3) = s% xtra6
+         names(4) = 'CE_companion_position_r'
+         vals(4) = s% xtra2
+         names(5) = 'CE_companion_position_m'
+         vals(5) = s% xtra9
+         names(6) = 'CE_ang_mom_transferred'
+         vals(6) = s% xtra6
+         names(7) = 'envelope_binding_energy'
+         vals(7) = s% xtra11
+         names(8) = 'R_acc'
+         vals(8) = s% xtra12
+         names(9) = 'R_acc_low'
+         vals(9) = s% xtra13
+         names(10) = 'R_acc_high'
+         vals(10) = s% xtra14
 
 
       end subroutine data_for_extra_history_columns
