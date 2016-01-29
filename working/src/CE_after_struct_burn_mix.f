@@ -76,6 +76,12 @@
             k=k+1
          enddo
 
+         if (mass_to_remove .gt. 0.0d0) then
+            write(*,*) "*******************************"
+            write(*,*) "**** mass_to_remove: ",mass_to_remove
+            write(*,*) "*******************************"
+            !pause
+         endif
          ! Diagnostic to determine envelope binding energy
          ! Includes internal energy
          k=1

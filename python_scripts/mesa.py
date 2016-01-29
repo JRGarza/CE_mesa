@@ -446,6 +446,8 @@ class mesa(object):
 		    Nresults=len(results)
 		    for i in range(0,Nresults):
 		        self.profiles.append(results[i].get())
+			pool.close()
+
 		else:
 			print "Process running serially"
 			for i in range(self.Nprofile):
@@ -528,6 +530,7 @@ class mesa(object):
 		    Nresults=len(results)
 		    for i in range(0,Nresults):
 		        data_all[i,:] = results[i].get()
+			pool.close()
 		else:
 			print "Process running serially"
 			for i in range(self.Nprofile):
@@ -958,7 +961,7 @@ class mesa(object):
 
 		if self._param['onscreen']:
 			plt.show()
-			fig.canvas.manager.window.raise_()
+			# fig1.canvas.manager.window.raise_()
 
 		return
 
@@ -980,6 +983,7 @@ if __name__ == "__main__":
 
 #TODO Add linear cmap
 #TODO Rethink the way that data are loaded to mesa.py. Perhaps keep the original data to memory
+#TODO Add omega_div_omega_crit
 
 
 

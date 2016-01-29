@@ -61,6 +61,7 @@
          s% other_after_struct_burn_mix => CE_other_after_struct_burn_mix
          s% other_adjust_mdot => CE_other_adjust_mdot
 
+<<<<<<< HEAD
          ! Reading values of parameters from the extra controls that we are using
          ! Note that "extra_heat" is the specific energy added to the the  cell in units of erg/s/gr
 
@@ -89,6 +90,12 @@
          ! s% job% relax_omega_max_yrs_dt = 1d-8
           s% job% set_initial_dt = .True.
           s% job% years_for_initial_dt = 1d-8
+=======
+         ! ! ! We set a very small timestep during the relaxation phase, so that the star does not evolve significantly
+         ! ! s% job% relax_omega_max_yrs_dt = 1d-8
+         !  s% job% set_initial_dt = .True.
+         !  s% job% years_for_initial_dt = 1d-8
+>>>>>>> fixed a problem in the logic of smoothing out ce_mdot ** fixed the restart process from a photo. now it does not do the synchronization. ** added several quantities in profile and history
 
 
       end subroutine extras_controls
@@ -118,6 +125,27 @@
          end if
 
 
+         !If we are restarting from a photo, the rest of the synchronization and relaxing steps should be skipped
+         if (restart) return
+
+         ! Reading values of parameters from the extra controls that we are using
+         ! Note that "extra_heat" is the specific energy added to the the  cell in units of erg/s/gr
+
+         !s% xtra1 -> CE_energy_rate. It is initially set to 0. It will be calculated when CE_energy is called
+         s% xtra1 = 0.0d0
+         !s% xtra3 -> CE_companion_radius
+         s% xtra3 = s% x_ctrl(3)
+         !s% xtra4 -> CE_companion_mass
+         s% xtra4 = s% x_ctrl(4)
+         !s% xtra5 -> CE_n_acc_radii
+         s% xtra5 = s% x_ctrl(5)
+         !s% xtra6 -> CE_torque. It is initially set to 0. It will be calculated when CE_torque is called
+         s% xtra6 = 0.0d0
+         !s% xtra7 -> CE_mdot. It is initially set to 0. It will be calculated when CE_adjust_mdot is called
+         s% xtra7 = 0.0d0
+
+         !s% xtra7 -> CE_test_case
+         s% ixtra1 = s% x_integer_ctrl(1)
          !s% xtra2 -> CE_companion_position = CE_companion_initial_position * Rsatr
          s% xtra2 = s% x_ctrl(2) * s% r(1) / Rsun
 
@@ -349,6 +377,13 @@
          ierr = 0
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
+
+         !Saving those values back to xtra_controls so that restarts work.
+         s% x_ctrl(2) = s% xtra2 / (s% r(1) / Rsun)
+         s% x_ctrl(3) = s% xtra3
+         s% x_ctrl(4) = s% xtra4
+
+
       end subroutine extras_after_evolve
 
 
