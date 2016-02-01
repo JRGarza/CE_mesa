@@ -68,9 +68,8 @@
       x_ctrl(14) = 1d3            !#CE: CE_mdot_max: maximum allowed value for CE_mdot (in Msun/yr)
       x_ctrl(15) = 0.1           !#CE: f_sync_init: Degree of syncronization (Omega_spin/Omega_orb) between
                                  !#CE: rotation of the star and the orbit at the beginning of the simulation
-      x_integer_ctrl(1) = 4      !#CE: 1: Uniform heating of the whole envelope, 2: Heating only in the position of the
-                                 !#CE: companion in the region R > CE_companion_position - CE_companion_radius and
-                                 !#CE: R < CE_companion_position + CE_companion_radius
+      x_integer_ctrl(1) = 4      !#CE: 1: Uniform heating of the whole envelope
+                                 !#CE: 2: Heating at the base of the hydrogen envelope
                                  !#CE: 3: CE_energy_rate is calculated based on the companions position
                                  !#CE: and the gravitational drag prescription by Eve Ostriker (1999)
       x_logical_ctrl(1) = .true. !#CE: include_internal_energy: If true, then the internal energy is included when

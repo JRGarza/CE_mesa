@@ -83,19 +83,19 @@
 
 
          ! Call functions to calculate test cases
-         if (CE_test_case == 1) then
+         if (CE_test_case == 1) then   ! Heat whole hydrogen envelope
 
             call CE_inject_case1(id, ierr)
 
-         else if (CE_test_case == 2) then
+         else if (CE_test_case == 2) then   ! Heat just outside helium core
 
             call CE_inject_case2(id, ierr)
 
-         else if (CE_test_case == 3) then
+         else if (CE_test_case == 3) then   ! (Outdated) Energy added based on Ostriker (1999)
 
             call CE_inject_case3(id, ierr)
 
-          else if (CE_test_case == 4) then
+          else if (CE_test_case == 4) then   ! Energy based on MacLeod & Ramirez-Ruiz
 
              call CE_inject_case4(id, ierr)
          endif
@@ -165,14 +165,13 @@
 
       subroutine CE_inject_case2(id, ierr)
 
-         use const_def, only: Msun
+         use const_def, only: Msun, Rsun
          integer, intent(in) :: id
          integer, intent(out) :: ierr
          type (star_info), pointer :: s
          integer :: k
          real(dp) :: ff, mass_to_be_heated, a_tukey
-         real(dp) :: CE_energy_rate, CE_companion_position, CE_companion_radius, CE_companion_mass
-         real(dp) :: CE_n_acc_radii
+         real(dp) :: CE_energy_rate
 
          ierr = 0
          call star_ptr(id, s, ierr)
@@ -180,24 +179,21 @@
 
          ! Get input controls
          CE_energy_rate = s% x_ctrl(1)
-         CE_companion_position = s% xtra2
-         CE_companion_radius = s% xtra3
-         CE_companion_mass = s% xtra4
-         CE_n_acc_radii = s% xtra5
+
 
          ! Tukey window scale
-         a_tukey = 0.1
+         a_tukey = 0.5
          !TODO  Change CE_companion_radius to R_acc
          ! First calculate the mass in which the energy will be deposited
          mass_to_be_heated = 0.0
          do k = 1, s% nz
-            ff = TukeyWindow((s% r(k) - CE_companion_position*Rsun)/(CE_n_acc_radii * CE_companion_radius*Rsun), a_tukey)
+            ff = TukeyWindow((s% r(k) - 1.1 * he_core_radius * Rsun)/(0.2 * he_core_radius * Rsun), a_tukey)
             mass_to_be_heated = mass_to_be_heated + s% dm(k) * ff
          end do
 
          ! Now redo the loop and add the extra specific heat
          do k = 1, s% nz
-            ff = TukeyWindow((s% r(k) - CE_companion_position*Rsun)/(CE_n_acc_radii * CE_companion_radius*Rsun), a_tukey)
+            ff = TukeyWindow((s% r(k) - 1.1 * he_core_radius * Rsun)/(0.2 * he_core_radius * Rsun), a_tukey)
             s% extra_heat(k) = CE_energy_rate / mass_to_be_heated * ff
          end do
 
