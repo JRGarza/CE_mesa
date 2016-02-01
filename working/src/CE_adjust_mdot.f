@@ -57,8 +57,6 @@ contains
 
       ! CE_mdot = s% xtra7
 
-      write(*,*) "##################", s% mstar_dot_old, s% xtra7
-
       if (-s% mstar_dot_old < CE_mdot_smooth_limit * Msun/secyer .and. -s% xtra7 > CE_mdot_smooth_limit * Msun/secyer) then
          CE_mdot = -1.01*CE_mdot_smooth_limit * Msun/secyer
       else if (-s% mstar_dot_old > CE_mdot_smooth_limit * Msun/secyer .and. -s% xtra7 > CE_mdot_smooth_limit * Msun/secyer) then

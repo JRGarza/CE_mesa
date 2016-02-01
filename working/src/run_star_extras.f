@@ -119,7 +119,6 @@
 
 
          !If we are restarting from a photo, the rest of the synchronization and relaxing steps should be skipped
-         write(*,*) restart
          if (restart) then
 
             s% job% set_initial_model_number = .false.
@@ -137,7 +136,6 @@
             return
          endif
 
-         pause
 
          ! Reading values of parameters from the extra controls that we are using
          ! Note that "extra_heat" is the specific energy added to the the  cell in units of erg/s/gr

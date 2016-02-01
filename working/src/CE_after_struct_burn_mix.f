@@ -76,12 +76,6 @@
             k=k+1
          enddo
 
-         if (mass_to_remove .gt. 0.0d0) then
-            write(*,*) "*******************************"
-            write(*,*) "**** mass_to_remove: ",mass_to_remove, k-1,s% dm(1),s% dm(2),s% dm(10),is_bound(1),is_bound(2),is_bound(10)
-            write(*,*) "*******************************"
-            !pause
-         endif
          ! Diagnostic to determine envelope binding energy
          ! Includes internal energy
          k=1
