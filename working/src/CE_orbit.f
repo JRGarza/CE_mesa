@@ -187,7 +187,7 @@
 
          ! If companion is outside star the set default values and return
          if (CE_companion_position*Rsun > s% r(1)) then
-            !saving these values to xtra variable so that tey are used in different CE_inject cases,
+            !saving these values to xtra variable so that they are used in different CE_inject cases,
             ! in the torque calculations, and saved in the history file
             s% xtra12 = 0.0d0 !R_acc
             s% xtra13 = 0.0d0 !R_acc_low

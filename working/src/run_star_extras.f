@@ -230,7 +230,7 @@
          ierr = 0
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
-         how_many_extra_history_columns = 10
+         how_many_extra_history_columns = 12
       end function how_many_extra_history_columns
 
 
@@ -268,7 +268,10 @@
          vals(9) = s% xtra13
          names(10) = 'R_acc_high'
          vals(10) = s% xtra14
-
+         names(11) = 'v_rel'
+         vals(11) = s% xtra16
+         names(12) = 'v_over_c_sound'
+         vals(12) = s% xtra17
 
       end subroutine data_for_extra_history_columns
 
