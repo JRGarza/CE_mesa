@@ -68,23 +68,23 @@
       ! where val = net nuclear energy plus eps_grav minus all neutrino losses.
    !eps_nuc_plus_nuc_neu
    logL ! log10(max(1d-2,L/Lsun))
-   !log_Ledd ! log10(Leddington/Lsun) -- local Ledd, 4 pi clight G m / kap
-   !log_L_div_Ledd ! log10(max(1d-12,L/Leddington))
-   !log_Lrad_div_Ledd
-   !log_Lrad_div_L
+   log_Ledd ! log10(Leddington/Lsun) -- local Ledd, 4 pi clight G m / kap
+   log_L_div_Ledd ! log10(max(1d-12,L/Leddington))
+   log_Lrad_div_Ledd
+   log_Lrad_div_L
    !signed_log_power ! sign(L)*log10(max(1,abs(L)))
    velocity ! velocity at outer boundary of zone (cm/s) -- 0 if no velocity variable
    !vel_km_per_s ! velocity at outer boundary of zone (km/s) -- 0 if no velocity variable
    entropy ! specific entropy divided by (avo*kerg)
    !mixing_type ! mixing types are defined in mesa/mlt/public/mlt_def
-   !csound ! sound speed
+   csound ! sound speed
    !csound_at_face ! sound speed
    !v_div_cs ! velocity divided by sound speed
    v_div_csound ! velocity divided by sound speed
    total_energy ! v^2/2 - G m / r + E (ergs/g).  negative if bound
    !total_energy_integral ! sum from surface inwards of dm*(v^2/2 - G m / r + E) (ergs)
    !v_div_r ! velocity divided by radius
-   !scale_height ! in Rsun units
+   scale_height ! in Rsun units
    !eta ! electron degeneracy parameter (eta >> 1 for significant degeneracy)
    !mu ! mean molecular weight per gas particle (ions + free electrons)
    dm ! cell mass (grams)
@@ -121,7 +121,7 @@
    !prad ! radiation pressure at center of zone
    energy ! internal energy (ergs/g)
    !logE ! log10(specific internal energy) at center of zone
-   !grada ! dlnT_dlnP at constant S
+   grada ! dlnT_dlnP at constant S
    !dE_dRho ! at constant T
    !cv ! specific heat at constant volume
    !cp ! specific heat at constant total pressure
@@ -129,7 +129,7 @@
    !density ! rho
 
    !thermal_time_to_surface
-   !log_thermal_time_to_surface
+   log_thermal_time_to_surface
 
    !log_CpT
    !log_CpTabsMdot_div_L
@@ -184,11 +184,11 @@
    !conv_dP_term
          ! P is increased by factor (1 + conv_dP_term) by inclusion of convective turbulence
 
-   !grada_sub_gradT
+   grada_sub_gradT
    !gradT_sub_grada ! gradT-grada at cell boundary
    !gradT_div_grada ! gradT/grada at cell boundary
 
-   !gradr_sub_gradT
+   gradr_sub_gradT
    !gradT_sub_gradr ! gradT-gradr at cell boundary
    !gradT_div_gradr ! gradT/gradr at cell boundary
    !log_gradT_div_gradr ! log10 gradT/gradr at cell boundary
@@ -325,11 +325,11 @@
    !log_dr_div_rmid ! log(dr_div_rmid)
    !dr_div_cs ! cell sound crossing time (sec)
    !acoustic_radius ! sound time from center to outer cell boundary (sec)
-   !log_acoustic_radius ! log10(acoustic_radius) (sec)
+   log_acoustic_radius ! log10(acoustic_radius) (sec)
    !acoustic_depth ! sound time from surface to outer cell boundary (sec)
-   !log_acoustic_depth ! log10(acoustic_depth) (sec)
+   log_acoustic_depth ! log10(acoustic_depth) (sec)
    !acoustic_r_div_R_phot
-   !log_dr_div_cs ! log10 cell sound crossing time (sec)
+   log_dr_div_cs ! log10 cell sound crossing time (sec)
    !dr_div_cs_yr ! cell sound crossing time (years)
    !log_dr_div_cs_yr ! log10 cell sound crossing time (years)
 
@@ -412,17 +412,17 @@
       !tri_alfa
 
    ! rotation
-      omega ! angular velocity = j_rot/i_rot
-      !log_omega
+      !omega ! angular velocity = j_rot/i_rot
+      log_omega
       log_j_rot
       !log_J_div_M53 ! J is j*1e-15 integrated from center; M53 is m^(5/3)
       !log_J_inside ! J_inside is j_rot integrated from center
       !shear ! -dlnomega/dlnR
       !log_abs_shear ! log10(abs(dlnomega/dlnR))
-      !richardson_number
-      !i_rot ! specific moment of inertia at cell boundary
+      richardson_number
+      i_rot ! specific moment of inertia at cell boundary
       !j_rot ! specific angular momentum at cell boundary
-      !v_rot ! rotation velocity at cell boundary (km/sec)
+      v_rot ! rotation velocity at cell boundary (km/sec)
       !fp_rot ! rotation factor for pressure
       !ft_rot ! rotation factor for temperature
       !ft_rot_div_fp_rot ! gradr factor
@@ -436,14 +436,14 @@
       !r_equatorial ! (Rsun)
       !log_r_equatorial ! log10 (Rsun)
       !r_e_div_r_p ! equatorial/r_polar
-      !omega_crit ! breakup angular velocity = sqrt(G M / equatorial^3)
-      !omega_div_omega_crit
+      omega_crit ! breakup angular velocity = sqrt(G M / equatorial^3)
+      omega_div_omega_crit
 
-      !am_log_nu_omega ! for diffusion of omega
-      !am_log_nu_j ! for diffusion of angular momentum
+      am_log_nu_omega ! for diffusion of omega
+      am_log_nu_j ! for diffusion of angular momentum
 
-      !am_log_nu_rot ! diffusion of angular momentum driven by rotation
-      !am_log_nu_non_rot ! diffusion driven by other sources, e.g. convection
+      am_log_nu_rot ! diffusion of angular momentum driven by rotation
+      am_log_nu_non_rot ! diffusion driven by other sources, e.g. convection
 
       !am_log_sig_omega ! for diffusion of omega
       !am_log_sig_j ! for diffusion of angular momentum
@@ -456,20 +456,20 @@
       !   = 0  when logT >= D_mix_rotation_max_logT_full_on = full_off
       !   = (log(T)-full_on)/(full_off-full_on) else
 
-      !am_log_D_visc ! diffusion coeff for kinematic viscosity
-      !am_log_D_DSI ! diffusion coeff for dynamical shear instability
-      !am_log_D_SH ! diffusion coeff for Solberg-Hoiland instability
-      !am_log_D_SSI ! diffusion coeff for secular shear instability
-      !am_log_D_ES ! diffusion coeff for Eddington-Sweet circulation
-      !am_log_D_GSF ! diffusion coeff for Goldreich-Schubert-Fricke instability
-      !am_log_D_ST ! Spruit dynamo mixing diffusivity
+      am_log_D_visc ! diffusion coeff for kinematic viscosity
+      am_log_D_DSI ! diffusion coeff for dynamical shear instability
+      am_log_D_SH ! diffusion coeff for Solberg-Hoiland instability
+      am_log_D_SSI ! diffusion coeff for secular shear instability
+      am_log_D_ES ! diffusion coeff for Eddington-Sweet circulation
+      am_log_D_GSF ! diffusion coeff for Goldreich-Schubert-Fricke instability
+      am_log_D_ST ! Spruit dynamo mixing diffusivity
 
       ! Diffusion coefficient for angular momentum resulting from ST :
       ! am_nu_ST = f*am_nu_factor*am_nu_ST_factor*nu_ST
-      !am_log_nu_ST ! Spruit dynamo effective viscosity
+      am_log_nu_ST ! Spruit dynamo effective viscosity
 
-      !dynamo_log_B_r ! (Gauss)
-      !dynamo_log_B_phi ! (Gauss)
+      dynamo_log_B_r ! (Gauss)
+      dynamo_log_B_phi ! (Gauss)
 
 
    ! misc
@@ -600,9 +600,9 @@
       !dlog_other_dlogP
 
 
-      !brunt_N2 ! brunt-vaisala frequency squared
-      !brunt_N2_structure_term
-      !brunt_N2_composition_term
+      brunt_N2 ! brunt-vaisala frequency squared
+      brunt_N2_structure_term
+      brunt_N2_composition_term
       !log_brunt_N2_structure_term
       !log_brunt_N2_composition_term
       !brunt_A ! = N^2*r/g

@@ -49,7 +49,9 @@ def InterpolateOneProfile(profile, NY, Yaxis, Ymin, Ymax, Variable):
 		Possible values: eps_nuc, velocity, entropy, total_energy, j_rot,
 			eps_recombination, ionization_energy, energy, potential_plus_kinetic,
 			extra_heat, v_div_vesc, v_div_csound, pressure, temperature, density,
-			tau, opacity, gamma1, dq
+			tau, opacity, gamma1, dq, L_div_Ledd, t_thermal, t_dynamical,
+			t_dynamical_down, t_thermal_div_t_dynamical, omega_div_omega_crit
+
 
 	Returns:
 	data interpolated along profile as a 1-D numpy array of length NY
@@ -143,7 +145,7 @@ def InterpolateOneProfile(profile, NY, Yaxis, Ymin, Ymax, Variable):
 
 	if Variable == 'gamma1' :
 		try:
-			profile['gamma1'] = profile['gamma1']-4./3.
+			profile['gamma1'] = 4./3.-profile['gamma1']
 		except Exception:
 			raise ValueError("Column 'gamma1' is missing from the profile files")
 
@@ -162,6 +164,46 @@ def InterpolateOneProfile(profile, NY, Yaxis, Ymin, Ymax, Variable):
 
 	if (not "dq" in profile.dtype.names and (Variable == 'dq' )):
 		raise ValueError("Column 'dq' is missing from the profile files")
+
+	if (Variable == 'L_div_Ledd'):
+		try:
+			profile = numpy.lib.recfunctions.append_fields(profile,'L_div_Ledd',
+							data = 10.**profile['log_L_div_Ledd'], asrecarray=True)
+		except Exception:
+			raise ValueError("Column 'log_L_div_Ledd' is missing from the profile files")
+
+	if (Variable == 't_thermal'):
+		try:
+			profile = numpy.lib.recfunctions.append_fields(profile,'t_thermal',
+							data = 10.**profile['log_thermal_time_to_surface'], asrecarray=True)
+		except Exception:
+			raise ValueError("Column 'log_thermal_time_to_surface' is missing from the profile files")
+
+	if (Variable == 't_dynamical'):
+		try:
+			profile = numpy.lib.recfunctions.append_fields(profile,'t_dynamical',
+							data = 10.**profile['log_acoustic_radius'], asrecarray=True)
+		except Exception:
+			raise ValueError("Column 'log_acoustic_radius' is missing from the profile files")
+
+	if (Variable == 't_dynamical_down'):
+		try:
+			profile = numpy.lib.recfunctions.append_fields(profile,'t_dynamical_down',
+							data = 10.**profile['log_acoustic_depth'], asrecarray=True)
+		except Exception:
+			raise ValueError("Column 'log_acoustic_depth' is missing from the profile files")
+
+	if (Variable == 't_thermal_div_t_dynamical'):
+		try:
+			profile = numpy.lib.recfunctions.append_fields(profile,'t_thermal_div_t_dynamical',
+							data = 10.**profile['log_thermal_time_to_surface']/10.**profile['log_acoustic_radius'], asrecarray=True)
+		except Exception:
+			raise ValueError("Column 'log_thermal_time_to_surface' and/or 'log_acoustic_radius' are missing from the profile files")
+
+	if (not "omega_div_omega_crit" in profile.dtype.names and (Variable == 'omega_div_omega_crit' )):
+		raise ValueError("Column 'omega_div_omega_crit' is missing from the profile files")
+
+
 
 
 	#Define the values that we want to itnerpolate along the  Y axis
@@ -359,7 +401,9 @@ class mesa(object):
 		Variable -- eps_nuc, velocity, entropy, total_energy, j_rot,
 			eps_recombination, ionization_energy, energy, potential_plus_kinetic,
 			extra_heat, v_div_vesc, v_div_csound, pressure, temperature, density,
-			tau, opacity, gamma1, dq
+			tau, opacity, gamma1, dq,L_div_Ledd, t_thermal, t_dynamical,
+			t_dynamical_down, t_thermal_div_t_dynamical, omega_div_omega_crit
+
 		cmap -- colors allowed by colormap module in matplotlib
 		"""
 		cmaps=[m for m in cm.datad]
@@ -372,7 +416,9 @@ class mesa(object):
 			raise ValueError(self._param['Xaxis']+"not a valid option for parameter Xaxis")
 		if not (self._param['Variable'] in ['eps_nuc', 'velocity', 'entropy', 'total_energy', 'j_rot', 'eps_recombination'
 				, 'ionization_energy', 'energy', 'potential_plus_kinetic', 'extra_heat', 'v_div_vesc',
-				'v_div_csound',	'pressure', 'temperature', 'density', 'tau', 'opacity', 'gamma1', 'dq']):
+				'v_div_csound',	'pressure', 'temperature', 'density', 'tau', 'opacity', 'gamma1', 'dq',
+				'L_div_Ledd', 't_thermal', 't_dynamical', 't_dynamical_down', 't_thermal_div_t_dynamical',
+ 				'omega_div_omega_crit']):
 			raise ValueError(self._param['Variable']+"not a valid option for parameter Variable")
 
 
@@ -446,6 +492,8 @@ class mesa(object):
 		    Nresults=len(results)
 		    for i in range(0,Nresults):
 		        self.profiles.append(results[i].get())
+			pool.close()
+
 		else:
 			print "Process running serially"
 			for i in range(self.Nprofile):
@@ -528,6 +576,7 @@ class mesa(object):
 		    Nresults=len(results)
 		    for i in range(0,Nresults):
 		        data_all[i,:] = results[i].get()
+			pool.close()
 		else:
 			print "Process running serially"
 			for i in range(self.Nprofile):
@@ -616,7 +665,7 @@ class mesa(object):
 		elif self._param['Variable'] == "v_div_csound":
 			cmap_label = "log($v/v_{sound}$)"
 		elif self._param['Variable'] == "gamma1":
-			cmap_label = "log($\Gamma_{1}-4/3$)"
+			cmap_label = "log($4/3-\Gamma_{1}$)"
 		elif self._param['Variable'] == "opacity":
 			cmap_label = "log(Opacity [cm$^2$/gr])"
 		elif self._param['Variable'] == "pressure":
@@ -629,7 +678,21 @@ class mesa(object):
 			cmap_label = "log(optical depth)"
 		elif self._param['Variable'] == "dq":
 			cmap_label = "log(dq)"
+		elif self._param['Variable'] == "L_div_Ledd":
+			cmap_label = "log(L/L$_{Edd}$)"
+		elif self._param['Variable'] == "t_thermal":
+			cmap_label = "log($\tau_{thermal} [s]$)"
+		elif self._param['Variable'] == "t_dynamical":
+			cmap_label = "log($\tau_{s.cr.,out} [s]$)"
+		elif self._param['Variable'] == "t_dynamical_down":
+			cmap_label = "log($\tau_{s.cr.,in} [s]$)"
+		elif self._param['Variable'] == "t_thermal_div_t_dynamical":
+			cmap_label = "log($\tau_{thermal}/\tau_{s.cr.}$)"
+		elif self._param['Variable'] == "omega_div_omega_crit":
+			cmap_label = "log($\Omega/\Omega_{crit.}$)"
 
+
+#L_div_Ledd, t_thermal, t_dynamical, t_dynamical_down, t_thermal_div_t_dynamical, omega_div_omega_crit
 
 
 
@@ -958,7 +1021,7 @@ class mesa(object):
 
 		if self._param['onscreen']:
 			plt.show()
-			fig.canvas.manager.window.raise_()
+			# fig1.canvas.manager.window.raise_()
 
 		return
 
@@ -980,6 +1043,7 @@ if __name__ == "__main__":
 
 #TODO Add linear cmap
 #TODO Rethink the way that data are loaded to mesa.py. Perhaps keep the original data to memory
+#TODO Add omega_div_omega_crit
 
 
 

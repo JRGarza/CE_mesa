@@ -3,13 +3,13 @@
 &star_job
 
       load_saved_model = .true.
-      saved_model_name = '../data/Taam1978_caseII.mod'
+      saved_model_name = '/home/evol/fragkos/disk1/repos/CE_mesa/data/Taam1978_caseII.mod'
 
       save_model_when_terminate = .true.
-      save_model_filename = 'test_Taam1978_caseI_final.mod'
+      save_model_filename = 'test_Taam1978_caseII_final.mod'
 
       write_profile_when_terminate = .true.
-      filename_for_profile_when_terminate = 'test_Taam1978_caseI_final.data'
+      filename_for_profile_when_terminate = 'test_Taam1978_caseII_final.data'
 
       history_columns_file = './history_columns.list'
       profile_columns_file = './profile_columns.list'
@@ -56,7 +56,7 @@
                                  !#CE: in units of the primary's radius
                                  !#CE: star from the center of the donor star in solar radii
       x_ctrl(3) = 0.5d0           !#CE: initial CE_companion_radius: The radius of the companion star in solar radii
-      x_ctrl(4) = 0.319d0           !#CE: CE_companion_mass: The mass of the companion star in solar masses
+      x_ctrl(4) = 1.0d0           !#CE: CE_companion_mass: The mass of the companion star in solar masses
       x_ctrl(5) = 1.0d0           !#CE: CE_n_acc_radii: Number of accretion radii away from companion star to deposit
                                  !#CE: heating into the star from orbital energy
       x_ctrl(8) = 1d-3           !#CE: Fractional orbital energy change allowed per step
@@ -73,7 +73,7 @@
                                  !#CE: R < CE_companion_position + CE_companion_radius
                                  !#CE: 3: CE_energy_rate is calculated based on the companions position
                                  !#CE: and the gravitational drag prescription by Eve Ostriker (1999)
-      x_logical_ctrl(1) = .false. !#CE: include_internal_energy: If true, then the internal energy is included when
+      x_logical_ctrl(1) = .true. !#CE: include_internal_energy: If true, then the internal energy is included when
                                  !#CE: when the outer parts of the envelope are bound or unbound.
       x_logical_ctrl(2) = .false. !#CE: include accretion luminosity: If true, then accretion energy onto the NS
                                   !#CE: is taken into account when calculating the energy donated to the envelope
@@ -83,12 +83,18 @@
       !#CE: based on the position of the companion.
       R_function2_weight = 1000
 
+      which_atm_option = 'Eddington_grey'
+
+      use_artificial_viscosity = .true.
+
+
       use_Type2_opacities = .true.
       Zbase = 0.02d0
 
-      max_model_number = 10000
+      max_model_number = 20000
       varcontrol_target = 5d-3
       mesh_delta_coeff = 0.5
+      max_years_for_timestep = 1d-2
       max_allowed_nz = 20000
       !max_years_for_timestep = 1d-3
 !       delta_lgR_limit = 0.001
@@ -97,8 +103,8 @@
 
 
       history_interval = 1
-      profile_interval = 5
-      max_num_profile_models = 1000
+      profile_interval = 10
+      max_num_profile_models = 5000
       terminal_cnt = 1
       write_header_frequency = 10
 
