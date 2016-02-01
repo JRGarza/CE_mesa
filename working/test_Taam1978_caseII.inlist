@@ -56,7 +56,7 @@
                                  !#CE: in units of the primary's radius
                                  !#CE: star from the center of the donor star in solar radii
       x_ctrl(3) = 0.5d0           !#CE: initial CE_companion_radius: The radius of the companion star in solar radii
-      x_ctrl(4) = 1.0d0           !#CE: CE_companion_mass: The mass of the companion star in solar masses
+      x_ctrl(4) = 2.0d0           !#CE: CE_companion_mass: The mass of the companion star in solar masses
       x_ctrl(5) = 1.0d0           !#CE: CE_n_acc_radii: Number of accretion radii away from companion star to deposit
                                  !#CE: heating into the star from orbital energy
       x_ctrl(8) = 1d-3           !#CE: Fractional orbital energy change allowed per step
@@ -92,7 +92,7 @@
       Zbase = 0.02d0
 
       max_model_number = 20000
-      varcontrol_target = 5d-3
+      varcontrol_target = 1d-3
       mesh_delta_coeff = 0.5
       max_years_for_timestep = 1d-2
       max_allowed_nz = 20000

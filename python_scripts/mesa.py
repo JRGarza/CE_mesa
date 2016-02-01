@@ -49,7 +49,7 @@ def InterpolateOneProfile(profile, NY, Yaxis, Ymin, Ymax, Variable):
 		Possible values: eps_nuc, velocity, entropy, total_energy, j_rot,
 			eps_recombination, ionization_energy, energy, potential_plus_kinetic,
 			extra_heat, v_div_vesc, v_div_csound, pressure, temperature, density,
-			tau, opacity, gamma1, dq, L_div_Ledd, t_thermal, t_dynamical,
+			tau, opacity, gamma1, dq, L_div_Ledd, Lrad_div_Ledd. t_thermal, t_dynamical,
 			t_dynamical_down, t_thermal_div_t_dynamical, omega_div_omega_crit
 
 
@@ -171,6 +171,13 @@ def InterpolateOneProfile(profile, NY, Yaxis, Ymin, Ymax, Variable):
 							data = 10.**profile['log_L_div_Ledd'], asrecarray=True)
 		except Exception:
 			raise ValueError("Column 'log_L_div_Ledd' is missing from the profile files")
+
+	if (Variable == 'Lrad_div_Ledd'):
+		try:
+			profile = numpy.lib.recfunctions.append_fields(profile,'Lrad_div_Ledd',
+							data = 10.**profile['log_Lrad_div_Ledd'], asrecarray=True)
+		except Exception:
+			raise ValueError("Column 'log_Lrad_div_Ledd' is missing from the profile files")
 
 	if (Variable == 't_thermal'):
 		try:
@@ -401,7 +408,7 @@ class mesa(object):
 		Variable -- eps_nuc, velocity, entropy, total_energy, j_rot,
 			eps_recombination, ionization_energy, energy, potential_plus_kinetic,
 			extra_heat, v_div_vesc, v_div_csound, pressure, temperature, density,
-			tau, opacity, gamma1, dq,L_div_Ledd, t_thermal, t_dynamical,
+			tau, opacity, gamma1, dq,L_div_Ledd, Lrad_div_Ledd, t_thermal, t_dynamical,
 			t_dynamical_down, t_thermal_div_t_dynamical, omega_div_omega_crit
 
 		cmap -- colors allowed by colormap module in matplotlib
@@ -417,7 +424,7 @@ class mesa(object):
 		if not (self._param['Variable'] in ['eps_nuc', 'velocity', 'entropy', 'total_energy', 'j_rot', 'eps_recombination'
 				, 'ionization_energy', 'energy', 'potential_plus_kinetic', 'extra_heat', 'v_div_vesc',
 				'v_div_csound',	'pressure', 'temperature', 'density', 'tau', 'opacity', 'gamma1', 'dq',
-				'L_div_Ledd', 't_thermal', 't_dynamical', 't_dynamical_down', 't_thermal_div_t_dynamical',
+				'L_div_Ledd', 'Lrad_div_Ledd', 't_thermal', 't_dynamical', 't_dynamical_down', 't_thermal_div_t_dynamical',
  				'omega_div_omega_crit']):
 			raise ValueError(self._param['Variable']+"not a valid option for parameter Variable")
 
@@ -680,14 +687,16 @@ class mesa(object):
 			cmap_label = "log(dq)"
 		elif self._param['Variable'] == "L_div_Ledd":
 			cmap_label = "log(L/L$_{Edd}$)"
+		elif self._param['Variable'] == "Lrad_div_Ledd":
+			cmap_label = "log(L$_{rad}$/L$_{Edd}$)"
 		elif self._param['Variable'] == "t_thermal":
-			cmap_label = "log($\tau_{thermal} [s]$)"
+			cmap_label = "log($\\tau_{thermal}$ [s])"
 		elif self._param['Variable'] == "t_dynamical":
-			cmap_label = "log($\tau_{s.cr.,out} [s]$)"
+			cmap_label = "log($\\tau_{s.cr.,out}$ [s])"
 		elif self._param['Variable'] == "t_dynamical_down":
-			cmap_label = "log($\tau_{s.cr.,in} [s]$)"
+			cmap_label = "log($\\tau_{s.cr.,in}$ [s])"
 		elif self._param['Variable'] == "t_thermal_div_t_dynamical":
-			cmap_label = "log($\tau_{thermal}/\tau_{s.cr.}$)"
+			cmap_label = "log($\\tau_{thermal}/\\tau_{s.cr.}$)"
 		elif self._param['Variable'] == "omega_div_omega_crit":
 			cmap_label = "log($\Omega/\Omega_{crit.}$)"
 
