@@ -1,0 +1,275 @@
+! inlist_7M_prems_to_AGB
+
+&star_job
+
+      load_saved_model = .true.
+      saved_model_name = '/home/evol/fragkos/disk1/repos/CE_mesa/data/Taam1978_caseII.mod'
+
+      save_model_when_terminate = .true.
+      save_model_filename = 'heating_base_envelope.mod'
+
+      write_profile_when_terminate = .true.
+      filename_for_profile_when_terminate = 'heating_base_envelope.data'
+
+      history_columns_file = './history_columns.list'
+      profile_columns_file = './profile_columns.list'
+
+      kappa_file_prefix = 'gs98'
+
+
+
+      set_initial_model_number = .true.
+      initial_model_number = 0
+
+      years_for_initial_dt = 1d-6
+
+      change_v_flag = .true.
+      change_initial_v_flag = .true.
+      new_v_flag = .true.
+
+      new_rotation_flag = .false.
+      change_rotation_flag = .true.
+
+      ! new_omega = 1.d-12
+      ! set_omega = .true.
+
+      set_initial_age = .true.
+      initial_age = 0.
+      set_initial_model_number = .true.
+      initial_model_number = 0
+!      pgstar_flag = .true.
+
+
+/ ! end of star_job namelist
+
+&controls
+
+
+
+      use_other_energy = .true.
+      use_other_torque = .false.
+      use_other_before_struct_burn_mix = .true.
+      use_other_after_struct_burn_mix = .true.
+      use_other_adjust_mdot = .true.
+
+      x_ctrl(1) = 2.79d39  !#CE: CE_energy_rate: The rate at which energy is deposited in the star
+                                 !#CE: in units of erg/s.
+      x_ctrl(2) = 0.002         !#CE: CE_companion_initial_position: The initial distance of the center of the companion,
+                                 !#CE: in units of the primary's radius
+                                 !#CE: star from the center of the donor star in solar radii
+      x_ctrl(3) = 1d0           !#CE: initial CE_companion_radius: The radius of the companion star in solar radii
+      x_ctrl(4) = 2.0d0           !#CE: CE_companion_mass: The mass of the companion star in solar masses
+      x_ctrl(5) = 1.0d0           !#CE: CE_n_acc_radii: Number of accretion radii away from companion star to deposit
+                                 !#CE: heating into the star from orbital energy
+      x_ctrl(8) = 1d-3           !#CE: Fractional orbital energy change allowed per step
+      x_ctrl(9) = 1d-3           !#CE: Fractional orbital separation change allowed per step
+      x_ctrl(10) = 1d-3          !#CE: Fractional orbital angular momentum change allowed per step
+      x_ctrl(11) = 2.d0           !#CE: Maximum factor by which CE_mdot can increase in one timestep
+      x_ctrl(12) = 2.d0           !#CE: Maximum factor by which CE_mdot can decrease in one timestep
+      x_ctrl(13) = 1d-8           !#CE: CE_mdot_smooth_limit: value for CE_mdot (in Msun/yr) above which we apply smoothing
+      x_ctrl(14) = 1d3            !#CE: CE_mdot_max: maximum allowed value for CE_mdot (in Msun/yr)
+      x_ctrl(15) = 0.1           !#CE: f_sync_init: Degree of syncronization (Omega_spin/Omega_orb) between
+                                 !#CE: rotation of the star and the orbit at the beginning of the simulation
+      x_integer_ctrl(1) = 2      !#CE: 1: Uniform heating of the whole envelope
+                                 !#CE: 2: Heating at the base of the hydrogen envelope
+                                 !#CE: 3: CE_energy_rate is calculated based on the companions position
+                                 !#CE: and the gravitational drag prescription by Eve Ostriker (1999)
+      x_logical_ctrl(1) = .true. !#CE: include_internal_energy: If true, then the internal energy is included when
+                                 !#CE: when the outer parts of the envelope are bound or unbound.
+      x_logical_ctrl(2) = .false. !#CE: include accretion luminosity: If true, then accretion energy onto the NS
+                                  !#CE: is taken into account when calculating the energy donated to the envelope
+
+      !#CE: increase the resolution around the position of the companion where the energy is deposited.
+      !#CE: The other two parameters (R_function2_param1 and R_function2_param2) are set automatically
+      !#CE: based on the position of the companion.
+      R_function2_weight = 1000
+
+      which_atm_option = 'Eddington_grey'
+
+      use_artificial_viscosity = .true.
+
+
+      use_Type2_opacities = .true.
+      Zbase = 0.02d0
+
+      max_model_number = 20000
+      varcontrol_target = 1d-3
+      mesh_delta_coeff = 0.5
+      max_years_for_timestep = 1d2
+      max_allowed_nz = 20000
+      !max_years_for_timestep = 1d-3
+!       delta_lgR_limit = 0.001
+!       delta_lgE_limit = 0.001
+      he_core_boundary_h1_fraction = 1.d-10
+
+
+      history_interval = 1
+      profile_interval = 10
+      max_num_profile_models = 5000
+      terminal_cnt = 1
+      write_header_frequency = 10
+
+      !Angular momentum transport controls
+      am_nu_visc_factor = 1
+      am_D_mix_factor = 0.0333333333333333d00
+      D_DSI_factor = 1.
+      D_SH_factor = 1.
+      D_SSI_factor = 1.
+      D_ES_factor = 1.
+      D_GSF_factor = 1.
+      D_ST_factor = 1.
+
+
+   dX_nuc_drop_limit = 1d-2
+   dX_nuc_drop_limit_at_high_T = 5d-3 ! for center logT > 9.45
+
+
+   delta_Ye_highT_limit = 1d-3
+
+   ! Inefficient convection => large gradT excess and steep T gradient to enhance
+   ! radiative transport. Reduce gradT excess by making gradT closer to adiabatic
+   ! gradient. If true, code is allowed to adjust gradT to boost efficiency of
+   ! energy transport See gradT_excess_f1, gradT_excess_f2, and gradT_excess_age_fraction below.
+   ! WE MAY WANT TO TEST THIS OPTION
+   okay_to_reduce_gradT_excess = .false.
+
+   gradT_excess_f1 = 1d-4
+   gradT_excess_f2 = 1d-2
+   gradT_excess_age_fraction = 0.9d0
+
+   gradT_excess_lambda1 = 1.0
+   gradT_excess_beta1 = 0.35
+
+   gradT_excess_lambda2 = 0.5
+   gradT_excess_beta2 = 0.25
+
+   gradT_excess_dlambda = 0.1
+   gradT_excess_dbeta = 0.1
+
+
+   RGB_wind_scheme = 'Blocker'
+   AGB_wind_scheme = 'Blocker'
+   RGB_to_AGB_wind_switch = 1d-4
+   Dutch_wind_eta = 1.0
+   Reimers_wind_eta =1.0
+   Blocker_wind_eta = 1.0
+
+   use_lnS_for_eps_grav = .false.
+   include_dmu_dt_in_eps_grav = .true.
+
+   use_Type2_opacities = .true.
+   Zbase = 0.02 ! must set this in the main inlist
+
+   xa_scale = 1d-5
+   newton_itermin = 2
+
+   mixing_length_alpha = 1.5
+   MLT_option = 'Henyey'
+
+   use_Ledoux_criterion = .true.
+   alpha_semiconvection = 0.01
+   thermohaline_coeff = 2
+   thermohaline_option = 'Kippenhahn'
+
+   overshoot_f0_above_nonburn_core = 0.0005
+   overshoot_f0_above_nonburn_shell = 0.0005
+   overshoot_f0_below_nonburn_shell = 0.0005
+
+   overshoot_f0_above_burn_h_core = 0.0005
+   overshoot_f0_above_burn_h_shell = 0.0005
+   overshoot_f0_below_burn_h_shell = 0.0005
+
+   overshoot_f0_above_burn_he_core = 0.0005
+   overshoot_f0_above_burn_he_shell = 0.0005
+   overshoot_f0_below_burn_he_shell = 0.0005
+
+   overshoot_f0_above_burn_z_core = 0.0005
+   overshoot_f0_above_burn_z_shell = 0.0005
+   overshoot_f0_below_burn_z_shell = 0.0005
+
+
+   overshoot_f_above_nonburn_core = 0.001
+   overshoot_f_above_nonburn_shell = 0.001
+   overshoot_f_below_nonburn_shell = 0.001
+
+   overshoot_f_above_burn_h_core = 0.001
+   overshoot_f_above_burn_h_shell = 0.001
+   overshoot_f_below_burn_h_shell = 0.001
+
+   overshoot_f_above_burn_he_core = 0.000
+   overshoot_f_above_burn_he_shell = 0.000
+   overshoot_f_below_burn_he_shell = 0.000
+
+   overshoot_f_above_burn_z_core = 0.000
+   overshoot_f_above_burn_z_shell = 0.000
+   overshoot_f_below_burn_z_shell = 0.000
+
+   !min_T_for_acceleration_limited_conv_velocity = 0
+
+   screening_mode = 'extended'
+
+   tol_residual_norm1 = 1d-5
+   tol_max_residual1 = 1d-2
+   iter_for_resid_tol2 = 3
+   tol_residual_norm2 = 1d99
+   tol_max_residual2 = 1d99
+   iter_for_resid_tol3 = 12
+   min_timestep_limit = 1d-12 ! (seconds)
+
+   delta_lgL_He_limit = 0.1 ! limit for magnitude of change in lgL_He
+
+   dX_nuc_drop_max_A_limit = 52
+   dX_nuc_drop_min_X_limit = 1d-4
+   dX_nuc_drop_hard_limit = 1d99
+
+   delta_lgTeff_limit = 0.5
+   delta_lgL_limit = 0.5
+   delta_lgRho_cntr_limit = 0.02
+
+      ! FOR DEBUGGING
+
+      !report_hydro_solver_progress = .true. ! set true to see info about newton iterations
+      !report_ierr = .true. ! if true, produce terminal output when have some internal error
+      !hydro_show_correction_info = .true.
+
+      !max_years_for_timestep = 3.67628942044319d-05
+
+      !report_why_dt_limits = .true.
+      !report_all_dt_limits = .true.
+      !report_hydro_dt_info = .true.
+
+      !show_mesh_changes = .true.
+      !mesh_dump_call_number = 5189
+      !okay_to_remesh = .false.
+
+      !trace_evolve = .true.
+
+
+      ! hydro debugging
+      !hydro_check_everything = .true.
+      !hydro_inspectB_flag = .true.
+
+      !hydro_numerical_jacobian = .true.
+      !hydro_save_numjac_plot_data = .true.
+      !small_mtx_decsol = 'lapack'
+      !large_mtx_decsol = 'lapack'
+      !hydro_dump_call_number = 195
+
+      !trace_newton_bcyclic_solve_input = .true. ! input is "B" j k iter B(j,k)
+      !trace_newton_bcyclic_solve_output = .true. ! output is "X" j k iter X(j,k)
+
+      !trace_newton_bcyclic_steplo = 1 ! 1st model number to trace
+      !trace_newton_bcyclic_stephi = 1 ! last model number to trace
+
+      !trace_newton_bcyclic_iterlo = 2 ! 1st newton iter to trace
+      !trace_newton_bcyclic_iterhi = 2 ! last newton iter to trace
+
+      !trace_newton_bcyclic_nzlo = 1 ! 1st cell to trace
+      !trace_newton_bcyclic_nzhi = 10000 ! last cell to trace; if < 0, then use nz as nzhi
+
+      !trace_newton_bcyclic_jlo = 1 ! 1st var to trace
+      !trace_newton_bcyclic_jhi = 100 ! last var to trace; if < 0, then use nvar as jhi
+
+      !trace_k = 0
+
+/ ! end of controls namelist
