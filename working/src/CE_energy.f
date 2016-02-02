@@ -187,13 +187,13 @@
          ! First calculate the mass in which the energy will be deposited
          mass_to_be_heated = 0.0
          do k = 1, s% nz
-            ff = TukeyWindow((s% r(k) - 1.1 * he_core_radius * Rsun)/(0.2 * he_core_radius * Rsun), a_tukey)
+            ff = TukeyWindow((s% r(k) - 1.1 * s% he_core_radius * Rsun)/(0.2 * s% he_core_radius * Rsun), a_tukey)
             mass_to_be_heated = mass_to_be_heated + s% dm(k) * ff
          end do
 
          ! Now redo the loop and add the extra specific heat
          do k = 1, s% nz
-            ff = TukeyWindow((s% r(k) - 1.1 * he_core_radius * Rsun)/(0.2 * he_core_radius * Rsun), a_tukey)
+            ff = TukeyWindow((s% r(k) - 1.1 * s% he_core_radius * Rsun)/(0.2 * s% he_core_radius * Rsun), a_tukey)
             s% extra_heat(k) = CE_energy_rate / mass_to_be_heated * ff
          end do
 
