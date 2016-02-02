@@ -166,6 +166,7 @@
          s% job% set_initial_dt = .True.
          s% job% years_for_initial_dt = 1d-8
 
+
          ! We are calling here the relax_omega, because we want to first have loaded the model so that we know its radius, and mass.
          if (s% rotation_flag .and. s% job% relax_omega) then
             write(*,*) 'new_omega =', s% job% new_omega
@@ -173,8 +174,10 @@
                id, 0, s% job% new_omega, s% job% num_steps_to_relax_rotation,&
                s% job% relax_omega_max_yrs_dt, ierr)
             if (failed('star_relax_uniform_omega',ierr)) return
-         end if
-         s% job% relax_omega = .false.
+            s% job% relax_omega = .false.
+         else
+            !call star_relax_num_steps(id, 100, 1d-8 * secyer, ierr)
+         endif
 
          !After relaxation is done, the timestep automatically increases to a "large" timestep. Here we are tryying to make this
          !transition smoother
@@ -238,12 +241,15 @@
             s% R_function2_param2 = CE_companion_position/(s%r(1)/Rsun) - 2.0* CE_n_acc_radii * R_acc/s%r(1)
          endif
 
-         ! Adjust orbital separation based on energy deposited
-         call CE_orbit_adjust(id, ierr)
 
+         ! For test cases 1 and 2 (heating of the whole envelope and of the base of the envelope) the code below must be skipped
+         if (s% x_integer_ctrl(1) .ne. 1 .and. s% x_integer_ctrl(1) .ne. 2) then
+            ! Adjust orbital separation based on energy deposited
+            call CE_orbit_adjust(id, ierr)
+            ! Added timestep controls
+            result = worst_result(result, CE_pick_next_timestep(s))
+         endif
 
-         ! Added timestep controls
-         result = worst_result(result, CE_pick_next_timestep(s))
 
 
 

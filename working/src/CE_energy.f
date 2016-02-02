@@ -169,8 +169,6 @@
          integer, intent(in) :: id
          integer, intent(out) :: ierr
          type (star_info), pointer :: s
-         integer :: k
-         real(dp) :: ff, mass_to_be_heated, a_tukey
          real(dp) :: CE_energy_rate
 
          ierr = 0
@@ -178,29 +176,20 @@
          if (ierr /= 0) return
 
          ! Get input controls
-         CE_energy_rate = s% x_ctrl(1)
 
+         CE_energy_rate = s% x_ctrl(1) 
 
-         ! Tukey window scale
-         a_tukey = 0.5
-         !TODO  Change CE_companion_radius to R_acc
-         ! First calculate the mass in which the energy will be deposited
-         mass_to_be_heated = 0.0
-         do k = 1, s% nz
-            ff = TukeyWindow((s% r(k) - 1.1 * s% he_core_radius * Rsun)/(0.2 * s% he_core_radius * Rsun), a_tukey)
-            mass_to_be_heated = mass_to_be_heated + s% dm(k) * ff
-         end do
-
-         ! Now redo the loop and add the extra specific heat
-         do k = 1, s% nz
-            ff = TukeyWindow((s% r(k) - 1.1 * s% he_core_radius * Rsun)/(0.2 * s% he_core_radius * Rsun), a_tukey)
-            s% extra_heat(k) = CE_energy_rate / mass_to_be_heated * ff
-         end do
+         call CE_set_extra_heat(id, CE_energy_rate, ierr)
 
          ! Save the total erg/second added in this time step
          s% xtra1 = CE_energy_rate
 
       end subroutine CE_inject_case2
+
+
+
+
+
 
       subroutine CE_inject_case3(id, ierr)
 
@@ -265,21 +254,7 @@
          CE_energy_rate = F_drag * v_rel
 
 
-         ! Tukey window scale
-         a_tukey = 0.1
-
-         ! First calculate the mass in which the energy will be deposited
-         mass_to_be_heated = 0.0
-         do k = 1, s% nz
-            ff = TukeyWindow((s% r(k) - CE_companion_position*Rsun)/(CE_n_acc_radii * R_acc), a_tukey)
-            mass_to_be_heated = mass_to_be_heated + s% dm(k) * ff
-         end do
-
-         ! Now redo the loop and add the extra specific heat
-         do k = 1, s% nz
-            ff = TukeyWindow((s% r(k) - CE_companion_position*Rsun)/(CE_n_acc_radii * R_acc), a_tukey)
-            s% extra_heat(k) = CE_energy_rate / mass_to_be_heated * ff
-         end do
+         call CE_set_extra_heat(id, CE_energy_rate, ierr)
 
 
          ! Save the total erg/second added in this time step
@@ -366,6 +341,39 @@
          end if
 
 
+         call CE_set_extra_heat(id, CE_energy_rate, ierr)
+
+         ! Save the total erg/second added in this time step
+         s% xtra1 = CE_energy_rate
+         s% xtra20 = L_acc
+
+      end subroutine CE_inject_case4
+
+
+      subroutine CE_set_extra_heat(id, CE_energy_rate, ierr)
+         integer, intent(in) :: id
+         real(dp), intent(in) :: CE_energy_rate
+         integer, intent(out) :: ierr
+         type (star_info), pointer :: s
+         real(dp) :: CE_companion_position, CE_companion_radius, CE_companion_mass
+         real(dp) :: CE_n_acc_radii
+         real(dp) :: a_tukey, mass_to_be_heated, ff
+         real(dp) :: R_acc, R_acc_low, R_acc_high
+         integer :: k, k_bottom
+         ierr = 0
+         call star_ptr(id, s, ierr)
+         if (ierr /= 0) return
+
+         CE_companion_position = s% xtra2
+         CE_n_acc_radii = s% xtra5
+
+
+         call calc_quantities_at_comp_position(id, ierr)
+
+         R_acc = s% xtra12
+         R_acc_low = s% xtra13
+         R_acc_high = s% xtra14
+
          ! Tukey window scale
          a_tukey = 0.5
 
@@ -402,14 +410,7 @@
          end do
 
 
-         ! Save the total erg/second added in this time step
-         s% xtra1 = CE_energy_rate
-         s% xtra20 = L_acc
-
-      end subroutine CE_inject_case4
-
-
-
+      end subroutine CE_set_extra_heat
 
 
 

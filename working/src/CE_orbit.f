@@ -82,9 +82,9 @@
          ! Calculate the angular momentum
          J_tmp = (CE_companion_mass * Msun)**2 * M_encl**2 / (CE_companion_mass * Msun + M_encl)
          J_init = sqrt(standard_cgrav * J_tmp * CE_companion_position * Rsun)
-
-
-         ! Calculate the energies
+         !
+         !
+         ! ! Calculate the energies
          E_init = -standard_cgrav * CE_companion_mass * Msun * M_encl / (2.0 * CE_companion_position * Rsun)
          E_loss = CE_energy_rate * s% dt
          E_final = E_init - E_loss
