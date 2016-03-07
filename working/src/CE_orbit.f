@@ -176,6 +176,7 @@
          real(dp) :: v_rel, v_rel_div_csound, v_rel_at_companion
          real(dp) :: R_rel, R_acc, R_acc_low, R_acc_high
          real(dp) :: M_encl, rho_at_companion, scale_height_at_companion
+         real(dp) :: C_1, C_2, M_env, t_kh_env, log_eta
          ierr = 0
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
@@ -201,6 +202,14 @@
          endif
 
 
+         ! Calculate the wind enhancement term due to giant star pulsations
+         ! Formulation from Yoon & Cantiello (2010)
+         C_1 = 9.219e-6
+         C_2 = 0.0392844
+         M_env = (s% mstar - s% he_core_mass * Msun)
+         t_kh_env = standard_cgrav * s% mstar * M_env / (s% L(1) * s% r(1)) / secyer
+         log_eta = C_1 * (s% r(1)/Rsun)**2 / (s% mstar / Msun) * t_kh_env**(-0.315) - C_2
+         s% xtra21 = 10.0**log_eta
 
 
 
