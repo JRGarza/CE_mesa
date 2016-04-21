@@ -21,7 +21,7 @@
       set_initial_model_number = .true.
       initial_model_number = 0
 
-      years_for_initial_dt = 1d-6
+      years_for_initial_dt = 1d-8
 
       change_v_flag = .true.
       change_initial_v_flag = .true.
@@ -30,14 +30,10 @@
       new_rotation_flag = .false.
       change_rotation_flag = .true.
 
-      ! new_omega = 1.d-12
-      ! set_omega = .true.
-
       set_initial_age = .true.
       initial_age = 0.
       set_initial_model_number = .true.
       initial_model_number = 0
-!      pgstar_flag = .true.
 
 
 / ! end of star_job namelist
@@ -52,7 +48,7 @@
       use_other_after_struct_burn_mix = .true.
       use_other_adjust_mdot = .true.
 
-      x_ctrl(1) = 2.79d39  !#CE: CE_energy_rate: The rate at which energy is deposited in the star
+      x_ctrl(1) = 3d39  !#CE: CE_energy_rate: The rate at which energy is deposited in the star
                                  !#CE: in units of erg/s.
       x_ctrl(2) = 0.002         !#CE: CE_companion_initial_position: The initial distance of the center of the companion,
                                  !#CE: in units of the primary's radius
@@ -86,9 +82,6 @@
 
       which_atm_option = 'Eddington_grey'
 
-      use_artificial_viscosity = .true.
-
-
       use_Type2_opacities = .true.
       Zbase = 0.02d0
 
@@ -98,16 +91,15 @@
       max_years_for_timestep = 1d2
       max_allowed_nz = 20000
       !max_years_for_timestep = 1d-3
-!       delta_lgR_limit = 0.001
-!       delta_lgE_limit = 0.001
-      he_core_boundary_h1_fraction = 1.d-10
 
 
       history_interval = 1
-      profile_interval = 10
+      profile_interval = 20
       max_num_profile_models = 5000
       terminal_cnt = 1
       write_header_frequency = 10
+      photostep = 100
+      photo_digits = 4
 
       !Angular momentum transport controls
       am_nu_visc_factor = 1
@@ -120,111 +112,101 @@
       D_ST_factor = 1.
 
 
-   dX_nuc_drop_limit = 1d-2
-   dX_nuc_drop_limit_at_high_T = 5d-3 ! for center logT > 9.45
+      dX_nuc_drop_limit = 1d-2
+      dX_nuc_drop_limit_at_high_T = 5d-3 ! for center logT > 9.45
 
 
-   delta_Ye_highT_limit = 1d-3
-
-   ! Inefficient convection => large gradT excess and steep T gradient to enhance
-   ! radiative transport. Reduce gradT excess by making gradT closer to adiabatic
-   ! gradient. If true, code is allowed to adjust gradT to boost efficiency of
-   ! energy transport See gradT_excess_f1, gradT_excess_f2, and gradT_excess_age_fraction below.
-   ! WE MAY WANT TO TEST THIS OPTION
-   okay_to_reduce_gradT_excess = .false.
-
-   gradT_excess_f1 = 1d-4
-   gradT_excess_f2 = 1d-2
-   gradT_excess_age_fraction = 0.9d0
-
-   gradT_excess_lambda1 = 1.0
-   gradT_excess_beta1 = 0.35
-
-   gradT_excess_lambda2 = 0.5
-   gradT_excess_beta2 = 0.25
-
-   gradT_excess_dlambda = 0.1
-   gradT_excess_dbeta = 0.1
+      delta_Ye_highT_limit = 1d-3
 
 
-   RGB_wind_scheme = 'Blocker'
-   AGB_wind_scheme = 'Blocker'
-   RGB_to_AGB_wind_switch = 1d-4
-   Dutch_wind_eta = 1.0
-   Reimers_wind_eta =1.0
-   Blocker_wind_eta = 1.0
 
-   use_lnS_for_eps_grav = .false.
-   include_dmu_dt_in_eps_grav = .true.
+      RGB_wind_scheme = 'Dutch'
+      AGB_wind_scheme = 'Dutch'
+      RGB_to_AGB_wind_switch = 1d-4
+      Dutch_wind_eta = 1.0
+      Reimers_wind_eta =1.0
+      Blocker_wind_eta = 1.0
+      Dutch_wind_eta =1.0
+      super_eddington_wind_eta = 1.0
+      super_eddington_wind_Ledd_factor = 1.0
+      trace_super_eddington_wind_boost = .true.
+      !Use mass avg down to this optical depth.
+      surf_avg_tau = 100
+      mdot_omega_power = 0.43
+      max_rotational_mdot_boost = 1d4
+      max_wind = 1d3
 
-   use_Type2_opacities = .true.
-   Zbase = 0.02 ! must set this in the main inlist
+      use_lnS_for_eps_grav = .false.
+      include_dmu_dt_in_eps_grav = .true.
 
-   xa_scale = 1d-5
-   newton_itermin = 2
+      use_Type2_opacities = .true.
+      Zbase = 0.02 ! must set this in the main inlist
 
-   mixing_length_alpha = 1.5
-   MLT_option = 'Henyey'
+      xa_scale = 1d-5
+      newton_itermin = 2
 
-   use_Ledoux_criterion = .true.
-   alpha_semiconvection = 0.01
-   thermohaline_coeff = 2
-   thermohaline_option = 'Kippenhahn'
+      mixing_length_alpha = 1.5
+      MLT_option = 'Henyey'
 
-   overshoot_f0_above_nonburn_core = 0.0005
-   overshoot_f0_above_nonburn_shell = 0.0005
-   overshoot_f0_below_nonburn_shell = 0.0005
+      use_Ledoux_criterion = .true.
+      alpha_semiconvection = 0.01
+      thermohaline_coeff = 2
+      thermohaline_option = 'Kippenhahn'
 
-   overshoot_f0_above_burn_h_core = 0.0005
-   overshoot_f0_above_burn_h_shell = 0.0005
-   overshoot_f0_below_burn_h_shell = 0.0005
+      overshoot_f0_above_nonburn_core = 0.0005
+      overshoot_f0_above_nonburn_shell = 0.0005
+      overshoot_f0_below_nonburn_shell = 0.0005
 
-   overshoot_f0_above_burn_he_core = 0.0005
-   overshoot_f0_above_burn_he_shell = 0.0005
-   overshoot_f0_below_burn_he_shell = 0.0005
+      overshoot_f0_above_burn_h_core = 0.0005
+      overshoot_f0_above_burn_h_shell = 0.0005
+      overshoot_f0_below_burn_h_shell = 0.0005
 
-   overshoot_f0_above_burn_z_core = 0.0005
-   overshoot_f0_above_burn_z_shell = 0.0005
-   overshoot_f0_below_burn_z_shell = 0.0005
+      overshoot_f0_above_burn_he_core = 0.0005
+      overshoot_f0_above_burn_he_shell = 0.0005
+      overshoot_f0_below_burn_he_shell = 0.0005
+
+      overshoot_f0_above_burn_z_core = 0.0005
+      overshoot_f0_above_burn_z_shell = 0.0005
+      overshoot_f0_below_burn_z_shell = 0.0005
 
 
-   overshoot_f_above_nonburn_core = 0.001
-   overshoot_f_above_nonburn_shell = 0.001
-   overshoot_f_below_nonburn_shell = 0.001
+      overshoot_f_above_nonburn_core = 0.001
+      overshoot_f_above_nonburn_shell = 0.001
+      overshoot_f_below_nonburn_shell = 0.001
 
-   overshoot_f_above_burn_h_core = 0.001
-   overshoot_f_above_burn_h_shell = 0.001
-   overshoot_f_below_burn_h_shell = 0.001
+      overshoot_f_above_burn_h_core = 0.001
+      overshoot_f_above_burn_h_shell = 0.001
+      overshoot_f_below_burn_h_shell = 0.001
 
-   overshoot_f_above_burn_he_core = 0.000
-   overshoot_f_above_burn_he_shell = 0.000
-   overshoot_f_below_burn_he_shell = 0.000
+      overshoot_f_above_burn_he_core = 0.000
+      overshoot_f_above_burn_he_shell = 0.000
+      overshoot_f_below_burn_he_shell = 0.000
 
-   overshoot_f_above_burn_z_core = 0.000
-   overshoot_f_above_burn_z_shell = 0.000
-   overshoot_f_below_burn_z_shell = 0.000
+      overshoot_f_above_burn_z_core = 0.000
+      overshoot_f_above_burn_z_shell = 0.000
+      overshoot_f_below_burn_z_shell = 0.000
 
-   !min_T_for_acceleration_limited_conv_velocity = 0
+      !min_T_for_acceleration_limited_conv_velocity = 0
 
-   screening_mode = 'extended'
+      screening_mode = 'extended'
 
-   tol_residual_norm1 = 1d-5
-   tol_max_residual1 = 1d-2
-   iter_for_resid_tol2 = 3
-   tol_residual_norm2 = 1d99
-   tol_max_residual2 = 1d99
-   iter_for_resid_tol3 = 12
-   min_timestep_limit = 1d-12 ! (seconds)
+      tol_residual_norm1 = 1d-5
+      tol_max_residual1 = 1d-2
+      iter_for_resid_tol2 = 3
+      tol_residual_norm2 = 1d99
+      tol_max_residual2 = 1d99
+      iter_for_resid_tol3 = 12
+      min_timestep_limit = 1d-12 ! (seconds)
 
-   delta_lgL_He_limit = 0.1 ! limit for magnitude of change in lgL_He
+      delta_lgL_He_limit = 0.1 ! limit for magnitude of change in lgL_He
 
-   dX_nuc_drop_max_A_limit = 52
-   dX_nuc_drop_min_X_limit = 1d-4
-   dX_nuc_drop_hard_limit = 1d99
+      dX_nuc_drop_max_A_limit = 52
+      dX_nuc_drop_min_X_limit = 1d-4
+      dX_nuc_drop_hard_limit = 1d99
 
-   delta_lgTeff_limit = 0.5
-   delta_lgL_limit = 0.5
-   delta_lgRho_cntr_limit = 0.02
+      delta_lgTeff_limit = 0.5
+      delta_lgL_limit = 0.5
+      delta_lgRho_cntr_limit = 0.02
 
       ! FOR DEBUGGING
 

@@ -36,8 +36,8 @@
    !log_radial_depth ! log10 radial distance to surface (cm)
    !luminosity ! luminosity at outer boundary of zone (in Lsun units)
 
-   !conv_vel
-   !conv_L_div_L
+   conv_vel
+   conv_L_div_L
    !log_conv_L_div_L
 
    !lum_conv_div_lum_rad
@@ -196,7 +196,7 @@
 
    !log_mlt_Gamma ! convective efficiency
 
-   !super_ad ! max(0,gradT-grada) at cell boundary
+   super_ad ! max(0,gradT-grada) at cell boundary
    !log_D_mix ! log10 diffusion coefficient for mixing in units of cm^2/second (Eulerian)
    !log_D_mix_non_rotation
    !log_sig_mix ! sig(k) is mixing flow across face k in (gm sec^1)
@@ -206,7 +206,7 @@
          ! where siglimit(k) = sig_term_limit*min(dm(k),dm(k-1))/dt
          ! and raw_sig(k) is sig(k) before it is set to min(siglimit(k),raw_sig(k))
    !log_am_sig_div_siglim
-   !conv_vel ! convection velocity (cm/sec)
+   conv_vel ! convection velocity (cm/sec)
 
    !d_ln_sig_dlnd00
    !d_ln_sig_dlnT00
@@ -232,8 +232,8 @@
    !log_conv_vel ! log10 convection velocity (cm/sec)
    !log_conv_vel_old ! log10 previous convection velocity (cm/sec)
    !newly_nonconvective
-   !conv_vel_div_csound ! convection velocity divided by sound speed
-   !conv_vel_div_L_vel ! L_vel is velocity needed to carry L by convection; L = 4*pi*r^2*rho*vel**3
+   conv_vel_div_csound ! convection velocity divided by sound speed
+   conv_vel_div_L_vel ! L_vel is velocity needed to carry L by convection; L = 4*pi*r^2*rho*vel**3
    !log_mlt_D_mix ! log10 diffusion coefficient for mixing from mlt (cm^2/sec)
    !pressure_scale_height ! in Rsun units
    !dt_div_conv_tau ! min(1,dt*conv_vel/(scale_height/2))
@@ -246,7 +246,7 @@
    !log_D_minimum ! D_mix for regions where mix_type = minimum_mixing
    !log_D_anon ! D_mix for regions where mix_type = anonymous_mixing
 
-   !gradT ! mlt value for required temperature gradient dlnT/dlnP
+   gradT ! mlt value for required temperature gradient dlnT/dlnP
    !d_gradT_dlnd00
    !d_gradT_dlnT00
    !d_gradT_dlndm1
@@ -254,11 +254,11 @@
    !d_gradT_dlnR
    !d_gradT_dL
 
-   !actual_gradT ! actual temperature gradient dlnT/dlnP in model
+   actual_gradT ! actual temperature gradient dlnT/dlnP in model
    !gradT_sub_actual_gradT
    !grada_at_face_sub_actual_gradT
 
-   !gradr ! dlnT/dlnP required for purely radiative transport
+   gradr ! dlnT/dlnP required for purely radiative transport
    !grad_temperature ! smoothed dlnT/dlnP at cell boundary
    !grad_density ! smoothed dlnRho/dlnP at cell boundary
 

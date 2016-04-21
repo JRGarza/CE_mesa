@@ -51,6 +51,7 @@ def InterpolateOneProfile(profile, NY, Yaxis, Ymin, Ymax, Variable):
 			extra_heat, v_div_vesc, v_div_csound, pressure, temperature, density,
 			tau, opacity, gamma1, dq, L_div_Ledd, Lrad_div_Ledd. t_thermal, t_dynamical,
 			t_dynamical_down, t_thermal_div_t_dynamical, omega_div_omega_crit
+			super_ad, vconv, vconv_div_vesc, vconv_div_csound, total_energy_plus_vconv2
 
 
 	Returns:
@@ -189,26 +190,64 @@ def InterpolateOneProfile(profile, NY, Yaxis, Ymin, Ymax, Variable):
 	if (Variable == 't_dynamical'):
 		try:
 			profile = numpy.lib.recfunctions.append_fields(profile,'t_dynamical',
-							data = 10.**profile['log_acoustic_radius'], asrecarray=True)
-		except Exception:
-			raise ValueError("Column 'log_acoustic_radius' is missing from the profile files")
-
-	if (Variable == 't_dynamical_down'):
-		try:
-			profile = numpy.lib.recfunctions.append_fields(profile,'t_dynamical_down',
 							data = 10.**profile['log_acoustic_depth'], asrecarray=True)
 		except Exception:
 			raise ValueError("Column 'log_acoustic_depth' is missing from the profile files")
 
+	if (Variable == 't_dynamical_down'):
+		try:
+			profile = numpy.lib.recfunctions.append_fields(profile,'t_dynamical_down',
+							data = 10.**profile['log_acoustic_radius'], asrecarray=True)
+		except Exception:
+			raise ValueError("Column 'log_acoustic_radius' is missing from the profile files")
+
 	if (Variable == 't_thermal_div_t_dynamical'):
 		try:
 			profile = numpy.lib.recfunctions.append_fields(profile,'t_thermal_div_t_dynamical',
-							data = 10.**profile['log_thermal_time_to_surface']/10.**profile['log_acoustic_radius'], asrecarray=True)
+							data = 10.**profile['log_thermal_time_to_surface']/10.**profile['log_acoustic_depth'], asrecarray=True)
 		except Exception:
-			raise ValueError("Column 'log_thermal_time_to_surface' and/or 'log_acoustic_radius' are missing from the profile files")
+			raise ValueError("Column 'log_thermal_time_to_surface' and/or 'log_acoustic_depth' are missing from the profile files")
 
 	if (not "omega_div_omega_crit" in profile.dtype.names and (Variable == 'omega_div_omega_crit' )):
 		raise ValueError("Column 'omega_div_omega_crit' is missing from the profile files")
+
+	if (not "super_ad" in profile.dtype.names and (Variable == 'super_ad' )):
+		raise ValueError("Column 'super_ad' is missing from the profile files")
+
+	if (not "vconv" in profile.dtype.names and (Variable == 'vconv' )):
+		try:
+			profile = numpy.lib.recfunctions.append_fields(profile,'vconv',
+							data = profile['conv_vel'], asrecarray=True)
+		except Exception:
+			raise ValueError("Column 'conv_vel' is missing from the profile files")
+
+	if (not "vconv_div_vesc" in profile.dtype.names and (Variable == 'vconv_div_vesc' )):
+		G = const.G.to('cm3/(g s2)').value
+		Msun = const.M_sun.to('g').value
+		Rsun = const.R_sun.to('cm').value
+		try:
+			profile = numpy.lib.recfunctions.append_fields(profile,'vconv_div_vesc',
+							data = profile['conv_vel']/np.sqrt(2.*G*(profile['mass']*Msun)/(profile['radius']*Rsun)), asrecarray=True)
+		except Exception:
+			raise ValueError("Column 'radius' and/or 'conv_vel' is missing from the profile files")
+
+
+	if (not "vconv_div_csound" in profile.dtype.names and (Variable == 'vconv_div_csound' )):
+		try:
+			profile = numpy.lib.recfunctions.append_fields(profile,'vconv_div_csound',
+							data = profile['conv_vel']/profile['csound'], asrecarray=True)
+		except Exception:
+			raise ValueError("Column 'csound' and/or 'conv_vel' is missing from the profile files")
+
+
+	if (not "total_energy_plus_vconv2" in profile.dtype.names and (Variable == 'total_energy_plus_vconv2' )):
+		try:
+			profile = numpy.lib.recfunctions.append_fields(profile,'total_energy_plus_vconv2',
+							data = profile['total_energy'] + 0.5*np.power(profile['conv_vel'],2), asrecarray=True)
+		except Exception:
+			raise ValueError("Column 'total_energy' and/or 'conv_vel' is missing from the profile files")
+
+
 
 
 
@@ -425,7 +464,7 @@ class mesa(object):
 				, 'ionization_energy', 'energy', 'potential_plus_kinetic', 'extra_heat', 'v_div_vesc',
 				'v_div_csound',	'pressure', 'temperature', 'density', 'tau', 'opacity', 'gamma1', 'dq',
 				'L_div_Ledd', 'Lrad_div_Ledd', 't_thermal', 't_dynamical', 't_dynamical_down', 't_thermal_div_t_dynamical',
- 				'omega_div_omega_crit']):
+ 				'omega_div_omega_crit','super_ad', 'vconv', 'vconv_div_vesc', 'vconv_div_csound', 'total_energy_plus_vconv2']):
 			raise ValueError(self._param['Variable']+"not a valid option for parameter Variable")
 
 
@@ -698,10 +737,20 @@ class mesa(object):
 		elif self._param['Variable'] == "t_thermal_div_t_dynamical":
 			cmap_label = "log($\\tau_{thermal}/\\tau_{s.cr.}$)"
 		elif self._param['Variable'] == "omega_div_omega_crit":
-			cmap_label = "log($\Omega/\Omega_{crit.}$)"
+			cmap_label = "log($\Omega/\Omega_{crit}$)"
+
+		elif self._param['Variable'] == "super_ad":
+			cmap_label = "log($\\nabla - \\nabla_{ad}$)"
+		elif self._param['Variable'] == "vconv":
+			cmap_label = "log($v_{conv}$ [cm/s])"
+		elif self._param['Variable'] == "vconv_div_vesc":
+			cmap_label = "log($v_{conv}/v_{esc}$)"
+		elif self._param['Variable'] == "vconv_div_csound":
+			cmap_label = "log($v_{conv}/v_{sound}$)"
+		elif self._param['Variable'] == "total_energy_plus_vconv2":
+			cmap_label = "log(specific total energy + $1/2v_{conv}^2$ [erg/gr])"
 
 
-#L_div_Ledd, t_thermal, t_dynamical, t_dynamical_down, t_thermal_div_t_dynamical, omega_div_omega_crit
 
 
 
@@ -1051,22 +1100,21 @@ if __name__ == "__main__":
 
 
 #TODO Add linear cmap
-#TODO Rethink the way that data are loaded to mesa.py. Perhaps keep the original data to memory
-#TODO Add omega_div_omega_crit
 
 
 
 
 	#Options for Xaxis: 'model_number', 'star_age', 'inv_star_age', 'log_model_number', 'log_star_age', 'log_inv_star_age'
 	#Options for Yaxis: 'mass', 'radius', 'q', 'log_mass', 'log_radius', 'log_q'
-	#Options for Variable: "eps_nuc", "velocity", "entropy", "total_energy, "j_rot", "eps_recombination", "ionization_energy",
+	#Options for Variable: "eps_nuc", "velocity", "entropy", "total_energy", "j_rot", "eps_recombination", "ionization_energy",
 	#						"energy", "potential_plus_kinetic", "extra_heat", "v_div_vesc", "v_div_csound"
 	#						"pressure", "temperature", "density", "tau", "opacity", "gamma1", "dq"
+	#						"super_ad", "vconv", "vconv_div_vesc", "vconv_div_csound", "total_energy_plus_vconv2"
 
 
-	data_path = "/Users/tassos/repos/CE_mesa/working/LOGS/"
-	a = mesa(data_path=data_path, parallel=True, abundances=False, log_abundances = True, Yaxis='mass', Xaxis="log_inv_star_age",
-		czones=False, Variable='v_div_vesc', orbit=True)
+	data_path = "/home/evol/fragkos/disk1/mesa_projects/CE/example_runs/heat_base_lim_vconv/LOGS/"
+	a = mesa(data_path=data_path, parallel=True, abundances=False, log_abundances = True, Yaxis='mass', Xaxis="star_age",
+		czones=True, Variable='vconv_div_vesc', orbit=True)
 	a.SetParameters(onscreen=True, cmap = 'jet', cmap_dynamic_range=5, signed_log_cmap=False)
 
 	a.Kippenhahn()
