@@ -275,7 +275,7 @@
          ierr = 0
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
-         how_many_extra_history_columns = 12
+         how_many_extra_history_columns = 13
       end function how_many_extra_history_columns
 
 
@@ -317,6 +317,8 @@
          vals(11) = s% xtra16
          names(12) = 'v_over_c_sound'
          vals(12) = s% xtra17
+         names(13) = 'eta_pulse_wind' ! From Yoon & Cantiello (2010)
+         vals(13) = s% xtra21
 
       end subroutine data_for_extra_history_columns
 

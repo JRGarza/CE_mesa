@@ -60,7 +60,7 @@ s% xtra17                 v_rel_div_csound: relative velocity of the companion t
 s% xtra18                 rho_at_companion (gr/cm^3): density of the envelope at the position of the companion
 s% xtra19                 scale_height_at_companion (cm): pressure scale height of the envelope at the position of the companion
 s% xtra20                 L_acc (erg/s): Accretion luminosity calculated in CE_energy.f
-
+s% xtra21                 eta_pulse_wind: Wind enhancement term from Yoon & Cantiello (2010)
 
 s% ixtra1                 CE_test_case: Energy deposition scheme - see above at x_integer_ctrl(1)
 
