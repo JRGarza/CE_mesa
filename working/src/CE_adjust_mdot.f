@@ -72,9 +72,15 @@ contains
       endif
 
       if (CE_mdot < -CE_mdot_max * Msun/secyer) CE_mdot = -CE_mdot_max* Msun/secyer
+      if (CE_mdot/(Msun/secyer) < -1d-20) write(*,*) "** CEmdot ** ", CE_mdot/(Msun/secyer)
 
       s% mstar_dot = s% mstar_dot + CE_mdot !In gr/s
 
+
+      if (s%x_logical_ctrl(3) .and. (.not. s% doing_relax)) then
+         s% Dutch_wind_eta = s% xtra21 ** s% x_ctrl(16)
+         write(*,*) "**Pulsational Winds** ", s% xtra21, s% Dutch_wind_eta
+      endif
 
    end subroutine CE_other_adjust_mdot
 

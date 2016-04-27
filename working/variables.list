@@ -22,6 +22,9 @@ x_ctrl(11) = 2.d0            CE_mdot_factor_increase: Maximum factor by which CE
 x_ctrl(12) = 2.d0            CE_mdot_factor_decrease:Maximum factor by which CE_mdot can decrease in one timestep
 x_ctrl(13) = 1d-8            CE_mdot_smooth_limit: value for CE_mdot (in Msun/yr) above which we apply smoothing
 x_ctrl(14) = 1d2             CE_mdot_max: maximum allowed value for CE_mdot (in Msun/yr)
+x_ctrl(15) = 0.1             CE: f_sync_init: Degree of syncronization (Omega_spin/Omega_orb) between
+                             CE: rotation of the star and the orbit at the beginning of the simulation
+x_ctrl(16) = 1.75            alpha_pulse_wind: Wind enhancement term from Yoon & Cantiello (2010)
 
 
 x_integer_ctrl(1) = 4        1: Uniform heating of the whole envelope.
@@ -33,8 +36,11 @@ x_integer_ctrl(1) = 4        1: Uniform heating of the whole envelope.
                              4: CE_energy_rate is calculated from fitting formula based on
                                 simulations by Morgan MacLeod and Enrico Ramirez-Ruiz.
 
-x_logical_ctrl(1) = .false.  include_internal_energy: If true, then the internal energy is included when
-                                when the outer parts of the envelope are bound or unbound.
+x_logical_ctrl(1) = .false.   include_internal_energy: If true, then the internal energy is included when
+                              when the outer parts of the envelope are bound or unbound.
+x_logical_ctrl(2) = .false.   include accretion luminosity: If true, then accretion energy onto the NS
+                              is taken into account when calculating the energy donated to the envelope
+x_logical_ctrl(3) = .true.    use_pulse_wind use pulsational superwinds based of Yoon & Cantiello (2010) prescription
 
 
 Tracked variables

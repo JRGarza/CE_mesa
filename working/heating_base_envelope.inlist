@@ -3,7 +3,7 @@
 &star_job
 
       load_saved_model = .true.
-      saved_model_name = '/home/evol/fragkos/disk1/repos/CE_mesa/data/Taam1978_caseII.mod'
+      saved_model_name = '../data/Taam1978_caseII.mod'
 
       save_model_when_terminate = .true.
       save_model_filename = 'heating_base_envelope.mod'
@@ -66,6 +66,7 @@
       x_ctrl(14) = 1d3            !#CE: CE_mdot_max: maximum allowed value for CE_mdot (in Msun/yr)
       x_ctrl(15) = 0.1           !#CE: f_sync_init: Degree of syncronization (Omega_spin/Omega_orb) between
                                  !#CE: rotation of the star and the orbit at the beginning of the simulation
+      x_ctrl(16) = 1.75          !#CE: alpha_pulse_wind: Wind enhancement term from Yoon & Cantiello (2010)
       x_integer_ctrl(1) = 2      !#CE: 1: Uniform heating of the whole envelope
                                  !#CE: 2: Heating at the base of the hydrogen envelope
                                  !#CE: 3: CE_energy_rate is calculated based on the companions position
@@ -74,6 +75,8 @@
                                  !#CE: when the outer parts of the envelope are bound or unbound.
       x_logical_ctrl(2) = .false. !#CE: include accretion luminosity: If true, then accretion energy onto the NS
                                   !#CE: is taken into account when calculating the energy donated to the envelope
+      x_logical_ctrl(3) = .true.  !#CE: use_pulse_wind use pulsational superwinds based of Yoon & Cantiello (2010) prescription
+
 
       !#CE: increase the resolution around the position of the companion where the energy is deposited.
       !#CE: The other two parameters (R_function2_param1 and R_function2_param2) are set automatically
@@ -87,14 +90,14 @@
 
       max_model_number = 20000
       varcontrol_target = 1d-3
-      mesh_delta_coeff = 0.5
+      mesh_delta_coeff = 1.0
       max_years_for_timestep = 1d2
       max_allowed_nz = 20000
       !max_years_for_timestep = 1d-3
 
 
       history_interval = 1
-      profile_interval = 20
+      profile_interval = 10
       max_num_profile_models = 5000
       terminal_cnt = 1
       write_header_frequency = 10
@@ -126,7 +129,6 @@
       Dutch_wind_eta = 1.0
       Reimers_wind_eta =1.0
       Blocker_wind_eta = 1.0
-      Dutch_wind_eta =1.0
       super_eddington_wind_eta = 1.0
       super_eddington_wind_Ledd_factor = 1.0
       trace_super_eddington_wind_boost = .true.

@@ -78,6 +78,8 @@
          s% xtra7 = 0.0d0
          !s% xtra20 -> L_acc. Accretion luminosity, calculated in CE_energy
          s% xtra20 = 0.0
+         !s% xtra21 -> eta_pulse_wind: Wind enhancement term from Yoon & Cantiello (2010)
+         s% xtra21 = 1.
 
          !s% xtra7 -> CE_test_case
          s% ixtra1 = s% x_integer_ctrl(1)

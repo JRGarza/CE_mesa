@@ -3,7 +3,7 @@
 &star_job
 
       load_saved_model = .true.
-      saved_model_name = '/home/evol/fragkos/disk1/repos/CE_mesa/data/Taam1978_caseII.mod'
+      saved_model_name = '../data/Taam1978_caseII.mod'
 
       save_model_when_terminate = .true.
       save_model_filename = 'test_Taam1978_caseII_final.mod'
@@ -25,7 +25,7 @@
       change_initial_v_flag = .true.
       new_v_flag = .true.
 
-      new_rotation_flag = .true.
+      new_rotation_flag = .false.
       change_rotation_flag = .true.
 
       ! new_omega = 1.d-12
@@ -45,7 +45,7 @@
 
 
       use_other_energy = .true.
-      use_other_torque = .true.
+      use_other_torque = .false.
       use_other_before_struct_burn_mix = .true.
       use_other_after_struct_burn_mix = .true.
       use_other_adjust_mdot = .true.
@@ -55,19 +55,19 @@
       x_ctrl(2) = 0.99         !#CE: CE_companion_initial_position: The initial distance of the center of the companion,
                                  !#CE: in units of the primary's radius
                                  !#CE: star from the center of the donor star in solar radii
-      x_ctrl(3) = 0.5d0           !#CE: initial CE_companion_radius: The radius of the companion star in solar radii
+      x_ctrl(3) = 0.05d0           !#CE: initial CE_companion_radius: The radius of the companion star in solar radii
       x_ctrl(4) = 2.0d0           !#CE: CE_companion_mass: The mass of the companion star in solar masses
       x_ctrl(5) = 1.0d0           !#CE: CE_n_acc_radii: Number of accretion radii away from companion star to deposit
                                  !#CE: heating into the star from orbital energy
-      x_ctrl(8) = 1d-3           !#CE: Fractional orbital energy change allowed per step
-      x_ctrl(9) = 1d-3           !#CE: Fractional orbital separation change allowed per step
-      x_ctrl(10) = 1d-3          !#CE: Fractional orbital angular momentum change allowed per step
+      x_ctrl(8) = 1d-2           !#CE: Fractional orbital energy change allowed per step
+      x_ctrl(9) = 1d-2           !#CE: Fractional orbital separation change allowed per step
+      x_ctrl(10) = 1d-2          !#CE: Fractional orbital angular momentum change allowed per step
       x_ctrl(11) = 2.d0           !#CE: Maximum factor by which CE_mdot can increase in one timestep
       x_ctrl(12) = 2.d0           !#CE: Maximum factor by which CE_mdot can decrease in one timestep
       x_ctrl(13) = 1d-8           !#CE: CE_mdot_smooth_limit: value for CE_mdot (in Msun/yr) above which we apply smoothing
       x_ctrl(14) = 1d3            !#CE: CE_mdot_max: maximum allowed value for CE_mdot (in Msun/yr)
       x_ctrl(15) = 0.1           !#CE: f_sync_init: Degree of syncronization (Omega_spin/Omega_orb) between
-                                 !#CE: rotation of the star and the orbit at the beginning of the simulation
+      x_ctrl(16) = 1.75          !#CE: alpha_pulse_wind: Wind enhancement term from Yoon & Cantiello (2010)
       x_integer_ctrl(1) = 4      !#CE: 1: Uniform heating of the whole envelope
                                  !#CE: 2: Heating at the base of the hydrogen envelope
                                  !#CE: 3: CE_energy_rate is calculated based on the companions position
@@ -76,6 +76,7 @@
                                  !#CE: when the outer parts of the envelope are bound or unbound.
       x_logical_ctrl(2) = .false. !#CE: include accretion luminosity: If true, then accretion energy onto the NS
                                   !#CE: is taken into account when calculating the energy donated to the envelope
+      x_logical_ctrl(3) = .true.  !#CE: use_pulse_wind use pulsational superwinds based of Yoon & Cantiello (2010) prescription
 
       !#CE: increase the resolution around the position of the companion where the energy is deposited.
       !#CE: The other two parameters (R_function2_param1 and R_function2_param2) are set automatically
@@ -84,7 +85,7 @@
 
       which_atm_option = 'Eddington_grey'
 
-      use_artificial_viscosity = .true.
+      use_artificial_viscosity = .false.
 
 
       use_Type2_opacities = .true.
@@ -92,7 +93,9 @@
 
       max_model_number = 20000
       varcontrol_target = 1d-3
-      mesh_delta_coeff = 0.5
+      mesh_delta_coeff = 1.0
+      delta_lg_star_mass_limit = 5d-3
+      delta_lg_star_mass_hard_limit = 1d-2
       max_years_for_timestep = 1d-2
       max_allowed_nz = 20000
       !max_years_for_timestep = 1d-3
@@ -130,6 +133,8 @@
    ! energy transport See gradT_excess_f1, gradT_excess_f2, and gradT_excess_age_fraction below.
    ! WE MAY WANT TO TEST THIS OPTION
    okay_to_reduce_gradT_excess = .false.
+   max_conv_vel_div_csound = 1
+   max_v_div_cs_for_convection = 1
 
    gradT_excess_f1 = 1d-4
    gradT_excess_f2 = 1d-2
@@ -149,6 +154,7 @@
    AGB_wind_scheme = 'Dutch'
    RGB_to_AGB_wind_switch = 1d-4
    Dutch_wind_eta = 0.0
+   max_wind = 1d-1
 
    use_lnS_for_eps_grav = .false.
    include_dmu_dt_in_eps_grav = .true.
@@ -160,7 +166,7 @@
    newton_itermin = 2
 
    mixing_length_alpha = 1.5
-   MLT_option = 'Henyey'
+   MLT_option = 'Cox'
 
    use_Ledoux_criterion = .true.
    alpha_semiconvection = 0.01
