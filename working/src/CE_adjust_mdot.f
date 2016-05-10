@@ -78,8 +78,8 @@ contains
 
 
       if (s%x_logical_ctrl(3) .and. (.not. s% doing_relax)) then
-         s% Dutch_wind_eta = s% xtra21 ** s% x_ctrl(16)
-         write(*,*) "**Pulsational Winds** ", s% xtra21, s% Dutch_wind_eta
+         s% Dutch_scaling_factor = s% xtra21 ** s% x_ctrl(16)
+         write(*,*) "**Pulsational Winds** ", s% xtra21, s% Dutch_scaling_factor
       endif
 
    end subroutine CE_other_adjust_mdot

@@ -51,7 +51,7 @@ def InterpolateOneProfile(profile, NY, Yaxis, Ymin, Ymax, Variable):
 			extra_heat, v_div_vesc, v_div_csound, pressure, temperature, density,
 			tau, opacity, gamma1, dq, L_div_Ledd, Lrad_div_Ledd. t_thermal, t_dynamical,
 			t_dynamical_down, t_thermal_div_t_dynamical, omega_div_omega_crit
-			super_ad, vconv, vconv_div_vesc, vconv_div_csound, total_energy_plus_vconv2
+			super_ad, vconv, vconv_div_vesc, conv_vel_div_csound, total_energy_plus_vconv2
 
 
 	Returns:
@@ -232,9 +232,9 @@ def InterpolateOneProfile(profile, NY, Yaxis, Ymin, Ymax, Variable):
 			raise ValueError("Column 'radius' and/or 'conv_vel' is missing from the profile files")
 
 
-	if (not "vconv_div_csound" in profile.dtype.names and (Variable == 'vconv_div_csound' )):
+	if (not "conv_vel_div_csound" in profile.dtype.names and (Variable == 'conv_vel_div_csound' )):
 		try:
-			profile = numpy.lib.recfunctions.append_fields(profile,'vconv_div_csound',
+			profile = numpy.lib.recfunctions.append_fields(profile,'conv_vel_div_csound',
 							data = profile['conv_vel']/profile['csound'], asrecarray=True)
 		except Exception:
 			raise ValueError("Column 'csound' and/or 'conv_vel' is missing from the profile files")
@@ -464,7 +464,7 @@ class mesa(object):
 				, 'ionization_energy', 'energy', 'potential_plus_kinetic', 'extra_heat', 'v_div_vesc',
 				'v_div_csound',	'pressure', 'temperature', 'density', 'tau', 'opacity', 'gamma1', 'dq',
 				'L_div_Ledd', 'Lrad_div_Ledd', 't_thermal', 't_dynamical', 't_dynamical_down', 't_thermal_div_t_dynamical',
- 				'omega_div_omega_crit','super_ad', 'vconv', 'vconv_div_vesc', 'vconv_div_csound', 'total_energy_plus_vconv2']):
+ 				'omega_div_omega_crit','super_ad', 'vconv', 'vconv_div_vesc', 'conv_vel_div_csound', 'total_energy_plus_vconv2']):
 			raise ValueError(self._param['Variable']+"not a valid option for parameter Variable")
 
 
@@ -745,7 +745,7 @@ class mesa(object):
 			cmap_label = "log($v_{conv}$ [cm/s])"
 		elif self._param['Variable'] == "vconv_div_vesc":
 			cmap_label = "log($v_{conv}/v_{esc}$)"
-		elif self._param['Variable'] == "vconv_div_csound":
+		elif self._param['Variable'] == "conv_vel_div_csound":
 			cmap_label = "log($v_{conv}/v_{sound}$)"
 		elif self._param['Variable'] == "total_energy_plus_vconv2":
 			cmap_label = "log(specific total energy + $1/2v_{conv}^2$ [erg/gr])"
@@ -1109,7 +1109,7 @@ if __name__ == "__main__":
 	#Options for Variable: "eps_nuc", "velocity", "entropy", "total_energy", "j_rot", "eps_recombination", "ionization_energy",
 	#						"energy", "potential_plus_kinetic", "extra_heat", "v_div_vesc", "v_div_csound"
 	#						"pressure", "temperature", "density", "tau", "opacity", "gamma1", "dq"
-	#						"super_ad", "vconv", "vconv_div_vesc", "vconv_div_csound", "total_energy_plus_vconv2"
+	#						"super_ad", "vconv", "vconv_div_vesc", "conv_vel_div_csound", "total_energy_plus_vconv2"
 
 
 	data_path = "/home/evol/fragkos/disk1/mesa_projects/CE/example_runs/heat_base_lim_vconv/LOGS/"

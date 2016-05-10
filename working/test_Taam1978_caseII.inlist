@@ -26,7 +26,7 @@
       new_v_flag = .true.
 
       new_rotation_flag = .false.
-      change_rotation_flag = .true.
+      change_rotation_flag = .false.
 
       ! new_omega = 1.d-12
       ! set_omega = .true.
@@ -42,7 +42,13 @@
 
 &controls
 
+max_logT_for_k_below_const_q = 100
+max_q_for_k_below_const_q = 0.99
+min_q_for_k_below_const_q = 0.99
 
+max_logT_for_k_const_mass = 100
+max_q_for_k_const_mass = 0.98
+min_q_for_k_const_mass = 0.98
 
       use_other_energy = .true.
       use_other_torque = .false.
@@ -52,11 +58,11 @@
 
       x_ctrl(1) = 3.1687536e+38  !#CE: CE_energy_rate: The rate at which energy is deposited in the star
                                  !#CE: in units of erg/s.
-      x_ctrl(2) = 0.99         !#CE: CE_companion_initial_position: The initial distance of the center of the companion,
+      x_ctrl(2) = 0.99           !#CE: CE_companion_initial_position: The initial distance of the center of the companion,
                                  !#CE: in units of the primary's radius
                                  !#CE: star from the center of the donor star in solar radii
       x_ctrl(3) = 0.05d0           !#CE: initial CE_companion_radius: The radius of the companion star in solar radii
-      x_ctrl(4) = 2.0d0           !#CE: CE_companion_mass: The mass of the companion star in solar masses
+      x_ctrl(4) = 10.0d0           !#CE: CE_companion_mass: The mass of the companion star in solar masses
       x_ctrl(5) = 1.0d0           !#CE: CE_n_acc_radii: Number of accretion radii away from companion star to deposit
                                  !#CE: heating into the star from orbital energy
       x_ctrl(8) = 1d-2           !#CE: Fractional orbital energy change allowed per step
@@ -81,12 +87,23 @@
       !#CE: increase the resolution around the position of the companion where the energy is deposited.
       !#CE: The other two parameters (R_function2_param1 and R_function2_param2) are set automatically
       !#CE: based on the position of the companion.
+
+
+use_ODE_var_eqn_pairing = .True.
+use_dvdt_form_of_momentum_eqn = .True.
+use_Paczynski_term_in_dvdt_eqn = .True.
+use_dedt_form_of_energy_eqn = .True.
+use_ODE_form_of_density_eqn = .True.
+use_momentum_outer_BC = .True.
+! use_eosDT_HELMEOS = .True.
+logQ_limit = 5d0
+logQ_min_limit = -12d0
+
       R_function2_weight = 1000
 
-      which_atm_option = 'Eddington_grey'
+      which_atm_option = 'tau_100_tables'
 
       use_artificial_viscosity = .false.
-
 
       use_Type2_opacities = .true.
       Zbase = 0.02d0
@@ -150,10 +167,11 @@
    gradT_excess_dbeta = 0.1
 
 
-   RGB_wind_scheme = 'Dutch'
-   AGB_wind_scheme = 'Dutch'
+   hot_wind_scheme = 'Dutch'
+   cool_wind_RGB_scheme = 'Dutch'
+   cool_wind_AGB_scheme = 'Dutch'
    RGB_to_AGB_wind_switch = 1d-4
-   Dutch_wind_eta = 0.0
+   Dutch_scaling_factor = 0.0
    max_wind = 1d-1
 
    use_lnS_for_eps_grav = .false.
@@ -227,6 +245,12 @@
    delta_lgTeff_limit = 0.5
    delta_lgL_limit = 0.5
    delta_lgRho_cntr_limit = 0.02
+
+   !catch NaNs and stop
+   report_ierr = .true.
+   stop_for_NaNs = .true.
+
+
 
       ! FOR DEBUGGING
 

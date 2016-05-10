@@ -51,6 +51,24 @@
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
 
+         ! Uncomment these lines if you wish to use the functions in this file,
+         ! otherwise we use a null_ version which does nothing.
+         s% extras_startup => extras_startup
+         s% extras_check_model => extras_check_model
+         s% extras_finish_step => extras_finish_step
+         s% extras_after_evolve => extras_after_evolve
+         s% how_many_extra_history_columns => how_many_extra_history_columns
+         s% data_for_extra_history_columns => data_for_extra_history_columns
+         s% how_many_extra_profile_columns => how_many_extra_profile_columns
+         s% data_for_extra_profile_columns => data_for_extra_profile_columns
+
+         ! Once you have set the function pointers you want,
+         ! then uncomment this (or set it in your star_job inlist)
+         ! to disable the printed warning message,
+          s% job% warn_run_star_extras =.true.       
+
+
+
          ! this is the place to set any procedure pointers you want to change
          ! e.g., other_wind, other_mixing, other_energy  (see star_data.inc)
 

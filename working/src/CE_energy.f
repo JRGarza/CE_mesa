@@ -177,7 +177,7 @@
 
          ! Get input controls
 
-         CE_energy_rate = s% x_ctrl(1) 
+         CE_energy_rate = s% x_ctrl(1)
 
          call CE_set_extra_heat(id, CE_energy_rate, ierr)
 
@@ -339,7 +339,6 @@
          else
             CE_energy_rate = F_drag * v_rel
          end if
-
 
          call CE_set_extra_heat(id, CE_energy_rate, ierr)
 
