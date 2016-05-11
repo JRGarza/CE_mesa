@@ -25,8 +25,12 @@
       change_initial_v_flag = .true.
       new_v_flag = .true.
 
+      change_lnE_flag = .true.
+      new_lnE_flag = .true.
+
       new_rotation_flag = .false.
       change_rotation_flag = .false.
+
 
       ! new_omega = 1.d-12
       ! set_omega = .true.
@@ -38,17 +42,14 @@
 !      pgstar_flag = .true.
 
 
+      ! relax_to_this_tau_factor = 2
+      ! dlogtau_factor = 0.1
+      ! relax_tau_factor = .true.
+
+
 / ! end of star_job namelist
 
 &controls
-
-max_logT_for_k_below_const_q = 100
-max_q_for_k_below_const_q = 0.99
-min_q_for_k_below_const_q = 0.99
-
-max_logT_for_k_const_mass = 100
-max_q_for_k_const_mass = 0.98
-min_q_for_k_const_mass = 0.98
 
       use_other_energy = .true.
       use_other_torque = .false.
@@ -71,7 +72,7 @@ min_q_for_k_const_mass = 0.98
       x_ctrl(11) = 2.d0           !#CE: Maximum factor by which CE_mdot can increase in one timestep
       x_ctrl(12) = 2.d0           !#CE: Maximum factor by which CE_mdot can decrease in one timestep
       x_ctrl(13) = 1d-8           !#CE: CE_mdot_smooth_limit: value for CE_mdot (in Msun/yr) above which we apply smoothing
-      x_ctrl(14) = 1d3            !#CE: CE_mdot_max: maximum allowed value for CE_mdot (in Msun/yr)
+      x_ctrl(14) = 1d3           !#CE: CE_mdot_max: maximum allowed value for CE_mdot (in Msun/yr)
       x_ctrl(15) = 0.1           !#CE: f_sync_init: Degree of syncronization (Omega_spin/Omega_orb) between
       x_ctrl(16) = 1.75          !#CE: alpha_pulse_wind: Wind enhancement term from Yoon & Cantiello (2010)
       x_integer_ctrl(1) = 4      !#CE: 1: Uniform heating of the whole envelope
@@ -89,40 +90,87 @@ min_q_for_k_const_mass = 0.98
       !#CE: based on the position of the companion.
 
 
-use_ODE_var_eqn_pairing = .True.
-use_dvdt_form_of_momentum_eqn = .True.
-use_Paczynski_term_in_dvdt_eqn = .True.
-use_dedt_form_of_energy_eqn = .True.
-use_ODE_form_of_density_eqn = .True.
-use_momentum_outer_BC = .True.
-! use_eosDT_HELMEOS = .True.
+! equation controls
+
+      use_ODE_var_eqn_pairing = .true.
+      use_dvdt_form_of_momentum_eqn = .true.
+      use_dPrad_dm_form_of_T_gradient_eqn = .true.
+      use_dedt_form_of_energy_eqn = .true.
+
+
+      !use_compression_outer_BC = .true.
+      use_momentum_outer_BC = .true.
+      !use_zero_Pgas_outer_BC = .true.
+
+      use_T_black_body_outer_BC = .true.
+      !use_zero_dLdm_outer_BC = .true.
+
+
+! mesh controls
+      !okay_to_remesh = .false.
+      mesh_delta_coeff = 1.0 ! 0.8
+
+      min_dq = 1d-12
+      max_center_cell_dq = 5d-6
+      max_surface_cell_dq = 1d-10
+      ! log_tau_function_weight = 100
+      ! log_kap_function_weight = 100
+
+! max_logT_for_k_below_const_q = 1
+! max_q_for_k_below_const_q = 1.0
+! min_q_for_k_below_const_q = 1.0
+!
+! max_logT_for_k_const_mass = 1
+! max_q_for_k_const_mass = 1.0
+! min_q_for_k_const_mass = 1.0
+
+
+
+! artificial viscosity controls
+      use_artificial_viscosity = .true.
+!      artificial_viscosity_Q_shift = 1d34
+      shock_spread_linear = 0
+      shock_spread_quadratic = 0.0001
+      !post_shock_viscosity_decay_factor = 0.5
+      !pre_shock_viscosity_decay_factor = 0.5
+
+! solver controls
+      !use_energy_conservation_form = .true.
+
+      newton_iterations_limit = 7
+      iter_for_resid_tol2 = 4
+      tol_residual_norm1 = 1d-8
+      tol_max_residual1 = 1d-7
+
+      tiny_corr_coeff_limit = 999999
+      newton_itermin_until_reduce_min_corr_coeff = 999999
+
+
+
 logQ_limit = 5d0
-logQ_min_limit = -12d0
+logQ_min_limit = -10d0
 
-      R_function2_weight = 1000
+      ! R_function2_weight = 1000
 
-      which_atm_option = 'tau_100_tables'
+      which_atm_option = 'Eddington_grey'
 
-      use_artificial_viscosity = .false.
-
-      use_Type2_opacities = .true.
-      Zbase = 0.02d0
+      ! use_Type2_opacities = .true.
+      ! Zbase = 0.02d0
 
       max_model_number = 20000
       varcontrol_target = 1d-3
-      mesh_delta_coeff = 1.0
+      mesh_delta_coeff = 0.5
       delta_lg_star_mass_limit = 5d-3
       delta_lg_star_mass_hard_limit = 1d-2
       max_years_for_timestep = 1d-2
       max_allowed_nz = 20000
-      !max_years_for_timestep = 1d-3
-!       delta_lgR_limit = 0.001
-!       delta_lgE_limit = 0.001
-      he_core_boundary_h1_fraction = 1.d-10
+
+      delta_lgR_limit = 0.001
+      delta_lgE_limit = 0.001
 
 
       history_interval = 1
-      profile_interval = 10
+      profile_interval = 1
       max_num_profile_models = 5000
       terminal_cnt = 1
       write_header_frequency = 10
@@ -138,38 +186,15 @@ logQ_min_limit = -12d0
       D_ST_factor = 1.
 
 
-   dX_nuc_drop_limit = 1d-2
-   dX_nuc_drop_limit_at_high_T = 5d-3 ! for center logT > 9.45
+   !convection
+   max_conv_vel_div_csound = 2
+   max_v_div_cs_for_convection = -1
+   min_T_for_acceleration_limited_conv_velocity = 0
 
 
-   delta_Ye_highT_limit = 1d-3
-
-   ! Inefficient convection => large gradT excess and steep T gradient to enhance
-   ! radiative transport. Reduce gradT excess by making gradT closer to adiabatic
-   ! gradient. If true, code is allowed to adjust gradT to boost efficiency of
-   ! energy transport See gradT_excess_f1, gradT_excess_f2, and gradT_excess_age_fraction below.
-   ! WE MAY WANT TO TEST THIS OPTION
-   okay_to_reduce_gradT_excess = .false.
-   max_conv_vel_div_csound = 1
-   max_v_div_cs_for_convection = 1
-
-   gradT_excess_f1 = 1d-4
-   gradT_excess_f2 = 1d-2
-   gradT_excess_age_fraction = 0.9d0
-
-   gradT_excess_lambda1 = 1.0
-   gradT_excess_beta1 = 0.35
-
-   gradT_excess_lambda2 = 0.5
-   gradT_excess_beta2 = 0.25
-
-   gradT_excess_dlambda = 0.1
-   gradT_excess_dbeta = 0.1
-
-
-   hot_wind_scheme = 'Dutch'
-   cool_wind_RGB_scheme = 'Dutch'
-   cool_wind_AGB_scheme = 'Dutch'
+   ! hot_wind_scheme = 'Dutch'
+   ! cool_wind_RGB_scheme = 'Dutch'
+   ! cool_wind_AGB_scheme = 'Dutch'
    RGB_to_AGB_wind_switch = 1d-4
    Dutch_scaling_factor = 0.0
    max_wind = 1d-1
@@ -224,62 +249,61 @@ logQ_min_limit = -12d0
    overshoot_f_above_burn_z_shell = 0.000
    overshoot_f_below_burn_z_shell = 0.000
 
-   !min_T_for_acceleration_limited_conv_velocity = 0
 
-   screening_mode = 'extended'
-
-   tol_residual_norm1 = 1d-5
-   tol_max_residual1 = 1d-2
-   iter_for_resid_tol2 = 3
-   tol_residual_norm2 = 1d99
-   tol_max_residual2 = 1d99
-   iter_for_resid_tol3 = 12
-   min_timestep_limit = 1d-12 ! (seconds)
-
-   delta_lgL_He_limit = 0.1 ! limit for magnitude of change in lgL_He
-
-   dX_nuc_drop_max_A_limit = 52
-   dX_nuc_drop_min_X_limit = 1d-4
-   dX_nuc_drop_hard_limit = 1d99
-
-   delta_lgTeff_limit = 0.5
-   delta_lgL_limit = 0.5
-   delta_lgRho_cntr_limit = 0.02
+   ! screening_mode = 'extended'
+   !
+   ! tol_residual_norm1 = 1d-5
+   ! tol_max_residual1 = 1d-2
+   ! iter_for_resid_tol2 = 3
+   ! tol_residual_norm2 = 1d99
+   ! tol_max_residual2 = 1d99
+   ! iter_for_resid_tol3 = 12
+   ! min_timestep_limit = 1d-12 ! (seconds)
+   !
+   ! delta_lgL_He_limit = 0.1 ! limit for magnitude of change in lgL_He
+   !
+   ! dX_nuc_drop_max_A_limit = 52
+   ! dX_nuc_drop_min_X_limit = 1d-4
+   ! dX_nuc_drop_hard_limit = 1d99
+   !
+   ! delta_lgTeff_limit = 0.5
+   ! delta_lgL_limit = 0.5
+   ! delta_lgRho_cntr_limit = 0.02
 
    !catch NaNs and stop
    report_ierr = .true.
-   stop_for_NaNs = .true.
+  stop_for_NaNs = .true.
 
 
 
       ! FOR DEBUGGING
 
-      !report_hydro_solver_progress = .true. ! set true to see info about newton iterations
-      !report_ierr = .true. ! if true, produce terminal output when have some internal error
-      !hydro_show_correction_info = .true.
+      ! report_hydro_solver_progress = .true. ! set true to see info about newton iterations
+      ! report_ierr = .true. ! if true, produce terminal output when have some internal error
+      ! hydro_show_correction_info = .true.
 
       !max_years_for_timestep = 3.67628942044319d-05
 
-      !report_why_dt_limits = .true.
-      !report_all_dt_limits = .true.
-      !report_hydro_dt_info = .true.
+      ! report_why_dt_limits = .true.
+      ! report_all_dt_limits = .true.
+      ! report_hydro_dt_info = .true.
 
-      !show_mesh_changes = .true.
+      ! show_mesh_changes = .true.
       !mesh_dump_call_number = 5189
       !okay_to_remesh = .false.
 
-      !trace_evolve = .true.
+      ! trace_evolve = .true.
 
 
       ! hydro debugging
-      !hydro_check_everything = .true.
-      !hydro_inspectB_flag = .true.
+      ! hydro_check_everything = .true.
+      ! hydro_inspectB_flag = .true.
 
       !hydro_numerical_jacobian = .true.
       !hydro_save_numjac_plot_data = .true.
       !small_mtx_decsol = 'lapack'
       !large_mtx_decsol = 'lapack'
-      !hydro_dump_call_number = 195
+      !hydro_dump_call_number = 729
 
       !trace_newton_bcyclic_solve_input = .true. ! input is "B" j k iter B(j,k)
       !trace_newton_bcyclic_solve_output = .true. ! output is "X" j k iter X(j,k)
