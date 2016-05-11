@@ -65,7 +65,7 @@
          ! Once you have set the function pointers you want,
          ! then uncomment this (or set it in your star_job inlist)
          ! to disable the printed warning message,
-          s% job% warn_run_star_extras =.true.       
+          s% job% warn_run_star_extras =.true.
 
 
 
@@ -351,7 +351,7 @@
          ierr = 0
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
-         how_many_extra_profile_columns = 2
+         how_many_extra_profile_columns = 5
       end function how_many_extra_profile_columns
 
 
@@ -381,9 +381,15 @@
 
          names(1) = 'ionization_energy'
          names(2) = 'eps_recombination'
+         names(3) = 'eps_visc'
+         names(4) = 'eta_visc'
+         names(5) = 'Qvisc'
          do k = 1, nz
            vals(k,1) = s% xtra1_array(k)
            vals(k,2) = s% xtra2_array(k)
+           vals(k,3) = s% eps_visc(k)
+           vals(k,4) = s% eta_visc(k)
+           vals(k,5) = s% Qvisc(k)
          end do
 
       end subroutine data_for_extra_profile_columns
