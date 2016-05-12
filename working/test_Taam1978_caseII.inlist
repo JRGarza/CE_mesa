@@ -95,16 +95,26 @@
       use_ODE_var_eqn_pairing = .true.
       use_dvdt_form_of_momentum_eqn = .true.
       use_dPrad_dm_form_of_T_gradient_eqn = .true.
-      ! use_dedt_form_of_energy_eqn = .true.
+      use_dedt_form_of_energy_eqn = .false.
+!      use_Paczynski_term_in_dvdt_eqn = .true.
+
+      use_dEdRho_form_for_eps_grav = .false.
+      use_dlnd_dt_form_for_eps_grav = .false.
+      use_lnS_for_eps_grav = .false.
+      use_PdVdt_form_for_eps_grav = .false.
+
+      include_dmu_dt_in_eps_grav = .true.
+
+
 
 ! Boundary condistion
-      !use_compression_outer_BC = .true.
-      use_momentum_outer_BC = .true.
+      use_compression_outer_BC = .true.
+      !use_momentum_outer_BC = .true.
       !use_zero_Pgas_outer_BC = .true.
 
       use_T_black_body_outer_BC = .true.
       !use_zero_dLdm_outer_BC = .true.
-      which_atm_option = 'simple_photosphere'
+      which_atm_option = 'Eddington_grey'
 
 
 ! mesh controls
@@ -202,15 +212,13 @@ logQ_min_limit = -12d0
    min_T_for_acceleration_limited_conv_velocity = 0
 
 
-   ! hot_wind_scheme = 'Dutch'
-   ! cool_wind_RGB_scheme = 'Dutch'
-   ! cool_wind_AGB_scheme = 'Dutch'
+   hot_wind_scheme = 'Dutch'
+   cool_wind_RGB_scheme = 'Dutch'
+   cool_wind_AGB_scheme = 'Dutch'
    RGB_to_AGB_wind_switch = 1d-4
-   Dutch_scaling_factor = 0.0
+   Dutch_scaling_factor = 1.0
    max_wind = 1d-1
 
-   use_lnS_for_eps_grav = .false.
-   include_dmu_dt_in_eps_grav = .true.
 
    use_Type2_opacities = .true.
    Zbase = 0.02 ! must set this in the main inlist
@@ -282,7 +290,7 @@ logQ_min_limit = -12d0
 
    !catch NaNs and stop
    report_ierr = .true.
-  stop_for_NaNs = .true.
+   stop_for_NaNs = .true.
 
 
 

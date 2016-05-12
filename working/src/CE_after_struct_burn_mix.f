@@ -71,24 +71,33 @@
 
          k=1
          mass_to_remove = 0.0d0
-         ! do while ((k < s% nz) .and. (.not. is_bound(k)))
-         !    mass_to_remove = mass_to_remove + s% dm(k)
-         !    k=k+1
-         ! enddo
-         do while ((k < s% nz) .and. (s% tau(k) < 1d2))
-            if (.not. is_bound(k)) mass_to_remove = mass_to_remove + s% dm(k)
+         do while ((k < s% nz) .and. (.not. is_bound(k)))
+            mass_to_remove = mass_to_remove + s% dm(k)
             k=k+1
          enddo
+         ! do while ((k < s% nz) .and. (s% tau(k) < 1d2))
+         !    write(*,*) k, s% tau(k), is_bound(k)
+         !    if (.not. is_bound(k)) mass_to_remove = mass_to_remove + s% dm(k)
+         !    k=k+1
+         ! enddo
 
          ! Diagnostic to determine envelope binding energy
          ! Includes internal energy
          k=1
          total_envelope_binding_energy = 0.0
          do while ((k < s% nz) .and. (s% m(k) > s% he_core_mass * Msun))
-            vrot = s% omega(k) * s% r(k)
-            total_envelope_binding_energy = total_envelope_binding_energy + &
-                           (s% energy(k) - s% cgrav(k)*s% m_grav(k)/s% r(k) + &
-                           0.5d0*s% v(k)*s% v(k) + 0.5d0*vrot*vrot) * s% dm(k)
+
+            if (s% rotation_flag) then
+               vrot = s% omega(k) * s% r(k)
+               total_envelope_binding_energy = total_envelope_binding_energy + &
+                              (s% energy(k) - s% cgrav(k)*s% m_grav(k)/s% r(k) + &
+                              0.5d0*s% v(k)*s% v(k) + 0.5d0*vrot*vrot) * s% dm(k)
+            else
+               total_envelope_binding_energy = total_envelope_binding_energy + &
+                              (s% energy(k) - s% cgrav(k)*s% m_grav(k)/s% r(k) + &
+                              0.5d0*s% v(k)*s% v(k)) * s% dm(k)
+            endif
+
             k=k+1
          enddo
          s% xtra11 = total_envelope_binding_energy ! In erg
@@ -115,11 +124,16 @@
                !only when the shell is mechanically unstable, i.e. Gamma1<4./3.
                if (s% gamma1(k) >= 4./3.) f_energy = 0.d0
 
-               ! m_grav uses gravitational mass, not baryonic mass. This implicitly
-               ! takes rotation into account
-               vrot = s% omega(k) * s% r(k)
-               val = f_energy * s% energy(k) - s% cgrav(k)*s% m_grav(k)/s% r(k) + &
-                           0.5d0*s% v(k)*s% v(k) + 0.5d0*vrot*vrot
+
+               !If roation is on, then we add the rotational kinetic energy into the equation
+               if (s% rotation_flag) then
+                  vrot = s% omega(k) * s% r(k)
+                  val = f_energy * s% energy(k) - s% cgrav(k)*s% m_grav(k)/s% r(k) + &
+                              0.5d0*s% v(k)*s% v(k) + 0.5d0*vrot*vrot
+               else
+                  val = f_energy * s% energy(k) - s% cgrav(k)*s% m_grav(k)/s% r(k) + &
+                              0.5d0*s% v(k)*s% v(k)
+               endif
 
                if (val > 0.0d0) then
                   is_bound = .false.
