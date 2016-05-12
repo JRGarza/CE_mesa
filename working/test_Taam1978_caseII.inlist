@@ -3,7 +3,7 @@
 &star_job
 
       load_saved_model = .true.
-      saved_model_name = '../data/Taam1978_caseII.mod'
+      saved_model_name = '../data/Taam1978_caseII_tau1m4.mod'
 
       save_model_when_terminate = .true.
       save_model_filename = 'test_Taam1978_caseII_final.mod'
@@ -25,8 +25,8 @@
       change_initial_v_flag = .true.
       new_v_flag = .true.
 
-      change_lnE_flag = .true.
-      new_lnE_flag = .true.
+      ! change_lnE_flag = .true.
+      ! new_lnE_flag = .true.
 
       new_rotation_flag = .false.
       change_rotation_flag = .false.
@@ -42,9 +42,9 @@
 !      pgstar_flag = .true.
 
 
-      ! relax_to_this_tau_factor = 2
+      ! relax_to_this_tau_factor = 1d-4
       ! dlogtau_factor = 0.1
-      ! relax_tau_factor = .true.
+      ! relax_initial_tau_factor = .true.
 
 
 / ! end of star_job namelist
@@ -95,26 +95,27 @@
       use_ODE_var_eqn_pairing = .true.
       use_dvdt_form_of_momentum_eqn = .true.
       use_dPrad_dm_form_of_T_gradient_eqn = .true.
-      use_dedt_form_of_energy_eqn = .true.
+      ! use_dedt_form_of_energy_eqn = .true.
 
-
+! Boundary condistion
       !use_compression_outer_BC = .true.
       use_momentum_outer_BC = .true.
       !use_zero_Pgas_outer_BC = .true.
 
       use_T_black_body_outer_BC = .true.
       !use_zero_dLdm_outer_BC = .true.
+      which_atm_option = 'simple_photosphere'
 
 
 ! mesh controls
       !okay_to_remesh = .false.
       mesh_delta_coeff = 1.0 ! 0.8
 
-      min_dq = 1d-12
+      min_dq = 1d-10
       max_center_cell_dq = 5d-6
       max_surface_cell_dq = 1d-10
-      ! log_tau_function_weight = 100
-      ! log_kap_function_weight = 100
+      log_tau_function_weight = 100
+      log_kap_function_weight = 100
 
 ! max_logT_for_k_below_const_q = 1
 ! max_q_for_k_below_const_q = 1.0
@@ -128,9 +129,9 @@
 
 ! artificial viscosity controls
       use_artificial_viscosity = .true.
-!      artificial_viscosity_Q_shift = 1d34
+      artificial_viscosity_Q_shift = 1d34
       shock_spread_linear = 0
-      shock_spread_quadratic = 0.0001
+      shock_spread_quadratic = 0.01
       !post_shock_viscosity_decay_factor = 0.5
       !pre_shock_viscosity_decay_factor = 0.5
 
@@ -148,18 +149,17 @@
 
 
 logQ_limit = 5d0
-logQ_min_limit = -10d0
+logQ_min_limit = -12d0
 
-      ! R_function2_weight = 1000
+      R_function2_weight = 1000
 
-      which_atm_option = 'Eddington_grey'
 
       ! use_Type2_opacities = .true.
       ! Zbase = 0.02d0
 
       max_model_number = 20000
       varcontrol_target = 1d-3
-      mesh_delta_coeff = 0.5
+      mesh_delta_coeff = 1.0
       delta_lg_star_mass_limit = 5d-3
       delta_lg_star_mass_hard_limit = 1d-2
       max_years_for_timestep = 1d-2
@@ -168,12 +168,22 @@ logQ_min_limit = -10d0
       delta_lgR_limit = 0.001
       delta_lgE_limit = 0.001
 
-
+! Output
       history_interval = 1
-      profile_interval = 1
+      profile_interval = 10
       max_num_profile_models = 5000
       terminal_cnt = 1
       write_header_frequency = 10
+
+      num_trace_history_values = 6
+      trace_history_value_name(1) = 'photosphere_m'
+      trace_history_value_name(2) = 'photosphere_r'
+      trace_history_value_name(3) = 'radius'
+      trace_history_value_name(4) = 'logQ_min'
+      trace_history_value_name(5) = 'v_div_csound_max'
+      trace_history_value_name(6) = 'v_div_vesc_max'
+
+
 
       !Angular momentum transport controls
       am_nu_visc_factor = 1

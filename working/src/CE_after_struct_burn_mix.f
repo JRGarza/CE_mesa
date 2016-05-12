@@ -61,7 +61,7 @@
         integer, intent(out) :: res ! keep_going, redo, retry, backup, terminate
          type (star_info), pointer :: s
          integer :: ierr, k
-         real(dp) :: mass_to_remove, CE_mdot
+         real(dp) :: mass_to_remove, CE_mdot, vrot
 
          real(dp) :: total_envelope_binding_energy
 
@@ -71,8 +71,12 @@
 
          k=1
          mass_to_remove = 0.0d0
-         do while ((k < s% nz) .and. (.not. is_bound(k)))
-            mass_to_remove = mass_to_remove + s% dm(k)
+         ! do while ((k < s% nz) .and. (.not. is_bound(k)))
+         !    mass_to_remove = mass_to_remove + s% dm(k)
+         !    k=k+1
+         ! enddo
+         do while ((k < s% nz) .and. (s% tau(k) < 1d2))
+            if (.not. is_bound(k)) mass_to_remove = mass_to_remove + s% dm(k)
             k=k+1
          enddo
 
@@ -81,9 +85,10 @@
          k=1
          total_envelope_binding_energy = 0.0
          do while ((k < s% nz) .and. (s% m(k) > s% he_core_mass * Msun))
+            vrot = s% omega(k) * s% r(k)
             total_envelope_binding_energy = total_envelope_binding_energy + &
                            (s% energy(k) - s% cgrav(k)*s% m_grav(k)/s% r(k) + &
-                           0.5d0*s% v(k)*s% v(k)) * s% dm(k)
+                           0.5d0*s% v(k)*s% v(k) + 0.5d0*vrot*vrot) * s% dm(k)
             k=k+1
          enddo
          s% xtra11 = total_envelope_binding_energy ! In erg
@@ -99,7 +104,7 @@
 
             logical function is_bound(k)
                integer, intent(in) :: k
-               real(dp) :: val, f_energy
+               real(dp) :: val, f_energy, vrot
                logical :: include_internal_energy
 
 
@@ -112,8 +117,9 @@
 
                ! m_grav uses gravitational mass, not baryonic mass. This implicitly
                ! takes rotation into account
+               vrot = s% omega(k) * s% r(k)
                val = f_energy * s% energy(k) - s% cgrav(k)*s% m_grav(k)/s% r(k) + &
-                           0.5d0*s% v(k)*s% v(k)
+                           0.5d0*s% v(k)*s% v(k) + 0.5d0*vrot*vrot
 
                if (val > 0.0d0) then
                   is_bound = .false.
