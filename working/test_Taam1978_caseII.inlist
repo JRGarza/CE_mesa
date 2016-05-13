@@ -59,7 +59,7 @@
 
       x_ctrl(1) = 3.1687536e+38  !#CE: CE_energy_rate: The rate at which energy is deposited in the star
                                  !#CE: in units of erg/s.
-      x_ctrl(2) = 0.99           !#CE: CE_companion_initial_position: The initial distance of the center of the companion,
+      x_ctrl(2) = 0.98           !#CE: CE_companion_initial_position: The initial distance of the center of the companion,
                                  !#CE: in units of the primary's radius
                                  !#CE: star from the center of the donor star in solar radii
       x_ctrl(3) = 0.05d0           !#CE: initial CE_companion_radius: The radius of the companion star in solar radii
@@ -103,8 +103,20 @@
       use_lnS_for_eps_grav = .false.
       use_PdVdt_form_for_eps_grav = .false.
 
-      include_dmu_dt_in_eps_grav = .true.
+      include_dmu_dt_in_eps_grav = .false.
 
+      qmax_zero_non_radiative_luminosity = 0d0
+      qmin_freeze_non_radiative_luminosity = 1d0
+      use_dPrad_dm_form_of_T_gradient_eqn = .false.
+
+! MLT ++
+      okay_to_reduce_gradT_excess = .true.
+      gradT_excess_min_log_tau_full_on = 0.
+      gradT_excess_max_log_tau_full_off = 1.
+!convection
+      max_conv_vel_div_csound = 2
+      max_v_div_cs_for_convection = 1
+      min_T_for_acceleration_limited_conv_velocity = 0
 
 
 ! Boundary condistion
@@ -114,18 +126,33 @@
 
       use_T_black_body_outer_BC = .true.
       !use_zero_dLdm_outer_BC = .true.
-      which_atm_option = 'Eddington_grey'
+      which_atm_option = 'simple_photosphere'
 
 
 ! mesh controls
       !okay_to_remesh = .false.
-      mesh_delta_coeff = 1.0 ! 0.8
+      mesh_delta_coeff = 0.5 ! 0.8
 
-      min_dq = 1d-10
+      min_dq = 1d-12
       max_center_cell_dq = 5d-6
       max_surface_cell_dq = 1d-10
       log_tau_function_weight = 100
       log_kap_function_weight = 100
+
+      R_function2_weight = 1000
+      max_allowed_nz = 20000
+
+
+! Timestep controls
+      varcontrol_target = 1d-2
+      delta_lg_star_mass_limit = 5d-3
+      delta_lg_star_mass_hard_limit = 1d-2
+      max_years_for_timestep = 1d-2
+
+      delta_lgR_limit = 0.001
+      delta_lgE_limit = 0.001
+
+
 
 ! max_logT_for_k_below_const_q = 1
 ! max_q_for_k_below_const_q = 1.0
@@ -161,22 +188,12 @@
 logQ_limit = 5d0
 logQ_min_limit = -12d0
 
-      R_function2_weight = 1000
 
 
       ! use_Type2_opacities = .true.
       ! Zbase = 0.02d0
 
       max_model_number = 20000
-      varcontrol_target = 1d-3
-      mesh_delta_coeff = 1.0
-      delta_lg_star_mass_limit = 5d-3
-      delta_lg_star_mass_hard_limit = 1d-2
-      max_years_for_timestep = 1d-2
-      max_allowed_nz = 20000
-
-      delta_lgR_limit = 0.001
-      delta_lgE_limit = 0.001
 
 ! Output
       history_interval = 1
@@ -206,10 +223,6 @@ logQ_min_limit = -12d0
       D_ST_factor = 1.
 
 
-   !convection
-   max_conv_vel_div_csound = 2
-   max_v_div_cs_for_convection = -1
-   min_T_for_acceleration_limited_conv_velocity = 0
 
 
    hot_wind_scheme = 'Dutch'
@@ -218,7 +231,8 @@ logQ_min_limit = -12d0
    RGB_to_AGB_wind_switch = 1d-4
    Dutch_scaling_factor = 1.0
    max_wind = 1d-1
-
+   super_eddington_scaling_factor = 1
+   trace_super_eddington_wind_boost = .true.
 
    use_Type2_opacities = .true.
    Zbase = 0.02 ! must set this in the main inlist
@@ -296,9 +310,9 @@ logQ_min_limit = -12d0
 
       ! FOR DEBUGGING
 
-      ! report_hydro_solver_progress = .true. ! set true to see info about newton iterations
+!       report_hydro_solver_progress = .true. ! set true to see info about newton iterations
       ! report_ierr = .true. ! if true, produce terminal output when have some internal error
-      ! hydro_show_correction_info = .true.
+       !hydro_show_correction_info = .true.
 
       !max_years_for_timestep = 3.67628942044319d-05
 
@@ -313,7 +327,7 @@ logQ_min_limit = -12d0
       ! trace_evolve = .true.
 
 
-      ! hydro debugging
+      !hydro debugging
       ! hydro_check_everything = .true.
       ! hydro_inspectB_flag = .true.
 
@@ -321,7 +335,7 @@ logQ_min_limit = -12d0
       !hydro_save_numjac_plot_data = .true.
       !small_mtx_decsol = 'lapack'
       !large_mtx_decsol = 'lapack'
-      !hydro_dump_call_number = 729
+!      hydro_dump_call_number = 926
 
       !trace_newton_bcyclic_solve_input = .true. ! input is "B" j k iter B(j,k)
       !trace_newton_bcyclic_solve_output = .true. ! output is "X" j k iter X(j,k)
