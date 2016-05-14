@@ -110,7 +110,7 @@
       use_dPrad_dm_form_of_T_gradient_eqn = .false.
 
 ! MLT ++
-      okay_to_reduce_gradT_excess = .true.
+      okay_to_reduce_gradT_excess = .flase.
       gradT_excess_min_log_tau_full_on = 0.
       gradT_excess_max_log_tau_full_off = 1.
 !convection
@@ -131,7 +131,7 @@
 
 ! mesh controls
       !okay_to_remesh = .false.
-      mesh_delta_coeff = 0.5 ! 0.8
+      mesh_delta_coeff = 1.0 ! 0.8
 
       min_dq = 1d-12
       max_center_cell_dq = 5d-6
@@ -144,7 +144,7 @@
 
 
 ! Timestep controls
-      varcontrol_target = 1d-2
+      varcontrol_target = 1d-3
       delta_lg_star_mass_limit = 5d-3
       delta_lg_star_mass_hard_limit = 1d-2
       max_years_for_timestep = 1d-2
@@ -166,7 +166,7 @@
 
 ! artificial viscosity controls
       use_artificial_viscosity = .true.
-      artificial_viscosity_Q_shift = 1d34
+!      artificial_viscosity_Q_shift = 1d34
       shock_spread_linear = 0
       shock_spread_quadratic = 0.01
       !post_shock_viscosity_decay_factor = 0.5
@@ -193,7 +193,7 @@ logQ_min_limit = -12d0
       ! use_Type2_opacities = .true.
       ! Zbase = 0.02d0
 
-      max_model_number = 20000
+      max_model_number = 10000
 
 ! Output
       history_interval = 1
