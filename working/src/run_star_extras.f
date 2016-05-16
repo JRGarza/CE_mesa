@@ -298,7 +298,7 @@
          ierr = 0
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
-         how_many_extra_history_columns = 13
+         how_many_extra_history_columns = 18
       end function how_many_extra_history_columns
 
 
@@ -308,9 +308,14 @@
          real(dp) :: vals(n)
          integer, intent(out) :: ierr
          type (star_info), pointer :: s
+         real(dp) :: b_mag, u_mag, v_mag, r_mag, i_mag
+
          ierr = 0
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
+
+         ! Call function to get colors
+         call get_magnitudes(id, b_mag, u_mag, v_mag, r_mag, i_mag, ierr)
 
          !note: do NOT add the extras names to history_columns.list
          ! the history_columns.list is only for the built-in log column options.
@@ -342,6 +347,16 @@
          vals(12) = s% xtra17
          names(13) = 'eta_pulse_wind' ! From Yoon & Cantiello (2010)
          vals(13) = s% xtra21
+         names(14) = 'B_Mag'
+         vals(14) = b_mag
+         names(15) = 'U_Mag'
+         vals(15) = u_mag
+         names(16) = 'V_Mag'
+         vals(16) = v_mag
+         names(17) = 'R_Mag'
+         vals(17) = r_mag
+         names(18) = 'I_Mag'
+         vals(18) = i_mag
 
       end subroutine data_for_extra_history_columns
 
@@ -444,6 +459,49 @@
          !integer, parameter :: extra_info_alloc = 1
          !integer, parameter :: extra_info_get = 2
          !integer, parameter :: extra_info_put = 3
+
+      subroutine get_magnitudes(id,b_Mag,u_Mag,v_Mag,r_Mag,i_Mag,ierr)
+         use colors_lib
+         use colors_def
+         use chem_def, only: zsol
+         integer, intent(in) :: id
+         type (star_info), pointer :: s
+         real(dp), intent(out) :: b_Mag,u_Mag,v_Mag,r_Mag,i_Mag
+         integer, intent(out) :: ierr
+
+         real(dp)  :: log_Teff ! log10 of surface temp
+         real(dp)  :: Fe_H ! [Fe/H]
+         real(dp) :: log_g
+         real(dp) :: M_bol ! bolometric magnitude
+
+         ierr = 0
+         call star_ptr(id, s, ierr)
+         if (ierr /= 0) return
+
+         log_Teff = log10(s% Teff)
+         Fe_H = safe_log10_cr(get_current_z_at_point(id, 1, ierr) / zsol)
+         log_g = safe_log10_cr(s% grav(1))
+
+         if (ierr /= 0) then
+            write(*,*) 'failed in get_current_z_at_point'
+            return
+         end if
+
+         ! Bolometric magnitude from mesa/colors/public/colors_def.f90
+         M_bol = 4.75 - 2.5 * log10(s% log_surface_luminosity)
+         ! Absolute magnitudes from bolometric with corrections
+         b_Mag = M_bol - get_bc_by_name('b',log_Teff,log_g, Fe_H, ierr)
+         u_Mag = M_bol - get_bc_by_name('u',log_Teff,log_g, Fe_H, ierr)
+         v_Mag = M_bol - get_bc_by_name('v',log_Teff,log_g, Fe_H, ierr)
+         r_Mag = M_bol - get_bc_by_name('r',log_Teff,log_g, Fe_H, ierr)
+         i_Mag = M_bol - get_bc_by_name('i',log_Teff,log_g, Fe_H, ierr)
+         if (ierr /= 0) then
+            write(*,*) 'failed in colors_get'
+            return
+         end if
+
+      end subroutine get_magnitudes
+
 
 
       subroutine alloc_extra_info(s)
