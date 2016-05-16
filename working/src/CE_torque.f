@@ -88,7 +88,10 @@
          if (CE_companion_position*Rsun > s% r(1)) return
 
          ! If system merged, skip energy deposition
-         if (s% lxtra1) return
+         if (s% lxtra1) then
+            s% extra_jdot(:) = 0.0d0
+            return
+         endif
 
 
          ! Load angular momentum dissipated in the envelope from the orbit decrease

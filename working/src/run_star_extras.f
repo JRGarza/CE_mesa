@@ -28,6 +28,10 @@
       use run_star_support, only: failed
       use star_def
       use const_def
+      use const_lib
+      use colors_lib
+      use colors_def
+
       ! Add here all the external modules for CE_mesa here
       use CE_orbit
       use CE_energy
@@ -127,9 +131,20 @@
          type (star_info), pointer :: s
          real(dp) :: CE_companion_position, R_acc, CE_n_acc_radii
          integer :: CE_test_case
+         integer, parameter :: n_colors=11
          ierr = 0
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
+
+         ! call crlibm_init
+
+         call colors_init(1,(/trim(mesa_dir)//'/colors/data/lcb98cor.dat'/),(/n_colors/),ierr)
+
+         if (ierr /= 0) then
+            write(*,*) 'colors_init failed during initialization'
+            return
+         end if
+
          extras_startup = 0
          if (.not. restart) then
             call alloc_extra_info(s)
@@ -314,7 +329,7 @@
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
 
-         ! Call function to get colors
+         ! Call function to get rs
          call get_magnitudes(id, b_mag, u_mag, v_mag, r_mag, i_mag, ierr)
 
          !note: do NOT add the extras names to history_columns.list
@@ -461,22 +476,20 @@
          !integer, parameter :: extra_info_put = 3
 
       subroutine get_magnitudes(id,b_Mag,u_Mag,v_Mag,r_Mag,i_Mag,ierr)
-         use colors_lib
-         use colors_def
          use chem_def, only: zsol
          integer, intent(in) :: id
          type (star_info), pointer :: s
          real(dp), intent(out) :: b_Mag,u_Mag,v_Mag,r_Mag,i_Mag
          integer, intent(out) :: ierr
-
          real(dp)  :: log_Teff ! log10 of surface temp
          real(dp)  :: Fe_H ! [Fe/H]
          real(dp) :: log_g
-         real(dp) :: M_bol ! bolometric magnitude
-
+         real(dp) :: lum ! in solar luminosities
          ierr = 0
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
+
+
 
          log_Teff = log10(s% Teff)
          Fe_H = safe_log10_cr(get_current_z_at_point(id, 1, ierr) / zsol)
@@ -487,14 +500,15 @@
             return
          end if
 
-         ! Bolometric magnitude from mesa/colors/public/colors_def.f90
-         M_bol = 4.75 - 2.5 * log10(s% log_surface_luminosity)
          ! Absolute magnitudes from bolometric with corrections
-         b_Mag = M_bol - get_bc_by_name('b',log_Teff,log_g, Fe_H, ierr)
-         u_Mag = M_bol - get_bc_by_name('u',log_Teff,log_g, Fe_H, ierr)
-         v_Mag = M_bol - get_bc_by_name('v',log_Teff,log_g, Fe_H, ierr)
-         r_Mag = M_bol - get_bc_by_name('r',log_Teff,log_g, Fe_H, ierr)
-         i_Mag = M_bol - get_bc_by_name('i',log_Teff,log_g, Fe_H, ierr)
+         lum = 10.d0 ** s% log_surface_luminosity
+
+         b_Mag = get_abs_mag_by_name('b',log_Teff,log_g, Fe_H,lum, ierr)
+         u_Mag = get_abs_mag_by_name('u',log_Teff,log_g, Fe_H,lum, ierr)
+         v_Mag = get_abs_mag_by_name('v',log_Teff,log_g, Fe_H,lum, ierr)
+         r_Mag = get_abs_mag_by_name('r',log_Teff,log_g, Fe_H,lum, ierr)
+         i_Mag = get_abs_mag_by_name('i',log_Teff,log_g, Fe_H,lum, ierr)
+
          if (ierr /= 0) then
             write(*,*) 'failed in colors_get'
             return
