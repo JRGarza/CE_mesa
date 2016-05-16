@@ -62,11 +62,11 @@
       x_ctrl(2) = 1.0           !#CE: CE_companion_initial_position: The initial distance of the center of the companion,
                                  !#CE: in units of the primary's radius
                                  !#CE: star from the center of the donor star in solar radii
-      x_ctrl(3) = 0.316d0           !#CE: initial CE_companion_radius: The radius of the companion star in solar radii
+      x_ctrl(3) = 0.775d0           !#CE: initial CE_companion_radius: The radius of the companion star in solar radii
       x_ctrl(4) = 0.6d0           !#CE: CE_companion_mass: The mass of the companion star in solar masses
       x_ctrl(5) = 1.0d0           !#CE: CE_n_acc_radii: Number of accretion radii away from companion star to deposit
                                  !#CE: heating into the star from orbital energy
-      x_ctrl(8) = 1d-2           !#CE: Fractional orbital energy change allowed per step
+      x_ctrl(8) = 1d99           !#CE: Fractional orbital energy change allowed per step
       x_ctrl(9) = 1d99           !#CE: Fractional orbital separation change allowed per step
       x_ctrl(10) = 1d99          !#CE: Fractional orbital angular momentum change allowed per step
       x_ctrl(11) = 2.d0           !#CE: Maximum factor by which CE_mdot can increase in one timestep

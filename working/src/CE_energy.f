@@ -79,7 +79,11 @@
          if (CE_companion_position*Rsun > s% r(1)) return
 
          ! If system merged, skip energy deposition
-         if (s% lxtra1) return
+         if (s% lxtra1) then
+            s% xtra1 = 0.0d0
+            s% xtra20 = 0.0d0
+            return
+         endif
 
 
 
