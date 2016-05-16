@@ -161,8 +161,31 @@
          write(*,*) "Inner accretion Radius: ", R_acc_low, " Outer accretion radius: ", R_acc_high
          write(*,*) "Dissipated Energy Rate: ", s% xtra1, " Dissipated Angular Momentum Rate: ", s% xtra6
 
+         ! After adjusting the orbit, let's call the check_merger routine
+         call check_merger(id, ierr)
+         if (s% lxtra1) write(*,*) "MERGER!!!"
+
 
       end subroutine CE_orbit_adjust
+
+
+
+      subroutine check_merger(id, ierr)
+        integer, intent(in) :: id
+        integer, intent(out) :: ierr
+        type (star_info), pointer :: s
+
+        ierr = 0
+        call star_ptr(id, s, ierr)
+        if (ierr /= 0) return
+
+        ! Merger condition
+        ! Merge if enclosed mass within 0.1 Msun of the He core mass
+        if (s% xtra9 - 0.1 < s% he_core_mass) s% lxtra1 = .true.
+        ! Merge if companion position within 0.1 Rsun of He core radius
+        if (s% xtra2 - 0.1 < s% he_core_radius) s% lxtra1 = .true.
+
+      end subroutine check_merger
 
 
 

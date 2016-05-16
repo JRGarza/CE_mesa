@@ -178,6 +178,9 @@
          !s% xtra2 -> CE_companion_position = CE_companion_initial_position * Rsatr
          s% xtra2 = s% x_ctrl(2) * s% r(1) / Rsun
 
+         ! s% lxtra1 -> has the binary merged
+         s% lxtra1 = .false.
+
 
          s% job% relax_omega = .true.
          s% job% new_omega = s% x_ctrl(15) * 2.*pi/AtoP(s% m(1),s% xtra4*Msun,s% xtra2 * Rsun)
@@ -199,7 +202,7 @@
             !call star_relax_num_steps(id, 100, 1d-8 * secyer, ierr)
          endif
 
-         !After relaxation is done, the timestep automatically increases to a "large" timestep. Here we are tryying to make this
+         !After relaxation is done, the timestep automatically increases to a "large" timestep. Here we are trying to make this
          !transition smoother
          s% dt_next = 1d-8 * secyer
 

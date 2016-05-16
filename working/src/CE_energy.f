@@ -78,7 +78,8 @@
          ! If companion is outside star, skip energy calculations
          if (CE_companion_position*Rsun > s% r(1)) return
 
-
+         ! If system merged, skip energy deposition
+         if (s% lxtra1) return
 
 
 
