@@ -3,7 +3,7 @@
 &star_job
 
       load_saved_model = .true.
-      saved_model_name = '/Users/tassos/repos/CE_mesa/data/M31_2015_LNR_5.5M_40R_tau1.mod'
+      saved_model_name = '../data/M31_2015_LNR_5.5M_40R_tau1.mod'
 
       save_model_when_terminate = .true.
       save_model_filename = 'M31_2015_LNR_3M_0.1M_30R_tau1_final.mod'
@@ -75,6 +75,9 @@
       x_ctrl(14) = 1d3           !#CE: CE_mdot_max: maximum allowed value for CE_mdot (in Msun/yr)
       x_ctrl(15) = 0.1           !#CE: f_sync_init: Degree of syncronization (Omega_spin/Omega_orb) between
       x_ctrl(16) = 1.75          !#CE: alpha_pulse_wind: Wind enhancement term from Yoon & Cantiello (2010)
+      x_ctrl(17) = -1         !#CE: Distance to source in kpc. Used solely to get apparent magnitudes
+                                 !#CE: -1: Return absolute magnitudes
+                                 !#CE: 778: - M31 (kpc)
       x_integer_ctrl(1) = 4      !#CE: 1: Uniform heating of the whole envelope
                                  !#CE: 2: Heating at the base of the hydrogen envelope
                                  !#CE: 3: CE_energy_rate is calculated based on the companions position

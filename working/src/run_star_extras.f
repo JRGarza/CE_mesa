@@ -268,7 +268,8 @@
          ! For test cases 1 and 2 (heating of the whole envelope and of the base of the envelope) the code below must be skipped
          if (s% x_integer_ctrl(1) .ne. 1 .and. s% x_integer_ctrl(1) .ne. 2) then
             ! Adjust orbital separation based on energy deposited
-            call CE_orbit_adjust(id, ierr)
+            ! unless system has merged
+            if (.not. s% lxtra1) call CE_orbit_adjust(id, ierr)
             ! Added timestep controls
             result = worst_result(result, CE_pick_next_timestep(s))
          endif
@@ -347,16 +348,25 @@
          vals(12) = s% xtra17
          names(13) = 'eta_pulse_wind' ! From Yoon & Cantiello (2010)
          vals(13) = s% xtra21
-         names(14) = 'B_Mag'
+         names(14) = 'b_mag'
          vals(14) = b_mag
-         names(15) = 'U_Mag'
+         names(15) = 'u_mag'
          vals(15) = u_mag
-         names(16) = 'V_Mag'
+         names(16) = 'v_mag'
          vals(16) = v_mag
-         names(17) = 'R_Mag'
+         names(17) = 'r_mag'
          vals(17) = r_mag
-         names(18) = 'I_Mag'
+         names(18) = 'i_mag'
          vals(18) = i_mag
+
+         ! If a distance provided, adjust from absolute to apparent magnitude
+         if (s% x_ctrl(17) .ne. -1) then
+            vals(14) = vals(14) + 5.0*(log10(s% x_ctrl(17) * 1000.0) - 1.0)
+            vals(15) = vals(15) + 5.0*(log10(s% x_ctrl(17) * 1000.0) - 1.0)
+            vals(16) = vals(16) + 5.0*(log10(s% x_ctrl(17) * 1000.0) - 1.0)
+            vals(17) = vals(17) + 5.0*(log10(s% x_ctrl(17) * 1000.0) - 1.0)
+            vals(18) = vals(18) + 5.0*(log10(s% x_ctrl(17) * 1000.0) - 1.0)
+         endif
 
       end subroutine data_for_extra_history_columns
 
