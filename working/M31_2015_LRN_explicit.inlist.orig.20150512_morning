@@ -42,9 +42,9 @@
 !      pgstar_flag = .true.
 
 
-      relax_to_this_tau_factor = 1d-4
-      dlogtau_factor = 0.1
-      relax_initial_tau_factor = .true.
+      ! relax_to_this_tau_factor = 1d-4
+      ! dlogtau_factor = 0.1
+      ! relax_initial_tau_factor = .true.
 
 
 / ! end of star_job namelist
@@ -59,7 +59,7 @@
 
       x_ctrl(1) = 3.1687536e+38  !#CE: CE_energy_rate: The rate at which energy is deposited in the star
                                  !#CE: in units of erg/s.
-      x_ctrl(2) = 0.95          !#CE: CE_companion_initial_position: The initial distance of the center of the companion,
+      x_ctrl(2) = 1.0           !#CE: CE_companion_initial_position: The initial distance of the center of the companion,
                                  !#CE: in units of the primary's radius
                                  !#CE: star from the center of the donor star in solar radii
       x_ctrl(3) = 0.775d0           !#CE: initial CE_companion_radius: The radius of the companion star in solar radii
@@ -96,11 +96,10 @@
 ! equation controls
 
       use_ODE_var_eqn_pairing = .true.
-      use_dvdt_form_of_momentum_eqn = .true.
-      use_dPrad_dm_form_of_T_gradient_eqn = .true.
-      use_dedt_form_of_energy_eqn = .true.
+      use_dvdt_form_of_momentum_eqn = .false.
+      use_dPrad_dm_form_of_T_gradient_eqn = .false.
+      use_dedt_form_of_energy_eqn = .false.
 !      use_Paczynski_term_in_dvdt_eqn = .true.
-use_dP_dm_rotation_correction = .false.
 
       use_dEdRho_form_for_eps_grav = .false.
       use_dlnd_dt_form_for_eps_grav = .false.
@@ -126,13 +125,13 @@ use_dP_dm_rotation_correction = .false.
 
 
 ! Boundary condistion
-      use_compression_outer_BC = .true.
+      !use_compression_outer_BC = .true.
       !use_momentum_outer_BC = .true.
       !use_zero_Pgas_outer_BC = .true.
 
-      use_T_black_body_outer_BC = .true.
+      use_T_black_body_outer_BC = .false.
       !use_zero_dLdm_outer_BC = .true.
-      which_atm_option = 'Eddington_grey'
+      which_atm_option = 'simple_photosphere'
 
 
 ! mesh controls
@@ -171,7 +170,7 @@ use_dP_dm_rotation_correction = .false.
 
 
 ! artificial viscosity controls
-      use_artificial_viscosity = .true.
+      use_artificial_viscosity = .false.
 !      artificial_viscosity_Q_shift = 1d34
       shock_spread_linear = 0
       shock_spread_quadratic = 0.01
@@ -323,7 +322,7 @@ logQ_min_limit = -12d0
 
       ! FOR DEBUGGING
 
-!       report_hydro_solver_progress = .true. ! set true to see info about newton iterations
+       report_hydro_solver_progress = .true. ! set true to see info about newton iterations
       ! report_ierr = .true. ! if true, produce terminal output when have some internal error
        !hydro_show_correction_info = .true.
 

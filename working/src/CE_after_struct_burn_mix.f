@@ -124,7 +124,6 @@
                !only when the shell is mechanically unstable, i.e. Gamma1<4./3.
                if (s% gamma1(k) >= 4./3.) f_energy = 0.d0
 
-
                !If roation is on, then we add the rotational kinetic energy into the equation
                if (s% rotation_flag) then
                   vrot = s% omega(k) * s% r(k)
