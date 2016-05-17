@@ -66,18 +66,19 @@
       x_ctrl(4) = 0.6d0           !#CE: CE_companion_mass: The mass of the companion star in solar masses
       x_ctrl(5) = 1.0d0           !#CE: CE_n_acc_radii: Number of accretion radii away from companion star to deposit
                                  !#CE: heating into the star from orbital energy
-      x_ctrl(8) = 1d99           !#CE: Fractional orbital energy change allowed per step
-      x_ctrl(9) = 1d99           !#CE: Fractional orbital separation change allowed per step
-      x_ctrl(10) = 1d99          !#CE: Fractional orbital angular momentum change allowed per step
-      x_ctrl(11) = 2.d0           !#CE: Maximum factor by which CE_mdot can increase in one timestep
-      x_ctrl(12) = 2.d0           !#CE: Maximum factor by which CE_mdot can decrease in one timestep
+      x_ctrl(8) = 1d-2           !#CE: Fractional orbital energy change allowed per step
+      x_ctrl(9) = 1d-2           !#CE: Fractional orbital separation change allowed per step
+      x_ctrl(10) = 1d-2          !#CE: Fractional orbital angular momentum change allowed per step
+      x_ctrl(11) = 1.5d0           !#CE: Maximum factor by which CE_mdot can increase in one timestep
+      x_ctrl(12) = 1.5d0           !#CE: Maximum factor by which CE_mdot can decrease in one timestep
       x_ctrl(13) = 1d-8           !#CE: CE_mdot_smooth_limit: value for CE_mdot (in Msun/yr) above which we apply smoothing
-      x_ctrl(14) = 1d3           !#CE: CE_mdot_max: maximum allowed value for CE_mdot (in Msun/yr)
+      x_ctrl(14) = 1d0           !#CE: CE_mdot_max: maximum allowed value for CE_mdot (in Msun/yr)
       x_ctrl(15) = 0.1           !#CE: f_sync_init: Degree of syncronization (Omega_spin/Omega_orb) between
       x_ctrl(16) = 1.75          !#CE: alpha_pulse_wind: Wind enhancement term from Yoon & Cantiello (2010)
       x_ctrl(17) = -1            !#CE: Distance to source in kpc. Used solely to get apparent magnitudes
                                  !#CE: -1: Return absolute magnitudes
                                  !#CE: 778: - M31 (kpc)
+      x_ctrl(18) = 0.666            !#CE: n_tau_to_remove. Check down to this optical depth to see if outer layers are unbound
       x_integer_ctrl(1) = 4      !#CE: 1: Uniform heating of the whole envelope
                                  !#CE: 2: Heating at the base of the hydrogen envelope
                                  !#CE: 3: CE_energy_rate is calculated based on the companions position
@@ -86,7 +87,8 @@
                                  !#CE: when the outer parts of the envelope are bound or unbound.
       x_logical_ctrl(2) = .false. !#CE: include accretion luminosity: If true, then accretion energy onto the NS
                                   !#CE: is taken into account when calculating the energy donated to the envelope
-      x_logical_ctrl(3) = .true.  !#CE: use_pulse_wind use pulsational superwinds based of Yoon & Cantiello (2010) prescription
+      x_logical_ctrl(3) = .false.  !#CE: use_pulse_wind use pulsational superwinds based of Yoon & Cantiello (2010) prescription
+      x_logical_ctrl(4) = .true.  !#CE: Remove supersonic outer layers
 
       !#CE: increase the resolution around the position of the companion where the energy is deposited.
       !#CE: The other two parameters (R_function2_param1 and R_function2_param2) are set automatically
@@ -100,9 +102,9 @@
       use_dPrad_dm_form_of_T_gradient_eqn = .true.
       use_dedt_form_of_energy_eqn = .true.
 !      use_Paczynski_term_in_dvdt_eqn = .true.
-use_dP_dm_rotation_correction = .false.
+      use_dP_dm_rotation_correction = .false.
 
-      use_dEdRho_form_for_eps_grav = .false.
+      use_dEdRho_form_for_eps_grav = .true.
       use_dlnd_dt_form_for_eps_grav = .false.
       use_lnS_for_eps_grav = .false.
       use_PdVdt_form_for_eps_grav = .false.
@@ -112,7 +114,7 @@ use_dP_dm_rotation_correction = .false.
 
       qmax_zero_non_radiative_luminosity = 0d0
       qmin_freeze_non_radiative_luminosity = 1d0
-      use_dPrad_dm_form_of_T_gradient_eqn = .false.
+      use_dPrad_dm_form_of_T_gradient_eqn = .true.
 
 ! MLT ++
       okay_to_reduce_gradT_excess = .false.
@@ -139,7 +141,7 @@ use_dP_dm_rotation_correction = .false.
       !okay_to_remesh = .false.
       mesh_delta_coeff = 1.0 ! 0.8
 
-      min_dq = 1d-10
+      min_dq = 1d-14
       max_center_cell_dq = 5d-6
       max_surface_cell_dq = 1d-10
       log_tau_function_weight = 100
@@ -184,7 +186,7 @@ use_dP_dm_rotation_correction = .false.
       newton_iterations_limit = 7
       iter_for_resid_tol2 = 4
 !      tol_residual_norm1 = 1d-8
-!      tol_max_residual1 = 1d-7
+      tol_max_residual1 = 1d-1
       tol_residual_norm1 = 1d-4
       tol_max_residual1 = 1d-2
 
@@ -223,14 +225,14 @@ logQ_min_limit = -12d0
 
 
       !Angular momentum transport controls
-      am_nu_visc_factor = 1
-      am_D_mix_factor = 0.0333333333333333d00
-      D_DSI_factor = 1.
-      D_SH_factor = 1.
-      D_SSI_factor = 1.
-      D_ES_factor = 1.
-      D_GSF_factor = 1.
-      D_ST_factor = 1.
+      ! am_nu_visc_factor = 1
+      ! am_D_mix_factor = 0.0333333333333333d00
+      ! D_DSI_factor = 1.
+      ! D_SH_factor = 1.
+      ! D_SSI_factor = 1.
+      ! D_ES_factor = 1.
+      ! D_GSF_factor = 1.
+      ! D_ST_factor = 1.
 
 
 
@@ -311,9 +313,9 @@ logQ_min_limit = -12d0
       ! dX_nuc_drop_min_X_limit = 1d-4
       ! dX_nuc_drop_hard_limit = 1d99
       !
-      ! delta_lgTeff_limit = 0.5
-      ! delta_lgL_limit = 0.5
-      ! delta_lgRho_cntr_limit = 0.02
+      delta_lgTeff_limit = 0.5
+      delta_lgL_limit = 0.5
+!      delta_lgRho_cntr_limit = 0.02
 
       !catch NaNs and stop
       report_ierr = .true.
@@ -348,7 +350,7 @@ logQ_min_limit = -12d0
       !hydro_save_numjac_plot_data = .true.
       !small_mtx_decsol = 'lapack'
       !large_mtx_decsol = 'lapack'
-      hydro_dump_call_number = 1372
+!      hydro_dump_call_number = 699
 
       !trace_newton_bcyclic_solve_input = .true. ! input is "B" j k iter B(j,k)
       !trace_newton_bcyclic_solve_output = .true. ! output is "X" j k iter X(j,k)

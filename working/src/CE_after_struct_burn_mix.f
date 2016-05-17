@@ -61,8 +61,7 @@
         integer, intent(out) :: res ! keep_going, redo, retry, backup, terminate
          type (star_info), pointer :: s
          integer :: ierr, k
-         real(dp) :: mass_to_remove, CE_mdot, vrot
-
+         real(dp) :: mass_to_remove, CE_mdot, vrot, n_tau_to_remove
          real(dp) :: total_envelope_binding_energy
 
          ierr = 0
@@ -71,15 +70,11 @@
 
          k=1
          mass_to_remove = 0.0d0
-         do while ((k < s% nz) .and. (.not. is_bound(k)))
-            mass_to_remove = mass_to_remove + s% dm(k)
+         n_tau_to_remove = s% x_ctrl(18)
+         do while ((k < s% nz) .and. (s% tau(k) < n_tau_to_remove))
+            if (.not. is_bound(k)) mass_to_remove = mass_to_remove + s% dm(k)
             k=k+1
          enddo
-         ! do while ((k < s% nz) .and. (s% tau(k) < 1d2))
-         !    write(*,*) k, s% tau(k), is_bound(k)
-         !    if (.not. is_bound(k)) mass_to_remove = mass_to_remove + s% dm(k)
-         !    k=k+1
-         ! enddo
 
          ! Diagnostic to determine envelope binding energy
          ! Includes internal energy
@@ -139,6 +134,8 @@
                else
                   is_bound = .true.
                endif
+
+               if (s% x_logical_ctrl(4) .and. (s% v(k)/s% csound(k) .gt. 1.0d0)) is_bound = .false.
 
             end function is_bound
 

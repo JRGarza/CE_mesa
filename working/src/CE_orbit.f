@@ -29,6 +29,9 @@
 
       use star_def
       use const_def
+      use crlibm_lib
+
+!      use binary_evolve, only: eval_rlobe
 
       implicit none
 
@@ -171,19 +174,25 @@
 
 
       subroutine check_merger(id, ierr)
-        integer, intent(in) :: id
-        integer, intent(out) :: ierr
-        type (star_info), pointer :: s
+         integer, intent(in) :: id
+         integer, intent(out) :: ierr
+         type (star_info), pointer :: s
+         real(dp) :: CE_companion_position, CE_companion_radius, CE_companion_mass, rl_core, rl_companion
 
-        ierr = 0
-        call star_ptr(id, s, ierr)
-        if (ierr /= 0) return
+         ierr = 0
+         call star_ptr(id, s, ierr)
+         if (ierr /= 0) return
 
-        ! Merger condition
-        ! Merge if enclosed mass within 0.1 Msun of the He core mass
-        if (s% xtra9 - 0.1 < s% he_core_mass) s% lxtra1 = .true.
-        ! Merge if companion position within 0.1 Rsun of He core radius
-        if (s% xtra2 - 0.1 < s% he_core_radius+ s% x_ctrl(3)) s% lxtra1 = .true.
+         CE_companion_position = s% xtra2
+         CE_companion_radius = s% xtra3
+         CE_companion_mass = s% xtra4
+
+         rl_core = eval_rlobe(s% he_core_mass,CE_companion_mass,CE_companion_position)*CE_companion_position
+         rl_companion = eval_rlobe(CE_companion_mass,s% he_core_mass,CE_companion_position)*CE_companion_position
+
+         ! Merger condition
+         ! Merge if either the companion or the core fills its rochelobe
+         if ((rl_companion .le. CE_companion_radius) .or. (rl_core .le. s% he_core_radius)) s% lxtra1 = .true.
 
       end subroutine check_merger
 
@@ -345,6 +354,17 @@
          endif
 
       end function TukeyWindow
+
+      real(dp) function eval_rlobe(m1, m2, a) result(rlobe)
+         real(dp), intent(in) :: m1, m2, a
+         real(dp) :: q
+         q = pow_cr(m1/m2,one_third)
+      ! Roche lobe size for star of mass m1 with a
+      ! companion of mass m2 at separation a, according to
+      ! the approximation of Eggleton 1983, apj 268:368-369
+         rlobe = a*0.49d0*q*q/(0.6d0*q*q + log1p_cr(q))
+      end function eval_rlobe
+
 
 
       end module CE_orbit
