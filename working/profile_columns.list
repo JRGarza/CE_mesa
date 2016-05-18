@@ -352,12 +352,12 @@
    !add_abundances ! this adds all of the isos that are in the current net
    ! NOTE: you can list specific isotopes by giving their names (from chem_def)
 
-      !h1
-      !he3
-      !he4
-      !c12
-      !n14
-      !o16
+      h1
+      he3
+      he4
+      c12
+      n14
+      o16
 
    !add_log_abundances ! this adds log10 of all of the isos that are in the current net
    ! NOTE: you can list specific isotopes by giving their names (from chem_def)
@@ -391,13 +391,13 @@
    ! average neutral fraction from ionization module
       neutral_fraction_H
       neutral_fraction_He
-!       neutral_fraction_C
-!       neutral_fraction_N
-!       neutral_fraction_O
-!       neutral_fraction_Ne
-!       neutral_fraction_Mg
-!       neutral_fraction_Si
-!       neutral_fraction_Fe
+       neutral_fraction_C
+       neutral_fraction_N
+       neutral_fraction_O
+       neutral_fraction_Ne
+       neutral_fraction_Mg
+       neutral_fraction_Si
+       neutral_fraction_Fe
 
 
    ! ergs/g/sec for reaction categories
