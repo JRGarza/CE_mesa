@@ -76,8 +76,10 @@
             ! If based on positive energy
             ! if (.not. is_bound(k)) mass_to_remove = mass_to_remove + s% dm(k)
             ! If based on supersonic velocity
-            if (s% v_div_csound(k)>0.9) .or. (.not. is_bound(k)) then
+            if ((s% v_div_csound(k)>0.9) .or. (.not. is_bound(k))) then
                mass_to_remove = mass_to_remove + s% dm(k)
+            endif
+            
             k=k+1
 
          enddo
