@@ -78,7 +78,7 @@
       x_ctrl(11) = 1.5d0           !#CE: Maximum factor by which CE_mdot can increase in one timestep
       x_ctrl(12) = 1.5d0           !#CE: Maximum factor by which CE_mdot can decrease in one timestep
       x_ctrl(13) = 1d-8           !#CE: CE_mdot_smooth_limit: value for CE_mdot (in Msun/yr) above which we apply smoothing
-      x_ctrl(14) = 1d0           !#CE: CE_mdot_max: maximum allowed value for CE_mdot (in Msun/yr)
+      x_ctrl(14) = 1d1           !#CE: CE_mdot_max: maximum allowed value for CE_mdot (in Msun/yr)
       x_ctrl(15) = 0.1           !#CE: f_sync_init: Degree of syncronization (Omega_spin/Omega_orb) between
       x_ctrl(16) = 1.75          !#CE: alpha_pulse_wind: Wind enhancement term from Yoon & Cantiello (2010)
       x_ctrl(17) = -1            !#CE: Distance to source in kpc. Used solely to get apparent magnitudes
@@ -102,6 +102,8 @@
 
 
 ! equation controls
+
+opacity_max = 50.
 
       use_ODE_var_eqn_pairing = .true.
       use_dvdt_form_of_momentum_eqn = .true.
