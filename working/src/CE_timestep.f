@@ -41,9 +41,13 @@
 
          CE_pick_next_timestep = keep_going
 
-         CE_pick_next_timestep = worst_result(CE_pick_next_timestep, CE_check_energy(s))
-         CE_pick_next_timestep = worst_result(CE_pick_next_timestep, CE_check_separation(s))
-         CE_pick_next_timestep = worst_result(CE_pick_next_timestep, CE_check_ang_mom(s))
+         !Do the additional timestep controls only before the merger.
+         if (.not. s% lxtra1) then
+            CE_pick_next_timestep = worst_result(CE_pick_next_timestep, CE_check_energy(s))
+            CE_pick_next_timestep = worst_result(CE_pick_next_timestep, CE_check_separation(s))
+            CE_pick_next_timestep = worst_result(CE_pick_next_timestep, CE_check_ang_mom(s))
+         endif
+
 
       end function CE_pick_next_timestep
 

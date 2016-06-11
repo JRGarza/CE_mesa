@@ -10,7 +10,7 @@
 
       write_profile_when_terminate = .true.
       filename_for_profile_when_terminate = 'M31_2015_LNR_5.5M_0.1M_40R_tau1_final.data'
-!      profile_model_number = 12723
+!      profile_model_number = 616
 
       history_columns_file = './history_columns.list'
       profile_columns_file = './profile_columns.list'
@@ -44,7 +44,7 @@
 
 
 !      relax_to_this_tau_factor = 1d-4
-      relax_to_this_tau_factor = 11.1
+      relax_to_this_tau_factor = 0.9
       dlogtau_factor = 0.1
       relax_initial_tau_factor = .true.
 
@@ -52,10 +52,6 @@
 / ! end of star_job namelist
 
 &controls
-
-    ! Stop conditions
-      max_model_number = 10000    !********************* Step 1 in evolution *************************
-      max_age = 10.0
 
       use_other_energy = .true.
       use_other_torque = .true.
@@ -84,7 +80,7 @@
       x_ctrl(17) = -1            !#CE: Distance to source in kpc. Used solely to get apparent magnitudes
                                  !#CE: -1: Return absolute magnitudes
                                  !#CE: 778: - M31 (kpc)
-      x_ctrl(18) = 1.0          !#CE: n_tau_to_remove. Check down to this optical depth to see if outer layers are unbound
+      x_ctrl(18) = 0.666            !#CE: n_tau_to_remove. Check down to this optical depth to see if outer layers are unbound
       x_integer_ctrl(1) = 4      !#CE: 1: Uniform heating of the whole envelope
                                  !#CE: 2: Heating at the base of the hydrogen envelope
                                  !#CE: 3: CE_energy_rate is calculated based on the companions position
@@ -102,8 +98,6 @@
 
 
 ! equation controls
-
-opacity_max = 50.
 
       use_ODE_var_eqn_pairing = .true.
       use_dvdt_form_of_momentum_eqn = .true.
@@ -125,12 +119,9 @@ opacity_max = 50.
       use_dPrad_dm_form_of_T_gradient_eqn = .true.
 
 ! MLT ++
-      okay_to_reduce_gradT_excess = .true.
-!      gradT_excess_f1 = 1d-1
-!      gradT_excess_f2 = 1d-1
-!      gradT_excess_min_log_tau_full_on = 5.
-!      gradT_excess_max_log_tau_full_off = 10.
-
+      okay_to_reduce_gradT_excess = .false.
+      gradT_excess_min_log_tau_full_on = 0.
+      gradT_excess_max_log_tau_full_off = 1.
 !convection
       max_conv_vel_div_csound = 1
       max_v_div_cs_for_convection = 1
@@ -146,12 +137,11 @@ opacity_max = 50.
       use_T_black_body_outer_BC = .true.
       !use_zero_dLdm_outer_BC = .true.
       which_atm_option = 'Eddington_grey'
-!      which_atm_option = 'simple_photosphere'
+
 
 ! mesh controls
       !okay_to_remesh = .false.
       mesh_delta_coeff = 1.0 ! 0.8
-      ! mesh_delta_coeff = 0.5  ! TESTING
 
       min_dq = 1d-14
       max_center_cell_dq = 5d-6
@@ -164,7 +154,6 @@ opacity_max = 50.
 
 
 ! Timestep controls
-      !varcontrol_target = 1d-4  ! TESTING
       varcontrol_target = 1d-3
       ! delta_lg_star_mass_limit = 5d-3
       ! delta_lg_star_mass_hard_limit = 1d-2
@@ -197,8 +186,8 @@ opacity_max = 50.
       !use_energy_conservation_form = .true.
 
       newton_iterations_limit = 7
-      ! tol_residual_norm1 = 1d-3  ! TESTING
-      ! tol_max_residual1 = 2d-2  ! TESTING
+!      tol_residual_norm1 = 1d-8
+!      tol_max_residual1 = 1d-2
       tol_residual_norm1 = 1d-4
       tol_max_residual1 = 1d-2
       iter_for_resid_tol2 = 4
@@ -206,7 +195,7 @@ opacity_max = 50.
       tol_residual_norm2 = 1d-2
       tol_max_residual2 = 0.5
       iter_for_resid_tol3 = 999
-!      tol_max_correction = 1d-2  ! TESTING
+
       tol_max_correction = 3d-3
 
       tiny_corr_coeff_limit = 999999
@@ -217,15 +206,16 @@ opacity_max = 50.
 logQ_limit = 5d0
 logQ_min_limit = -12d0
 
-! Opacities
-      opacity_max = 15
+
 
       ! use_Type2_opacities = .true.
       ! Zbase = 0.02d0
 
+      max_model_number = 10000
+
 ! Output
       history_interval = 1
-      profile_interval = 2
+      profile_interval = 25
       max_num_profile_models = 5000
       terminal_cnt = 1
       write_header_frequency = 10
@@ -259,7 +249,6 @@ logQ_min_limit = -12d0
       RGB_to_AGB_wind_switch = 1d-4
       Dutch_scaling_factor = 1.0
       Reimers_scaling_factor = 0.5
-!      Reimers_scaling_factor = 1.0e5
       Blocker_scaling_factor = 0.5
       Vink_scaling_factor = 1d0
       max_wind = 1d-1
@@ -273,7 +262,6 @@ logQ_min_limit = -12d0
       newton_itermin = 2
 
       mixing_length_alpha = 1.5
-!      MLT_option = 'Mihalas'
       MLT_option = 'Cox'
 
       use_Ledoux_criterion = .true.
@@ -343,7 +331,7 @@ logQ_min_limit = -12d0
 
       ! FOR DEBUGGING
 
-!      report_hydro_solver_progress = .true. ! set true to see info about newton iterations
+!       report_hydro_solver_progress = .true. ! set true to see info about newton iterations
       report_ierr = .true. ! if true, produce terminal output when have some internal error
 !      hydro_show_correction_info = .true.
 
@@ -363,12 +351,12 @@ logQ_min_limit = -12d0
       !hydro debugging
       ! hydro_check_everything = .true.
 !      hydro_inspectB_flag = .true.
-!      hydro_dump_call_number = 14152
 
       !hydro_numerical_jacobian = .true.
       !hydro_save_numjac_plot_data = .true.
       !small_mtx_decsol = 'lapack'
       !large_mtx_decsol = 'lapack'
+!      hydro_dump_call_number = 847
 
       !trace_newton_bcyclic_solve_input = .true. ! input is "B" j k iter B(j,k)
       !trace_newton_bcyclic_solve_output = .true. ! output is "X" j k iter X(j,k)
