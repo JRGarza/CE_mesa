@@ -107,7 +107,21 @@
 
 
          CE_mdot = - (mass_to_remove) / dt !In gr/s
+
+         if (s% dt .le. s% mass_change_full_off_dt) then
+            CE_mdot = 0.0
+            write (*,*) "*", s% dt, s% mass_change_full_off_dt
+         else if ((s% dt .ge. s% mass_change_full_off_dt) .and. (s% dt .le. s% mass_change_full_on_dt)) then
+            CE_mdot = CE_mdot * (s% dt - s% mass_change_full_off_dt)/ &
+                (s% mass_change_full_on_dt - s% mass_change_full_off_dt)
+            write (*,*)"*", s%dt, s% mass_change_full_off_dt, s% mass_change_full_on_dt
+         endif
+
+            
+
          s% xtra7 = CE_mdot
+
+
 
          res = keep_going
 
