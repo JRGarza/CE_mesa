@@ -72,16 +72,8 @@
          mass_to_remove = 0.0d0
          n_tau_to_remove = s% x_ctrl(18)
          do while ((k < s% nz) .and. (s% tau(k) < n_tau_to_remove))
-
-            ! If based on positive energy
-            ! if (.not. is_bound(k)) mass_to_remove = mass_to_remove + s% dm(k)
-            ! If based on supersonic velocity
-            if ((s% v_div_csound(k)>0.9) .or. (.not. is_bound(k))) then
-               mass_to_remove = mass_to_remove + s% dm(k)
-            endif
-            
+            if (.not. is_bound(k)) mass_to_remove = mass_to_remove + s% dm(k)
             k=k+1
-
          enddo
 
          ! Diagnostic to determine envelope binding energy
