@@ -278,11 +278,11 @@
          integer :: k, k_bottom
          real(dp) :: CE_energy_rate, CE_companion_position, CE_companion_radius, CE_companion_mass
          real(dp) :: CE_n_acc_radii
-         real(dp) :: M2
+         real(dp) :: M2, R2
          real(dp) :: I, F_drag
          real(dp) :: a_tukey, mass_to_be_heated, ff
          real(dp) :: F_DHL, f1, f2, f3, e_rho
-         real(dp) :: mdot_macleod, mdot_HL, log_mdot_factor, a1, a2, a3, a4, R_NS, L_acc
+         real(dp) :: mdot_macleod, mdot_HL, log_mdot_factor, a1, a2, a3, a4, L_acc
          real(dp) :: R_acc, R_acc_low, R_acc_high
          real(dp) :: v_rel, v_rel_div_csound, M_encl, rho_at_companion, scale_height_at_companion
          ierr = 0
@@ -328,21 +328,23 @@
          a2 = 1.94694764
          a3 = 1.19007536
          a4 = 1.05762477
+
+         M2 = CE_companion_mass * Msun
+         R2 = CE_companion_radius * Rsun    ! NS radius is 10 km
+
          log_mdot_factor = a1 + a2 / (1.0 + a3*e_rho + a4*e_rho**2)
-         mdot_HL = pi * R_acc**2 * rho_at_companion * v_rel
+         mdot_HL = pi * R2**2 * rho_at_companion * v_rel
          mdot_macleod = mdot_HL * 10.0**log_mdot_factor
 
-         ! Eddington luminosity
-         M2 = CE_companion_mass * Msun
-         R_NS = 10.0 * 1.0e5   ! NS radius is 10 km
-         L_acc = standard_cgrav * M2 / R_NS * mdot_macleod
+         ! Accretion luminosity luminosity
+         L_acc = standard_cgrav * M2 / R2 * mdot_macleod
 
 
          ! Total energy rate = drag force * velocity
          if (s% x_logical_ctrl(2)) then
-            CE_energy_rate = F_drag * v_rel + L_acc ! Include accretion luminosity depending on inlist input
+            CE_energy_rate = F_drag * max(v_rel,0.0d0) + L_acc ! Include accretion luminosity depending on inlist input
          else
-            CE_energy_rate = F_drag * v_rel
+            CE_energy_rate = F_drag * max(v_rel,0.0d0)
          end if
 
          call CE_set_extra_heat(id, CE_energy_rate, ierr)

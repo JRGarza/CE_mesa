@@ -7,7 +7,7 @@
 &star_job
 
     read_extra_star_job_inlist1 = .true.
-    extra_star_job_inlist1_name = 'M31_2015_LRN_explicit_jeff_1.inlist'
+    extra_star_job_inlist1_name = 'Taam1979_CaseII_ImplicitHydro_20170307.inlist'
 
 / ! end of star_job namelist
 
@@ -15,7 +15,7 @@
 &controls
 
     read_extra_controls_inlist1 = .true.
-    extra_controls_inlist1_name = 'M31_2015_LRN_explicit_jeff_1.inlist'
+    extra_controls_inlist1_name = 'Taam1979_CaseII_ImplicitHydro_20170307.inlist'
 
 / ! end of controls namelist
 
