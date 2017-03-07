@@ -109,7 +109,7 @@
             write (*,*)"*", s%dt, s% mass_change_full_off_dt, s% mass_change_full_on_dt
          endif
 
-            
+
 
          s% xtra7 = CE_mdot
 
@@ -150,6 +150,9 @@
                endif
 
                if (s% x_logical_ctrl(4) .and. (s% v(k)/s% csound(k) .gt. 1.0d0)) is_bound = .false.
+
+               !In order to remove material, the shell should have energetically unbound AND supersonic
+               if (s% x_logical_ctrl(5) .and. (s% v(k)/s% csound(k) .lt. 1.0d0)) is_bound = .true.
 
             end function is_bound
 

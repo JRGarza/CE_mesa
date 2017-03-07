@@ -41,6 +41,8 @@ x_logical_ctrl(1) = .false.   include_internal_energy: If true, then the interna
 x_logical_ctrl(2) = .false.   include accretion luminosity: If true, then accretion energy onto the NS
                               is taken into account when calculating the energy donated to the envelope
 x_logical_ctrl(3) = .true.    use_pulse_wind use pulsational superwinds based of Yoon & Cantiello (2010) prescription
+x_logical_ctrl(4) = .false.   Remove supersonic outer layers
+x_logical_ctrl(5) = .true.    Remove outer layers when energetically unbound AND supersonic
 
 
 Tracked variables
