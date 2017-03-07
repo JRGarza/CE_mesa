@@ -1,0 +1,13 @@
+working/photos
+working/star
+working/restart_photo
+working/*.out
+working/make/*.*
+static_runs
+notebooks/.ipynb_checkpoints
+python_scripts/.ipynb_checkpoints
+python_scripts/*.pyc
+python_scripts/*.eps
+working/.svninfo
+working/LOGS/*
+working/*.log
