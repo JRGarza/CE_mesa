@@ -3,8 +3,8 @@
 &star_job
 
       load_saved_model = .true.
-      saved_model_name = '/home/evol/andrews/Research/CE_mesa/static_runs/M31_2015_LNR_15M_700R_tau1.mod'
-!      saved_model_name = '/data/disk1/fragkos/mesa_projects/CE/make_starting_models/Taam1978_caseII_tau10_tables.mod'
+      saved_model_name = '../data/M31_2015_LNR_15M_700R_tau1.mod'
+!      saved_model_name = '../data/Taam1978_caseII_tau10_tables.mod'
 
       ! save_model_when_terminate = .true.
       ! save_model_filename = 'M31_2015_LNR_3M_0.1M_30R_tau1_final.mod'
