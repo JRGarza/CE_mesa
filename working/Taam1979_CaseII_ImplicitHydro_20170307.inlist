@@ -3,8 +3,8 @@
 &star_job
 
       load_saved_model = .true.
-!      saved_model_name = '/home/evol/andrews/Research/CE_mesa/static_runs/M31_2015_LNR_15M_700R_tau1.mod'
-      saved_model_name = '/data/disk1/fragkos/mesa_projects/CE/make_starting_models/Taam1978_caseII_tau10_tables.mod'
+      saved_model_name = '/home/evol/andrews/Research/CE_mesa/static_runs/M31_2015_LNR_15M_700R_tau1.mod'
+!      saved_model_name = '/data/disk1/fragkos/mesa_projects/CE/make_starting_models/Taam1978_caseII_tau10_tables.mod'
 
       ! save_model_when_terminate = .true.
       ! save_model_filename = 'M31_2015_LNR_3M_0.1M_30R_tau1_final.mod'
@@ -76,10 +76,10 @@
       x_ctrl(8) = 1d-2           !#CE: Fractional orbital energy change allowed per step
       x_ctrl(9) = 1d-2           !#CE: Fractional orbital separation change allowed per step
       x_ctrl(10) = 1d-2          !#CE: Fractional orbital angular momentum change allowed per step
-      x_ctrl(11) = 1.5d0           !#CE: Maximum factor by which CE_mdot can increase in one timestep
+      x_ctrl(11) = 2.0d0           !#CE: Maximum factor by which CE_mdot can increase in one timestep
       x_ctrl(12) = 2d0           !#CE: Maximum factor by which CE_mdot can decrease in one timestep
       x_ctrl(13) = 1d-5          !#CE: CE_mdot_smooth_limit: value for CE_mdot (in Msun/yr) above which we apply smoothing
-      x_ctrl(14) = 1d4           !#CE: CE_mdot_max: maximum allowed value for CE_mdot (in Msun/yr)
+      x_ctrl(14) = 1d3           !#CE: CE_mdot_max: maximum allowed value for CE_mdot (in Msun/yr)
       x_ctrl(15) = 0.1           !#CE: f_sync_init: Degree of syncronization (Omega_spin/Omega_orb) between
       x_ctrl(16) = 1.75          !#CE: alpha_pulse_wind: Wind enhancement term from Yoon & Cantiello (2010)
       x_ctrl(17) = -1            !#CE: Distance to source in kpc. Used solely to get apparent magnitudes
@@ -96,7 +96,7 @@
                                   !#CE: is taken into account when calculating the energy donated to the envelope
       x_logical_ctrl(3) = .false.  !#CE: use_pulse_wind use pulsational superwinds based of Yoon & Cantiello (2010) prescription
       x_logical_ctrl(4) = .false.  !#CE: Remove supersonic outer layers
-      x_logical_ctrl(5) = .false.  !#CE: Remove outer layers when energetically unbound AND supersonic
+      x_logical_ctrl(5) = .true.  !#CE: Remove outer layers when energetically unbound AND supersonic
 
       !#CE: increase the resolution around the position of the companion where the energy is deposited.
       !#CE: The other two parameters (R_function2_param1 and R_function2_param2) are set automatically
@@ -151,7 +151,10 @@
 
       !which_atm_option = 'Eddington_grey'
       !which_atm_option = 'simple_photosphere'
-      which_atm_option = 'tau_10_tables'
+      which_atm_option = 'tau_1_tables'
+      
+      !Add extra gass pressure in the surface of the star. Sometimes helps with convergence.
+      !Pextra_factor = 2.
 
 ! mesh controls
       !okay_to_remesh = .false.
