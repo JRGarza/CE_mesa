@@ -100,9 +100,14 @@
 
             call CE_inject_case3(id, ierr)
 
-          else if (CE_test_case == 4) then   ! Energy based on MacLeod & Ramirez-Ruiz
+         else if (CE_test_case == 4) then   ! Energy based on MacLeod & Ramirez-Ruiz
 
-             call CE_inject_case4(id, ierr)
+            call CE_inject_case4(id, ierr)
+
+         else if (CE_test_case == 5) then   ! Energy based on Lee & Stahler (2011)
+
+            call CE_inject_case5(id, ierr)
+
          endif
 
 
@@ -354,6 +359,124 @@
          s% xtra20 = L_acc
 
       end subroutine CE_inject_case4
+
+
+
+      subroutine CE_inject_case5(id, ierr)
+
+         use const_def, only: Rsun, Msun, pi, standard_cgrav
+         integer, intent(in) :: id
+         integer, intent(out) :: ierr
+         type (star_info), pointer :: s
+         integer :: k, k_bottom
+         real(dp) :: CE_energy_rate, CE_companion_position, CE_companion_radius, CE_companion_mass
+         real(dp) :: CE_n_acc_radii
+         real(dp) :: M2, R2
+         real(dp) :: F_drag
+         real(dp) :: F_DHL, f1, f2, f3, e_rho
+         real(dp) :: mdot_HL, L_acc, a1, a2, a3, a4
+         real(dp) :: R_acc, R_acc_low, R_acc_high
+         real(dp) :: v_rel, beta, M_encl, rho_at_companion, scale_height_at_companion
+         real(dp) :: lambda_squared
+         ierr = 0
+         call star_ptr(id, s, ierr)
+         if (ierr /= 0) return
+
+         ! Alternative energy source here
+
+
+         ! Get input controls
+         CE_energy_rate = s% xtra1
+         CE_companion_position = s% xtra2
+         CE_companion_radius = s% xtra3
+         CE_companion_mass = s% xtra4
+         CE_n_acc_radii = s% xtra5
+
+
+         call calc_quantities_at_comp_position(id, ierr)
+
+         R_acc = s% xtra12
+         R_acc_low = s% xtra13
+         R_acc_high = s% xtra14
+         M_encl = s% xtra15
+         v_rel = s% xtra16
+         beta = s% xtra17
+         rho_at_companion = s% xtra18
+         scale_height_at_companion = s% xtra19
+
+
+
+         lambda_squared = exp(3.0) / 16.0
+
+
+         M2 = CE_companion_mass * Msun
+         R2 = CE_companion_radius * Rsun    ! NS radius is 10 km
+
+
+         ! Dimensionless
+         mdot_HL = 2.0 * sqrt(lambda_squared + beta*beta) / (1.0 + beta*beta)**2
+         ! Add in dimensions
+         mdot_HL = mdot_HL * 2.0 * pi * rho_at_companion * standard_cgrav**2 * M2**2 / s% csound**3
+
+
+         if (beta < 1.1) then
+
+            ! Drag force
+            F_drag = beta * s% csound * mdot_HL
+
+            ! Accretion luminosity luminosity
+            L_acc = standard_cgrav * M2 / R2 * mdot_HL
+
+         else
+
+
+            ! R_acc = (R_acc_low + R_acc_high) / 2.0
+            F_drag = pi * R_acc**2 * rho_at_companion * v_rel**2
+
+            ! Hydrodynamic drag from MacLeod & Ramirez-Ruiz (2014)
+            f1 = 1.91791946d0
+            f2 = -1.52814698d0
+            f3 = 0.75992092
+            e_rho = R_acc / scale_height_at_companion
+            F_drag = F_drag*(f1 + f2*e_rho +f3*e_rho**2)
+
+            ! Mass accretion from MacLeod & Ramirez-Ruiz (2014)
+            a1 = -2.14034214
+            a2 = 1.94694764
+            a3 = 1.19007536
+            a4 = 1.05762477
+
+            M2 = CE_companion_mass * Msun
+            R2 = CE_companion_radius * Rsun    ! NS radius is 10 km
+
+            log_mdot_factor = a1 + a2 / (1.0 + a3*e_rho + a4*e_rho**2)
+            mdot_HL = pi * R2**2 * rho_at_companion * v_rel
+            mdot_HL = mdot_HL * 10.0**log_mdot_factor
+
+
+         endif
+
+
+
+
+
+         ! Total energy rate = drag force * velocity
+         CE_energy_rate = F_drag * max(v_rel,0.0d0)
+
+
+         if (s% x_logical_ctrl(2)) then
+            call CE_set_extra_heat(id, CE_energy_rate + L_acc, ierr)
+         else
+            call CE_set_extra_heat(id, CE_energy_rate, ierr)
+         end if
+
+
+         ! Save the total erg/second added in this time step
+         s% xtra1 = CE_energy_rate
+         s% xtra20 = L_acc
+
+      end subroutine CE_inject_case5
+
 
 
       subroutine CE_set_extra_heat(id, CE_energy_rate, ierr)
