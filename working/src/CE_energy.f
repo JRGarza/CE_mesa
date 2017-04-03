@@ -289,7 +289,8 @@
          real(dp) :: F_DHL, f1, f2, f3, e_rho
          real(dp) :: mdot_macleod, mdot_HL, log_mdot_factor, a1, a2, a3, a4, L_acc
          real(dp) :: R_acc, R_acc_low, R_acc_high
-         real(dp) :: v_rel, v_rel_div_csound, M_encl, rho_at_companion, scale_height_at_companion
+         real(dp) :: v_rel, v_rel_div_csound, csound
+         real(dp) :: M_encl, rho_at_companion, scale_height_at_companion
          ierr = 0
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
@@ -315,7 +316,7 @@
          v_rel_div_csound = s% xtra17
          rho_at_companion = s% xtra18
          scale_height_at_companion = s% xtra19
-
+         csound = v_rel / v_rel_div_csound  
 
 !         ! For a first approximation, let's use the average R_acc
 !         R_acc = (R_acc_low + R_acc_high) / 2.0
@@ -376,8 +377,9 @@
          real(dp) :: F_DHL, f1, f2, f3, e_rho
          real(dp) :: mdot_HL, L_acc, a1, a2, a3, a4
          real(dp) :: R_acc, R_acc_low, R_acc_high
-         real(dp) :: v_rel, beta, M_encl, rho_at_companion, scale_height_at_companion
-         real(dp) :: lambda_squared
+         real(dp) :: v_rel, beta, M_encl, csound 
+         real(dp) :: rho_at_companion, scale_height_at_companion
+         real(dp) :: log_mdot_factor, lambda_squared
          ierr = 0
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
@@ -403,7 +405,7 @@
          beta = s% xtra17
          rho_at_companion = s% xtra18
          scale_height_at_companion = s% xtra19
-
+         csound = v_rel / beta 
 
 
          lambda_squared = exp(3.0) / 16.0
@@ -416,16 +418,17 @@
          ! Dimensionless
          mdot_HL = 2.0 * sqrt(lambda_squared + beta*beta) / (1.0 + beta*beta)**2
          ! Add in dimensions
-         mdot_HL = mdot_HL * 2.0 * pi * rho_at_companion * standard_cgrav**2 * M2**2 / s% csound**3
+         mdot_HL = mdot_HL * 2.0 * pi * rho_at_companion * standard_cgrav**2 * M2**2 / csound**3
 
 
          if (beta < 1.1) then
 
             ! Drag force
-            F_drag = beta * s% csound * mdot_HL
+            F_drag = beta * csound * mdot_HL
+            ! F_drag = beta * v_rel * mdot_HL 
 
-            ! Accretion luminosity luminosity
-            L_acc = standard_cgrav * M2 / R2 * mdot_HL
+            ! Accretion luminosity luminosity: 10% efficiency 
+            L_acc = 0.1 * standard_cgrav * M2 / R2 * mdot_HL
 
          else
 
@@ -450,13 +453,16 @@
             R2 = CE_companion_radius * Rsun    ! NS radius is 10 km
 
             log_mdot_factor = a1 + a2 / (1.0 + a3*e_rho + a4*e_rho**2)
-            mdot_HL = pi * R2**2 * rho_at_companion * v_rel
+            mdot_HL = pi * R_acc**2 * rho_at_companion * v_rel
             mdot_HL = mdot_HL * 10.0**log_mdot_factor
 
+            ! Accretion luminosity luminosity: 10% efficiency 
+            L_acc = 0.1 * standard_cgrav * M2 / R2 * mdot_HL
 
          endif
 
-
+         ! Limit accretion luminosity to Eddington rate
+         L_acc = min(L_acc, 1.26e38 * CE_companion_mass) 
 
 
 
