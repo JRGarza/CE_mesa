@@ -669,63 +669,63 @@
       ! info at innermost mach 1 location
       ! excluding locations with q < min_q_for_inner_mach1_location
       ! dr = r at mach 1 times shock_spread_quadratic parameter
-      inner_mach1_plus_dr_mass ! baryonic (Msun)
-      inner_mach1_plus_dr_radius ! (Rsun)
-      inner_mach1_plus_dr_velocity
-      inner_mach1_plus_dr_csound
-      inner_mach1_plus_dr_v_div_cs
-      inner_mach1_plus_dr_lgT
-      inner_mach1_plus_dr_lgRho
-      inner_mach1_plus_dr_lgP
-      inner_mach1_plus_dr_gamma1
-      inner_mach1_plus_dr_entropy
-      inner_mach1_plus_dr_k
+      ! inner_mach1_plus_dr_mass ! baryonic (Msun)
+      ! inner_mach1_plus_dr_radius ! (Rsun)
+      ! inner_mach1_plus_dr_velocity
+      ! inner_mach1_plus_dr_csound
+      ! inner_mach1_plus_dr_v_div_cs
+      ! inner_mach1_plus_dr_lgT
+      ! inner_mach1_plus_dr_lgRho
+      ! inner_mach1_plus_dr_lgP
+      ! inner_mach1_plus_dr_gamma1
+      ! inner_mach1_plus_dr_entropy
+      ! inner_mach1_plus_dr_k
 
       ! info at location of max entropy inward from inner mach 1 location
       ! excluding locations with q < min_q_for_inner_mach1_location
       ! dr = r at mach 1 times mach1_minus_dr_factor parameter
-      inner_mach1_minus_dr_mass ! baryonic (Msun)
-      inner_mach1_minus_dr_radius ! (Rsun)
-      inner_mach1_minus_dr_velocity
-      inner_mach1_minus_dr_csound
-      inner_mach1_minus_dr_v_div_cs
-      inner_mach1_minus_dr_lgT
-      inner_mach1_minus_dr_lgRho
-      inner_mach1_minus_dr_lgP
-      inner_mach1_minus_dr_gamma1
-      inner_mach1_minus_dr_entropy
-      inner_mach1_minus_dr_k
+      ! inner_mach1_minus_dr_mass ! baryonic (Msun)
+      ! inner_mach1_minus_dr_radius ! (Rsun)
+      ! inner_mach1_minus_dr_velocity
+      ! inner_mach1_minus_dr_csound
+      ! inner_mach1_minus_dr_v_div_cs
+      ! inner_mach1_minus_dr_lgT
+      ! inner_mach1_minus_dr_lgRho
+      ! inner_mach1_minus_dr_lgP
+      ! inner_mach1_minus_dr_gamma1
+      ! inner_mach1_minus_dr_entropy
+      ! inner_mach1_minus_dr_k
 
       ! info at outermost mach 1 location
       ! excluding locations with q > max_q_for_outer_mach1_location
       ! dr = r at mach 1 times mach1_plus_dr_factor parameter
-      outer_mach1_plus_dr_mass ! baryonic (Msun)
-      outer_mach1_plus_dr_radius ! (Rsun)
-      outer_mach1_plus_dr_velocity
-      outer_mach1_plus_dr_csound
-      outer_mach1_plus_dr_v_div_cs
-      outer_mach1_plus_dr_lgT
-      outer_mach1_plus_dr_lgRho
-      outer_mach1_plus_dr_lgP
-      outer_mach1_plus_dr_gamma1
-      outer_mach1_plus_dr_entropy
-      outer_mach1_plus_dr_k
+      ! outer_mach1_plus_dr_mass ! baryonic (Msun)
+      ! outer_mach1_plus_dr_radius ! (Rsun)
+      ! outer_mach1_plus_dr_velocity
+      ! outer_mach1_plus_dr_csound
+      ! outer_mach1_plus_dr_v_div_cs
+      ! outer_mach1_plus_dr_lgT
+      ! outer_mach1_plus_dr_lgRho
+      ! outer_mach1_plus_dr_lgP
+      ! outer_mach1_plus_dr_gamma1
+      ! outer_mach1_plus_dr_entropy
+      ! outer_mach1_plus_dr_k
 
       ! info at location of max entropy inward from outer mach 1 location
       ! excluding locations with q > max_q_for_outer_mach1_location
       ! dr = r at mach 1 times shock_spread_quadratic parameter
-      outer_mach1_minus_dr_mass ! baryonic (Msun)
-      outer_mach1_minus_dr_radius ! (Rsun)
-      outer_mach1_minus_dr_velocity
-      outer_mach1_minus_dr_csound
-      outer_mach1_minus_dr_v_div_cs
-      outer_mach1_minus_dr_lgT
-      outer_mach1_minus_dr_lgRho
-      outer_mach1_minus_dr_lgP
-      outer_mach1_minus_dr_gamma1
-      outer_mach1_minus_dr_entropy
-      outer_mach1_minus_dr_k
-
+      ! outer_mach1_minus_dr_mass ! baryonic (Msun)
+      ! outer_mach1_minus_dr_radius ! (Rsun)
+      ! outer_mach1_minus_dr_velocity
+      ! outer_mach1_minus_dr_csound
+      ! outer_mach1_minus_dr_v_div_cs
+      ! outer_mach1_minus_dr_lgT
+      ! outer_mach1_minus_dr_lgRho
+      ! outer_mach1_minus_dr_lgP
+      ! outer_mach1_minus_dr_gamma1
+      ! outer_mach1_minus_dr_entropy
+      ! outer_mach1_minus_dr_k
+      !
 
    ! asteroseismology
       !delta_nu ! large frequency separation for p-modes (microHz)

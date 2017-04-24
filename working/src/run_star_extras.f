@@ -197,8 +197,6 @@
          s% lxtra1 = .false.
 
 
-         if (s% x_logical_ctrl(6)) then 
-
             s% job% relax_omega = .true.
             s% job% new_omega = s% x_ctrl(15) * 2.*pi/AtoP(s% m(1),s% xtra4*Msun,s% xtra2 * Rsun)
             ! We set a very small timestep during the relaxation phase, so that the star does not evolve significantly
@@ -206,7 +204,6 @@
             s% job% set_initial_dt = .True.
             s% job% years_for_initial_dt = 1d-8
 
-         endif
 
          ! We are calling here the relax_omega, because we want to first have loaded the model so that we know its radius, and mass.
          if (s% rotation_flag .and. s% job% relax_omega) then
@@ -334,7 +331,7 @@
          if (ierr /= 0) return
 
          ! Call function to get rs
-         call get_magnitudes(id, b_mag, u_mag, v_mag, r_mag, i_mag, ierr)
+         !call get_magnitudes(id, b_mag, u_mag, v_mag, r_mag, i_mag, ierr)
 
          !note: do NOT add the extras names to history_columns.list
          ! the history_columns.list is only for the built-in log column options.
