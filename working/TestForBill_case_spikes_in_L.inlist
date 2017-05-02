@@ -188,8 +188,8 @@
 ! artificial viscosity controls
       !use_artificial_viscosity = .true.
 !      artificial_viscosity_Q_shift = 1d34
-      shock_spread_linear = 0
-      shock_spread_quadratic = 0.01
+      ! shock_spread_linear = 0
+      ! shock_spread_quadratic = 0.01
       !post_shock_viscosity_decay_factor = 0.5
       !pre_shock_viscosity_decay_factor = 0.5
 
@@ -219,7 +219,11 @@ logQ_min_limit = -12d0
 
 ! Opacities
       !opacity_max = 15
+      ! min_for_kap_floor = 1d-2
+      ! tau_use_kap_floor = .true.
 
+      kap_min_Z_0pt02 = 1d-2
+      kap_min_Z_1pt0 = 1d-2
       ! use_Type2_opacities = .true.
       ! Zbase = 0.02d0
 

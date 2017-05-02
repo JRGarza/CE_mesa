@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import matplotlib
-matplotlib.use('Qt4Agg')
+#matplotlib.use('Qt4Agg')
 
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
@@ -15,6 +15,87 @@ from multiprocessing import Pool,cpu_count
 
 
 from scipy.interpolate import interp1d
+from math import atan2,degrees
+
+
+
+#Label line with line2D label data
+def labelLine(line,x,label=None,align=True,**kwargs):
+
+    ax = line.get_axes()
+    xdata = line.get_xdata()
+    ydata = line.get_ydata()
+
+    if (x < xdata[0]) or (x > xdata[-1]):
+        print('x label location is outside data range!')
+        return
+
+    #Find corresponding y co-ordinate and angle of the
+    ip = 1
+    for i in range(len(xdata)):
+        if x < xdata[i]:
+            ip = i
+            break
+
+    y = ydata[ip-1] + (ydata[ip]-ydata[ip-1])*(x-xdata[ip-1])/(xdata[ip]-xdata[ip-1])
+
+    if not label:
+        label = line.get_label()
+
+    if align:
+        #Compute the slope
+        dx = xdata[ip] - xdata[ip-1]
+        dy = ydata[ip] - ydata[ip-1]
+        ang = degrees(atan2(dy,dx))
+
+        #Transform to screen co-ordinates
+        pt = np.array([x,y]).reshape((1,2))
+        trans_angle = ax.transData.transform_angles(np.array((ang,)),pt)[0]
+
+    else:
+        trans_angle = 0
+
+    #Set a bunch of keyword arguments
+    if 'color' not in kwargs:
+        kwargs['color'] = line.get_color()
+
+    if ('horizontalalignment' not in kwargs) and ('ha' not in kwargs):
+        kwargs['ha'] = 'center'
+
+    if ('verticalalignment' not in kwargs) and ('va' not in kwargs):
+        kwargs['va'] = 'center'
+
+    if 'backgroundcolor' not in kwargs:
+        kwargs['backgroundcolor'] = ax.get_axis_bgcolor()
+
+    if 'clip_on' not in kwargs:
+        kwargs['clip_on'] = True
+
+    if 'zorder' not in kwargs:
+        kwargs['zorder'] = 2.5
+
+    t = ax.text(x,y,label,rotation=trans_angle, **kwargs)
+    t.set_bbox(dict(color='white', alpha=0.0))
+
+def labelLines(lines,align=True,xvals=None,**kwargs):
+
+    ax = lines[0].get_axes()
+    labLines = []
+    labels = []
+
+    #Take only the lines which have labels other than the default ones
+    for line in lines:
+        label = line.get_label()
+        if "_line" not in label:
+            labLines.append(line)
+            labels.append(label)
+
+    if xvals is None:
+        xmin,xmax = ax.get_xlim()
+        xvals = np.linspace(xmin,xmax,len(labLines)+2)[1:-1]
+
+    for line,x,label in zip(labLines,xvals,labels):
+        labelLine(line,x,label,align,**kwargs)
 
 
 
@@ -305,6 +386,7 @@ class mesa(object):
 		tau100 (bool) -- include optical depth of 100 in plot (default False)
 		Nprofiles_to_plot (int) -- number of profiles to plot (default 10)
 		profiles_to_plot (list[int]) -- profile numbers to be plotted (default [])
+		mass_locations_to_trace (list[float]) -- mas locations (in Msun) to trace in radius (default [])
 		"""
 
 		self._param = {'data_path':"./", 'NX':1024, 'NY':1024, 'Yaxis':'mass', 'Xaxis':'star_age',
@@ -312,7 +394,7 @@ class mesa(object):
 					'Yaxis_dynamic_range':4, 'figure_format':"eps", 'font_small':16, 'font_large':20, 'file_out':'figure',
 					'onscreen':False, 'parallel':True, 'abundances':False, 'log_abundances':True, 'czones':False,
 					'signed_log_cmap':True, 'orbit':False, 'tau10':True, 'tau100':False, 'Nprofiles_to_plot':10,
-					'profiles_to_plot':[]}
+					'profiles_to_plot':[], 'mass_locations_to_trace':[]}
 
 		for key in kwargs:
 			if (key in self._param):
@@ -425,6 +507,9 @@ class mesa(object):
 	def profiles_to_plot(self):
 	    return self._param['profiles_to_plot']
 
+	@property
+	def mass_locations_to_trace(self):
+	    return self._param['mass_locations_to_trace']
 
 
 
@@ -651,6 +736,22 @@ class mesa(object):
 
 
 
+	def TraceMassLocations(self):
+		mass_locations_to_trace = np.asarray(self._param['mass_locations_to_trace'])
+		print(mass_locations_to_trace.shape[0], self.Nprofile)
+		radii_of_mass_locations_to_trace = np.zeros((mass_locations_to_trace.shape[0],self.Nprofile))
+
+		for i in range(self.Nprofile):
+			inter_trace_mass_locations = interp1d(self.profiles[i]["mass"],10.**self.profiles[i]["logR"])
+			valid_points  = np.where(mass_locations_to_trace < np.max(self.profiles[i]["mass"]))
+			radii_of_mass_locations_to_trace[:,i] = float('nan')
+			radii_of_mass_locations_to_trace[valid_points,i] = inter_trace_mass_locations(mass_locations_to_trace[valid_points])
+
+
+		return radii_of_mass_locations_to_trace
+
+
+
 	def Kippenhahn(self):
 		"""Generate a Kippenhahn diagram
 
@@ -791,7 +892,107 @@ class mesa(object):
 		cbar1.ax.xaxis.set_tick_params(labelsize = self._param['font_small'])
 
 
-#				Xaxis_values = interp1d(self._profile_index["model_number"].astype(float), data_all[:,i])
+
+		#Plot convecitve zones
+#TODO: Add check that convective zones info are included in the history file
+		if self._param['czones']:
+			if self._param['Xaxis'] == "model_number":
+				X_axis_czones = self.history['model_number']
+			elif self._param['Xaxis'] == "star_age":
+				X_axis_czones = self.history['star_age']
+			elif self._param['Xaxis'] == "inv_star_age":
+				X_axis_czones = self.history['star_age'][-1] - self.history['star_age']
+			elif self._param['Xaxis'] == "log_model_number":
+				X_axis_czones = np.log10(self.history['model_number'])
+			elif self._param['Xaxis'] == "log_star_age":
+				X_axis_czones = np.log10(self.history['star_age'])
+			elif self._param['Xaxis'] == "log_inv_star_age":
+				X_axis_czones = np.log10(2.*self.history['star_age'][-1]-self.history['star_age'][-2]-self.history['star_age'])
+
+
+			if self._param['Yaxis'] == "mass":
+				conv_mx1_top = interp1d(X_axis_czones, self.history['conv_mx1_top']*self.history['star_mass'])
+				conv_mx1_bot = interp1d(X_axis_czones, self.history['conv_mx1_bot']*self.history['star_mass'])
+				conv_mx2_top = interp1d(X_axis_czones, self.history['conv_mx2_top']*self.history['star_mass'])
+				conv_mx2_bot = interp1d(X_axis_czones, self.history['conv_mx2_bot']*self.history['star_mass'])
+			elif self._param['Yaxis'] == "radius":
+				conv_mx1_top = interp1d(X_axis_czones, self.history['conv_mx1_top_r'])
+				conv_mx1_bot = interp1d(X_axis_czones, self.history['conv_mx1_bot_r'])
+				conv_mx2_top = interp1d(X_axis_czones, self.history['conv_mx2_top_r'])
+				conv_mx2_bot = interp1d(X_axis_czones, self.history['conv_mx2_bot_r'])
+			elif self._param['Yaxis'] == "q":
+				conv_mx1_top = interp1d(X_axis_czones, self.history['conv_mx1_top'])
+				conv_mx1_bot = interp1d(X_axis_czones, self.history['conv_mx1_bot'])
+				conv_mx2_top = interp1d(X_axis_czones, self.history['conv_mx2_top'])
+				conv_mx2_bot = interp1d(X_axis_czones, self.history['conv_mx2_bot'])
+			elif self._param['Yaxis'] == "log_mass":
+				conv_mx1_top = interp1d(X_axis_czones, np.log10(self.history['conv_mx1_top']*self.history['star_mass']))
+				conv_mx1_bot = interp1d(X_axis_czones, np.log10(self.history['conv_mx1_bot']*self.history['star_mass']))
+				conv_mx2_top = interp1d(X_axis_czones, np.log10(self.history['conv_mx2_top']*self.history['star_mass']))
+				conv_mx2_bot = interp1d(X_axis_czones, np.log10(self.history['conv_mx2_bot']*self.history['star_mass']))
+			elif self._param['Yaxis'] == "log_radius":
+				conv_mx1_top = interp1d(X_axis_czones, np.log10(self.history['conv_mx1_top_r']))
+				conv_mx1_bot = interp1d(X_axis_czones, np.log10(self.history['conv_mx1_bot_r']))
+				conv_mx2_top = interp1d(X_axis_czones, np.log10(self.history['conv_mx2_top_r']))
+				conv_mx2_bot = interp1d(X_axis_czones, np.log10(self.history['conv_mx2_bot_r']))
+			elif self._param['Yaxis'] == "log_q":
+				conv_mx1_top = interp1d(X_axis_czones, np.log10(self.history['conv_mx1_top']))
+				conv_mx1_bot = interp1d(X_axis_czones, np.log10(self.history['conv_mx1_bot']))
+				conv_mx2_top = interp1d(X_axis_czones, np.log10(self.history['conv_mx2_top']))
+				conv_mx2_bot = interp1d(X_axis_czones, np.log10(self.history['conv_mx2_bot']))
+
+
+
+			N_cz_lines = 200
+			X_cz = np.arange(self._Xmin, self._Xmax, (self._Xmax-self._Xmin)/N_cz_lines)
+			cz1_top = conv_mx1_top(X_cz)
+			cz1_bot = conv_mx1_bot(X_cz)
+			cz2_top = conv_mx2_top(X_cz)
+			cz2_bot = conv_mx2_bot(X_cz)
+			for i in range(N_cz_lines):
+				ax1.plot([X_cz[i], X_cz[i]], [cz1_bot[i],cz1_top[i]], color='grey', linewidth=1.0, alpha=0.5)
+				ax1.plot([X_cz[i], X_cz[i]], [cz2_bot[i],cz2_top[i]], color='grey', linewidth=1.0, alpha=0.5)
+
+
+
+
+
+		#Plotting radii of mass locations to trace
+		if len(self._param['mass_locations_to_trace'])>0:
+			radii_of_mass_locations_to_trace = self.TraceMassLocations()
+
+			if self._param['Xaxis'] == "model_number":
+				X_axis_TML = self._profile_index
+			elif self._param['Xaxis'] == "star_age":
+				X_axis_TML = self.profile_age
+			elif self._param['Xaxis'] == "inv_star_age":
+				X_axis_TML = self.profile_age[-1] - self.profile_age
+			elif self._param['Xaxis'] == "log_model_number":
+				X_axis_TML = np.log10(self._profile_index)
+			elif self._param['Xaxis'] == "log_star_age":
+				X_axis_TML = np.log10(self.profile_age)
+			elif self._param['Xaxis'] == "log_inv_star_age":
+				X_axis_TML = np.log10(2.*self.profile_age[-1]- self.profile_age[-2] -self.profile_age)
+
+
+
+			lines_trace_mass_location = []
+			if self._param['Yaxis'] == "radius":
+				for i in range(len(self._param['mass_locations_to_trace'])):
+					label1 = str(self._param['mass_locations_to_trace'][i])+r"$M_{\odot}$"
+					# lines_trace_mass_location.append(ax1.plot(X_axis_TML, radii_of_mass_locations_to_trace[i,:], "-",linewidth=1, color='magenta',label=label1))
+					line1 = ax1.plot(X_axis_TML, radii_of_mass_locations_to_trace[i,:], ":",linewidth=1, color='black',label=label1)
+					lines_trace_mass_location.append(line1[0])
+				labelLines(lines_trace_mass_location,align=False,color='black')
+
+			elif self._param['Yaxis'] == "log_radius":
+				for i in range(len(self._param['mass_locations_to_trace'])):
+					label1 = str(self._param['mass_locations_to_trace'][i])+r"$M_{\odot}$"
+					lines_trace_mass_location.append(ax1.plot(X_axis_TML, radii_of_mass_locations_to_trace[i,:], ":",linewidth=1, color='black',label=label1))
+				labelLines(lines_trace_mass_location,align=False,color='black')
+
+
+
 
 		#Plotting the orbit of the companion star inside the common envelope
 		if self._param['orbit']:
@@ -895,66 +1096,6 @@ class mesa(object):
 
 
 
-
-		#Plot convecitve zones
-#TODO: Add check that convective zones info are included in the history file
-		if self._param['czones']:
-			if self._param['Xaxis'] == "model_number":
-				X_axis_czones = self.history['model_number']
-			elif self._param['Xaxis'] == "star_age":
-				X_axis_czones = self.history['star_age']
-			elif self._param['Xaxis'] == "inv_star_age":
-				X_axis_czones = self.history['star_age'][-1] - self.history['star_age']
-			elif self._param['Xaxis'] == "log_model_number":
-				X_axis_czones = np.log10(self.history['model_number'])
-			elif self._param['Xaxis'] == "log_star_age":
-				X_axis_czones = np.log10(self.history['star_age'])
-			elif self._param['Xaxis'] == "log_inv_star_age":
-				X_axis_czones = np.log10(2.*self.history['star_age'][-1]-self.history['star_age'][-2]-self.history['star_age'])
-
-
-			if self._param['Yaxis'] == "mass":
-				conv_mx1_top = interp1d(X_axis_czones, self.history['conv_mx1_top']*self.history['star_mass'])
-				conv_mx1_bot = interp1d(X_axis_czones, self.history['conv_mx1_bot']*self.history['star_mass'])
-				conv_mx2_top = interp1d(X_axis_czones, self.history['conv_mx2_top']*self.history['star_mass'])
-				conv_mx2_bot = interp1d(X_axis_czones, self.history['conv_mx2_bot']*self.history['star_mass'])
-			elif self._param['Yaxis'] == "radius":
-				conv_mx1_top = interp1d(X_axis_czones, self.history['conv_mx1_top_r'])
-				conv_mx1_bot = interp1d(X_axis_czones, self.history['conv_mx1_bot_r'])
-				conv_mx2_top = interp1d(X_axis_czones, self.history['conv_mx2_top_r'])
-				conv_mx2_bot = interp1d(X_axis_czones, self.history['conv_mx2_bot_r'])
-			elif self._param['Yaxis'] == "q":
-				conv_mx1_top = interp1d(X_axis_czones, self.history['conv_mx1_top'])
-				conv_mx1_bot = interp1d(X_axis_czones, self.history['conv_mx1_bot'])
-				conv_mx2_top = interp1d(X_axis_czones, self.history['conv_mx2_top'])
-				conv_mx2_bot = interp1d(X_axis_czones, self.history['conv_mx2_bot'])
-			elif self._param['Yaxis'] == "log_mass":
-				conv_mx1_top = interp1d(X_axis_czones, np.log10(self.history['conv_mx1_top']*self.history['star_mass']))
-				conv_mx1_bot = interp1d(X_axis_czones, np.log10(self.history['conv_mx1_bot']*self.history['star_mass']))
-				conv_mx2_top = interp1d(X_axis_czones, np.log10(self.history['conv_mx2_top']*self.history['star_mass']))
-				conv_mx2_bot = interp1d(X_axis_czones, np.log10(self.history['conv_mx2_bot']*self.history['star_mass']))
-			elif self._param['Yaxis'] == "log_radius":
-				conv_mx1_top = interp1d(X_axis_czones, np.log10(self.history['conv_mx1_top_r']))
-				conv_mx1_bot = interp1d(X_axis_czones, np.log10(self.history['conv_mx1_bot_r']))
-				conv_mx2_top = interp1d(X_axis_czones, np.log10(self.history['conv_mx2_top_r']))
-				conv_mx2_bot = interp1d(X_axis_czones, np.log10(self.history['conv_mx2_bot_r']))
-			elif self._param['Yaxis'] == "log_q":
-				conv_mx1_top = interp1d(X_axis_czones, np.log10(self.history['conv_mx1_top']))
-				conv_mx1_bot = interp1d(X_axis_czones, np.log10(self.history['conv_mx1_bot']))
-				conv_mx2_top = interp1d(X_axis_czones, np.log10(self.history['conv_mx2_top']))
-				conv_mx2_bot = interp1d(X_axis_czones, np.log10(self.history['conv_mx2_bot']))
-
-
-
-			N_cz_lines = 200
-			X_cz = np.arange(self._Xmin, self._Xmax, (self._Xmax-self._Xmin)/N_cz_lines)
-			cz1_top = conv_mx1_top(X_cz)
-			cz1_bot = conv_mx1_bot(X_cz)
-			cz2_top = conv_mx2_top(X_cz)
-			cz2_bot = conv_mx2_bot(X_cz)
-			for i in range(N_cz_lines):
-				ax1.plot([X_cz[i], X_cz[i]], [cz1_bot[i],cz1_top[i]], color='grey', alpha=0.5)
-				ax1.plot([X_cz[i], X_cz[i]], [cz2_bot[i],cz2_top[i]], color='grey', alpha=0.5)
 
 
 
@@ -1112,9 +1253,10 @@ if __name__ == "__main__":
 	#						"super_ad", "vconv", "vconv_div_vesc", "conv_vel_div_csound", "total_energy_plus_vconv2"
 
 
-	data_path = "/home/evol/fragkos/disk1/mesa_projects/CE/example_runs/heat_base_lim_vconv/LOGS/"
-	a = mesa(data_path=data_path, parallel=True, abundances=False, log_abundances = True, Yaxis='mass', Xaxis="star_age",
-		czones=True, Variable='vconv_div_vesc', orbit=True)
-	a.SetParameters(onscreen=True, cmap = 'jet', cmap_dynamic_range=5, signed_log_cmap=False)
+	data_path = "../working/LOGS/"
+	a = mesa(data_path=data_path, parallel=True, abundances=False, log_abundances = True, Yaxis='radius', Xaxis="star_age",
+		czones=True, Variable='v_div_vesc', orbit=True, mass_locations_to_trace = [4., 6., 8., 10.,12.,14.])
+	a.SetParameters(onscreen=True, cmap = 'jet', cmap_dynamic_range=5, signed_log_cmap=False, tau10=True, tau100=True)
+
 
 	a.Kippenhahn()
