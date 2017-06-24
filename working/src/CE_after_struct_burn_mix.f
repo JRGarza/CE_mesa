@@ -61,7 +61,7 @@
         integer, intent(out) :: res ! keep_going, redo, retry, backup, terminate
          type (star_info), pointer :: s
          integer :: ierr, k
-         real(dp) :: mass_to_remove, CE_mdot, vrot, n_tau_to_remove
+         real(dp) :: mass_to_remove, CE_mdot, v_rad, vrot, n_tau_to_remove
          real(dp) :: total_envelope_binding_energy
 
          ierr = 0
@@ -76,21 +76,30 @@
             k=k+1
          enddo
 
+         k=1
+
          ! Diagnostic to determine envelope binding energy
          ! Includes internal energy
          k=1
          total_envelope_binding_energy = 0.0
          do while ((k < s% nz) .and. (s% m(k) > s% he_core_mass * Msun))
 
+            ! This is necessary depending on the velocity version used
+            if (s% u_flag) then
+               v_rad = s% u(k)
+            else
+               v_rad = s% v(k)
+            endif   
+
             if (s% rotation_flag) then
                vrot = s% omega(k) * s% r(k)
                total_envelope_binding_energy = total_envelope_binding_energy + &
                               (s% energy(k) - s% cgrav(k)*s% m_grav(k)/s% r(k) + &
-                              0.5d0*s% v(k)*s% v(k) + 0.5d0*vrot*vrot) * s% dm(k)
+                              0.5d0*v_rad*v_rad + 0.5d0*vrot*vrot) * s% dm(k)
             else
                total_envelope_binding_energy = total_envelope_binding_energy + &
                               (s% energy(k) - s% cgrav(k)*s% m_grav(k)/s% r(k) + &
-                              0.5d0*s% v(k)*s% v(k)) * s% dm(k)
+                              0.5d0*v_rad*v_rad) * s% dm(k)
             endif
 
             k=k+1
@@ -133,14 +142,21 @@
                !only when the shell is mechanically unstable, i.e. Gamma1<4./3.
                if (s% gamma1(k) >= 4./3.) f_energy = 0.d0
 
+               ! This is necessary depending on the velocity version used
+               if (s% u_flag) then
+                  v_rad = s% u(k)
+               else
+                  v_rad = s% v(k)
+               endif
+
                !If roation is on, then we add the rotational kinetic energy into the equation
                if (s% rotation_flag) then
                   vrot = s% omega(k) * s% r(k)
                   val = f_energy * s% energy(k) - s% cgrav(k)*s% m_grav(k)/s% r(k) + &
-                              0.5d0*s% v(k)*s% v(k) + 0.5d0*vrot*vrot
+                              0.5d0*v_rad*v_rad + 0.5d0*vrot*vrot
                else
                   val = f_energy * s% energy(k) - s% cgrav(k)*s% m_grav(k)/s% r(k) + &
-                              0.5d0*s% v(k)*s% v(k)
+                              0.5d0*v_rad*v_rad 
                endif
 
                if (val > 0.0d0) then
