@@ -40,11 +40,172 @@
       use CE_before_struct_burn_mix
       use CE_adjust_mdot
       use CE_timestep
+      use eos_lib, only: eosDT_get_9575, eosDT_get_T
 
       implicit none
 
       ! these routines are called by the standard run_star check_model
       contains
+
+
+      subroutine my_other_eosDT_get( &
+              id, k, handle, Z, X, abar, zbar, &
+              species, chem_id, net_iso, xa, &
+              Rho, log10Rho, T, log10T, &
+              res, d_dlnRho_const_T, d_dlnT_const_Rho, &
+              d_dabar_const_TRho, d_dzbar_const_TRho, ierr)
+
+         ! INPUT
+         use chem_def, only: num_chem_isos
+
+         integer, intent(in) :: id ! star id if available; 0 otherwise
+         integer, intent(in) :: k ! cell number or 0 if not for a particular cell
+         integer, intent(in) :: handle ! eos handle
+
+         real(dp), intent(in) :: Z ! the metals mass fraction
+         real(dp), intent(in) :: X ! the hydrogen mass fraction
+
+         real(dp), intent(in) :: abar
+            ! mean atomic number (nucleons per nucleus; grams per mole)
+         real(dp), intent(in) :: zbar ! mean charge per nucleus
+
+         integer, intent(in) :: species
+         integer, pointer :: chem_id(:) ! maps species to chem id
+            ! index from 1 to species
+            ! value is between 1 and num_chem_isos
+         integer, pointer :: net_iso(:) ! maps chem id to species number
+            ! index from 1 to num_chem_isos (defined in chem_def)
+            ! value is 0 if the iso is not in the current net
+            ! else is value between 1 and number of species in current net
+         real(dp), intent(in) :: xa(:) ! mass fractions
+
+         real(dp), intent(in) :: Rho, log10Rho ! the density
+            ! provide both if you have them.  else pass one and set the other to arg_not_provided
+            ! "arg_not_provided" is defined in mesa const_def
+
+         real(dp), intent(in) :: T, log10T ! the temperature
+            ! provide both if you have them.  else pass one and set the other to arg_not_provided
+
+         ! OUTPUT
+
+         real(dp), intent(out) :: res(:) ! (num_eos_basic_results)
+         ! partial derivatives of the basic results wrt lnd and lnT
+         real(dp), intent(out) :: d_dlnRho_const_T(:) ! (num_eos_basic_results)
+         ! d_dlnRho_c_T(i) = d(res(i))/dlnd|T
+         real(dp), intent(out) :: d_dlnT_const_Rho(:) ! (num_eos_basic_results)
+         ! d_dlnT(i) = d(res(i))/dlnT|Rho
+         real(dp), intent(out) :: d_dabar_const_TRho(:) ! (num_eos_basic_results)
+         real(dp), intent(out) :: d_dzbar_const_TRho(:) ! (num_eos_basic_results)
+
+         integer, intent(out) :: ierr ! 0 means AOK.
+
+         type (star_info), pointer :: s
+         ierr = 0
+         call star_ptr(id, s, ierr)
+         if (ierr /= 0) return
+
+
+         res = 0
+         d_dlnRho_const_T = 0
+         d_dlnT_const_Rho = 0
+         d_dabar_const_TRho = 0
+         d_dzbar_const_TRho = 0
+
+         ! write(*,*) 'no implementation for other_eosDT_get'
+         ! ierr = -1
+         call eosDT_get_9575(&
+               handle, Z, X, abar, zbar, &
+               species, chem_id, net_iso, xa, &
+               Rho, log10Rho, T, log10T, s% eos_partials_consistency_level, &
+               res, d_dlnRho_const_T, d_dlnT_const_Rho, &
+               d_dabar_const_TRho, d_dzbar_const_TRho, ierr)
+
+
+      end subroutine my_other_eosDT_get
+
+
+      subroutine my_other_eosDT_get_T( &
+               id, k, handle, Z, X, abar, zbar, &
+               species, chem_id, net_iso, xa, &
+               logRho, which_other, other_value, &
+               logT_tol, other_tol, max_iter, logT_guess, &
+               logT_bnd1, logT_bnd2, other_at_bnd1, other_at_bnd2, &
+               logT_result, res, d_dlnRho_const_T, d_dlnT_const_Rho, &
+               d_dabar_const_TRho, d_dzbar_const_TRho, eos_calls, ierr)
+
+         ! finds log10 T given values for density and 'other', and initial guess for temperature.
+         ! does up to max_iter attempts until logT changes by less than tol.
+
+         ! 'other' can be any of the basic result variables for the eos
+         ! specify 'which_other' by means of the definitions in eos_def (e.g., i_lnE)
+
+         use chem_def, only: num_chem_isos
+
+         integer, intent(in) :: id ! star id if available; 0 otherwise
+         integer, intent(in) :: k ! cell number or 0 if not for a particular cell
+         integer, intent(in) :: handle
+
+         real(dp), intent(in) :: Z ! the metals mass fraction
+         real(dp), intent(in) :: X ! the hydrogen mass fraction
+
+         real(dp), intent(in) :: abar
+            ! mean atomic number (nucleons per nucleus; grams per mole)
+         real(dp), intent(in) :: zbar ! mean charge per nucleus
+
+         integer, intent(in) :: species
+         integer, pointer :: chem_id(:) ! maps species to chem id
+            ! index from 1 to species
+            ! value is between 1 and num_chem_isos
+         integer, pointer :: net_iso(:) ! maps chem id to species number
+            ! index from 1 to num_chem_isos (defined in chem_def)
+            ! value is 0 if the iso is not in the current net
+            ! else is value between 1 and number of species in current net
+         real(dp), intent(in) :: xa(:) ! mass fractions
+
+         real(dp), intent(in) :: logRho ! log10 of density
+         integer, intent(in) :: which_other ! from eos_def.  e.g., i_lnE
+         real(dp), intent(in) :: other_value ! desired value for the other variable
+         real(dp), intent(in) :: other_tol
+
+         real(dp), intent(in) :: logT_tol
+         integer, intent(in) :: max_iter ! max number of iterations
+
+         real(dp), intent(in) :: logT_guess ! log10 of temperature
+         real(dp), intent(in) :: logT_bnd1, logT_bnd2 ! bounds for logT
+            ! if don't know bounds, just set to arg_not_provided (defined in const_def)
+         real(dp), intent(in) :: other_at_bnd1, other_at_bnd2 ! values at bounds
+            ! if don't know these values, just set to arg_not_provided (defined in const_def)
+
+         real(dp), intent(out) :: logT_result ! log10 of temperature
+         real(dp), intent(out) :: res(:) ! (num_eos_basic_results)
+         real(dp), intent(out) :: d_dlnRho_const_T(:) ! (num_eos_basic_results)
+         real(dp), intent(out) :: d_dlnT_const_Rho(:) ! (num_eos_basic_results)
+         real(dp), intent(out) :: d_dabar_const_TRho(:) ! (num_eos_basic_results)
+         real(dp), intent(out) :: d_dzbar_const_TRho(:) ! (num_eos_basic_results)
+
+         integer, intent(out) :: eos_calls
+         integer, intent(out) :: ierr ! 0 means AOK.
+
+         logT_result = 0
+         res = 0
+         d_dlnRho_const_T = 0
+         d_dlnT_const_Rho = 0
+         d_dabar_const_TRho = 0
+         d_dzbar_const_TRho = 0
+         eos_calls = 0
+
+         call eosDT_get_T( &
+               handle, Z, X, abar, zbar, &
+               species, chem_id, net_iso, xa, &
+               logRho, which_other, other_value, &
+               logT_tol, other_tol, max_iter, logT_guess, &
+               logT_bnd1, logT_bnd2, other_at_bnd1, other_at_bnd2, &
+               logT_result, res, d_dlnRho_const_T, d_dlnT_const_Rho, &
+               d_dabar_const_TRho, d_dzbar_const_TRho, eos_calls, ierr)
+
+      end subroutine my_other_eosDT_get_T
+
+
 
 
       subroutine extras_controls(id, ierr)
@@ -82,6 +243,8 @@
          s% other_before_struct_burn_mix => calc_recombination_before_struct_burn_mix
          s% other_after_struct_burn_mix => CE_other_after_struct_burn_mix
          s% other_adjust_mdot => CE_other_adjust_mdot
+         s% other_eosDT_get => my_other_eosDT_get
+         s% other_eosDT_get_T => my_other_eosDT_get_T
 
          ! Reading values of parameters from the extra controls that we are using
          ! Note that "extra_heat" is the specific energy added to the the  cell in units of erg/s/gr

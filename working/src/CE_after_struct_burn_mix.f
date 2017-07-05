@@ -72,7 +72,11 @@
          mass_to_remove = 0.0d0
          n_tau_to_remove = s% x_ctrl(18)
          do while ((k < s% nz) .and. (s% tau(k) < n_tau_to_remove))
-            if (.not. is_bound(k)) mass_to_remove = mass_to_remove + s% dm(k)
+            if (.not. is_bound(k)) then
+               mass_to_remove = mass_to_remove + s% dm(k)
+            else
+               exit
+            endif
             k=k+1
          enddo
 
@@ -89,7 +93,7 @@
                v_rad = s% u(k)
             else
                v_rad = s% v(k)
-            endif   
+            endif
 
             if (s% rotation_flag) then
                vrot = s% omega(k) * s% r(k)
@@ -156,7 +160,7 @@
                               0.5d0*v_rad*v_rad + 0.5d0*vrot*vrot
                else
                   val = f_energy * s% energy(k) - s% cgrav(k)*s% m_grav(k)/s% r(k) + &
-                              0.5d0*v_rad*v_rad 
+                              0.5d0*v_rad*v_rad
                endif
 
                if (val > 0.0d0) then

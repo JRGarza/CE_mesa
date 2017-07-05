@@ -2,7 +2,7 @@
 &star_job
 
       load_saved_model = .true.
-      saved_model_name = '/Users/tassos/repos/CE_mesa/data/M31_2015_LNR_15M_700R_tau1.mod'
+      saved_model_name = '/Users/tassos/repos/CE_mesa/data/CE_paperI_StartingModel_30M_1000R.mod'
 
       history_columns_file = './history_columns.list'
       profile_columns_file = './profile_columns.list'
@@ -16,11 +16,11 @@
 
       change_v_flag = .true.
 !      change_initial_v_flag = .true.
-      new_v_flag = .false.
+      new_v_flag = .true.
 
        change_u_flag = .true.
 ! !      change_initial_u_flag = .true.
-       new_u_flag = .true.
+       new_u_flag = .false.
 
 
       ! change_lnE_flag = .true.
@@ -60,7 +60,7 @@
 
       x_ctrl(1) = 3.1687536e+38  !#CE: CE_energy_rate: The rate at which energy is deposited in the star
                                  !#CE: in units of erg/s.
-      x_ctrl(2) = 0.95          !#CE: CE_companion_initial_position: The initial distance of the center of the companion,
+      x_ctrl(2) = 0.99         !#CE: CE_companion_initial_position: The initial distance of the center of the companion,
                                  !#CE: in units of the primary's radius
                                  !#CE: star from the center of the donor star in solar radii
       x_ctrl(3) = 1.437d-5           !#CE: initial CE_companion_radius: The radius of the companion star in solar radii
@@ -74,12 +74,12 @@
       x_ctrl(12) = 2d0           !#CE: Maximum factor by which CE_mdot can decrease in one timestep
       x_ctrl(13) = 1d-5          !#CE: CE_mdot_smooth_limit: value for CE_mdot (in Msun/yr) above which we apply smoothing
       x_ctrl(14) = 1d3           !#CE: CE_mdot_max: maximum allowed value for CE_mdot (in Msun/yr)
-      x_ctrl(15) = 0.1           !#CE: f_sync_init: Degree of syncronization (Omega_spin/Omega_orb) between
+      x_ctrl(15) = 0.95           !#CE: f_sync_init: Degree of syncronization (Omega_spin/Omega_orb) between
       x_ctrl(16) = 1.75          !#CE: alpha_pulse_wind: Wind enhancement term from Yoon & Cantiello (2010)
       x_ctrl(17) = -1            !#CE: Distance to source in kpc. Used solely to get apparent magnitudes
                                  !#CE: -1: Return absolute magnitudes
                                  !#CE: 778: - M31 (kpc)
-      x_ctrl(18) = 1.0          !#CE: n_tau_to_remove. Check down to this optical depth to see if outer layers are unbound
+      x_ctrl(18) = 1         !#CE: n_tau_to_remove. Check down to this optical depth to see if outer layers are unbound
       x_integer_ctrl(1) = 5      !#CE: 1: Uniform heating of the whole envelope
                                  !#CE: 2: Heating at the base of the hydrogen envelope
                                  !#CE: 3: CE_energy_rate is calculated based on the companions position
@@ -173,7 +173,7 @@
       ! varcontrol_target = 1d-3
       ! delta_lg_star_mass_limit = 5d-3
       ! delta_lg_star_mass_hard_limit = 1d-2
-      max_years_for_timestep = 1d-1
+      !max_years_for_timestep = 1d-1
 
       ! delta_lgR_limit = 0.001
       ! delta_lgE_limit = 0.001
@@ -191,7 +191,7 @@
 
 
 ! artificial viscosity controls
-      ! use_artificial_viscosity = .true.
+       use_artificial_viscosity = .true.
       ! artificial_viscosity_Q_shift = 1d34
       ! shock_spread_linear = 0
       ! shock_spread_quadratic = 0.01
@@ -235,7 +235,7 @@ logQ_min_limit = -12d0
 
 ! Output
       history_interval = 1
-      profile_interval = 20
+      profile_interval = 5
       max_num_profile_models = 1000
       terminal_interval = 1
       write_header_frequency = 1

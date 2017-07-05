@@ -7,7 +7,7 @@
 &star_job
 
     read_extra_star_job_inlist1 = .true.
-    extra_star_job_inlist1_name = 'TestForBill_case_spikes_in_L.inlist'
+    extra_star_job_inlist1_name = 'CE_paperI_BHBH_1500R.inlist'
 
 / ! end of star_job namelist
 
@@ -15,7 +15,7 @@
 &controls
 
     read_extra_controls_inlist1 = .true.
-    extra_controls_inlist1_name = 'TestForBill_case_spikes_in_L.inlist'
+    extra_controls_inlist1_name = 'CE_paperI_BHBH_1500R.inlist'
 
 / ! end of controls namelist
 
