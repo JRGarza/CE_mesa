@@ -7,6 +7,8 @@ import matplotlib.gridspec as gridspec
 import matplotlib.colors as colors
 import matplotlib.cm as cm
 
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+
 import numpy as np
 import numpy.lib.recfunctions
 from astropy import units as u
@@ -394,7 +396,7 @@ class mesa(object):
                     'Yaxis_dynamic_range':4, 'figure_format':"eps", 'font_small':16, 'font_large':20, 'file_out':'figure',
                     'onscreen':False, 'parallel':True, 'abundances':False, 'log_abundances':True, 'czones':False,
                     'signed_log_cmap':True, 'orbit':False, 'tau10':True, 'tau100':False, 'Nprofiles_to_plot':10,
-                    'profiles_to_plot':[], 'mass_locations_to_trace':[]}
+                    'profiles_to_plot':[], 'mass_locations_to_trace':[], 'Xmin':None, 'Xmax':None}
 
         for key in kwargs:
             if (key in self._param):
@@ -511,7 +513,13 @@ class mesa(object):
     def mass_locations_to_trace(self):
         return self._param['mass_locations_to_trace']
 
+    @property
+    def Xmin(self):
+        return self._param['Xmin']
 
+    @property
+    def Xmax(self):
+        return self._param['Xmax']
 
 
     def help(self):
@@ -641,7 +649,9 @@ class mesa(object):
         the defined x-axis.
         """
         # Set the maximum and the minimum of the X axis
-        if self._param['Xaxis'] == "model_number":
+        if self._param['Xmin'] is not None and self._param['Xmax'] is not None:
+            pass
+        elif self._param['Xaxis'] == "model_number":
             self._Xmax = np.max(self._profile_index["model_number"])
             self._Xmin = np.min(self._profile_index["model_number"])
         elif self._param['Xaxis'] == "star_age":
@@ -751,7 +761,7 @@ class mesa(object):
 
 
 
-    def Kippenhahn(self):
+    def Kippenhahn(self, ax=None):
         """Generate a Kippenhahn diagram
 
         Resulting plot is created and outputed.
@@ -859,9 +869,14 @@ class mesa(object):
             cmap_label = "sign x log(max(1,abs(" + cmap_label[4:]+"))"
 
 
-        fig1 = plt.figure()
-        ax1 = fig1.add_subplot(111)
-        fig1.subplots_adjust(top=0.80, left=0.12, right=0.9, bottom=0.12)
+        if ax is None: 
+            fig1 = plt.figure()
+            ax1 = fig1.add_subplot(111)
+            fig1.subplots_adjust(top=0.80, left=0.12, right=0.9, bottom=0.12)
+        else:
+            ax1 = ax 
+
+
         ax1.set_xlabel(Xlabel,fontsize=self._param['font_large'])
         ax1.set_ylabel(Ylabel,fontsize=self._param['font_large'])
         ax1.xaxis.set_tick_params(labelsize = self._param['font_small'])
@@ -878,13 +893,27 @@ class mesa(object):
         # When using signed_log_cmap, ignore cmap_dynamic_range
         if self._param['signed_log_cmap']:
             self._param['cmap_dynamic_range'] = np.nanmax(data_to_plot) - np.nanmin(data_to_plot)
-        Image1 = plt.imshow(data_to_plot, origin='lower', cmap=self._param['cmap'],
-                            extent=[self._Xmin, self._Xmax, self._Ymin,self._Ymax], vmax = np.nanmax(data_to_plot),
-                            vmin=np.nanmax(data_to_plot)-self._param['cmap_dynamic_range'])
+
+        if ax is None:
+            Image1 = plt.imshow(data_to_plot, origin='lower', cmap=self._param['cmap'],
+                                extent=[self._Xmin, self._Xmax, self._Ymin,self._Ymax], vmax = np.nanmax(data_to_plot),
+                                vmin=np.nanmax(data_to_plot)-self._param['cmap_dynamic_range'])
+        else:
+            Image1 = ax1.imshow(data_to_plot, origin='lower', cmap=self._param['cmap'],
+                                extent=[self._Xmin, self._Xmax, self._Ymin,self._Ymax], vmax = np.nanmax(data_to_plot),
+                                vmin=np.nanmax(data_to_plot)-self._param['cmap_dynamic_range'])
+
+
         ax1.set_aspect('auto')
 
-        cbaxes = fig1.add_axes([0.12, 0.86, 0.78, 0.05])
-        cbar1 = fig1.colorbar(Image1, cax=cbaxes, orientation='horizontal')
+        if ax1 is None:
+            cbaxes = fig1.add_axes([0.12, 0.86, 0.78, 0.05])
+            cbar1 = fig1.colorbar(Image1, cax=cbaxes, orientation='horizontal')
+        else:
+            divider1 = make_axes_locatable(ax1)
+            cax1 = divider1.append_axes("top", size="10%", pad=0.1)
+            cbar1 = plt.colorbar(Image1, cax=cax1, orientation='horizontal') 
+
         cbar1.ax.xaxis.set_ticks_position('top')
         cbar1.ax.xaxis.set_label_position('top')
         cbar1.ax.set_xlabel(cmap_label, fontsize=self._param['font_small'])
@@ -974,7 +1003,7 @@ class mesa(object):
                 X_axis_TML = np.log10(2.*self.profile_age[-1]- self.profile_age[-2] -self.profile_age)
 
 
-
+        x_lines_trace_mass_location = [] 
         lines_trace_mass_location = []
         if self._param['Yaxis'] == "radius":
             for i in range(len(self._param['mass_locations_to_trace'])):
@@ -982,14 +1011,16 @@ class mesa(object):
                 label1 = str(self._param['mass_locations_to_trace'][i])+r"$M_{\odot}$"
                 line1 = ax1.plot(X_axis_TML[idx_valid], radii_of_mass_locations_to_trace[i,idx_valid][0], ":",linewidth=1, color='black',label=label1)
                 lines_trace_mass_location.append(line1[0])
-            labelLines(lines_trace_mass_location,align=False,xvals=x_lines_trace_mass_location,color='black')
+            if len(self._param['mass_locations_to_trace']) > 0:
+                labelLines(lines_trace_mass_location,align=False,xvals=x_lines_trace_mass_location,color='black')
         elif self._param['Yaxis'] == "log_radius":
             for i in range(len(self._param['mass_locations_to_trace'])):
                 idx_valid = np.where(~np.isnan(radii_of_mass_locations_to_trace[i,:]))
                 label1 = str(self._param['mass_locations_to_trace'][i])+r"$M_{\odot}$"
                 line1 = ax1.plot(X_axis_TML[idx_valid], np.log10(radii_of_mass_locations_to_trace[i,idx_valid][0]), ":",linewidth=1, color='black',label=label1)
                 lines_trace_mass_location.append(line1[0])
-            labelLines(lines_trace_mass_location,align=True,xvals=x_lines_trace_mass_location,color='black')
+            if len(self._param['mass_locations_to_trace']) > 0:
+                labelLines(lines_trace_mass_location,align=True,xvals=x_lines_trace_mass_location,color='black')
 
 
 
@@ -1200,7 +1231,8 @@ class mesa(object):
 
 
 #        fig1.tight_layout()
-        fig1.savefig(self._param['file_out']+"."+self._param['figure_format'], format=self._param['figure_format'])
+        if ax is None:
+            fig1.savefig(self._param['file_out']+"."+self._param['figure_format'], format=self._param['figure_format'])
 
 
         # fig2 = plt.figure()
@@ -1217,7 +1249,7 @@ class mesa(object):
 
 
 
-        if self._param['onscreen']:
+        if self._param['onscreen'] and ax is None:
             plt.show()
             # fig1.canvas.manager.window.raise_()
 
