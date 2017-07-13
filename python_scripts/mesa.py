@@ -95,6 +95,10 @@ def labelLines(lines,align=True,xvals=None,**kwargs):
     if xvals is None:
         xmin,xmax = ax.get_xlim()
         xvals = np.linspace(xmin,xmax,len(labLines)+2)[1:-1]
+    else:
+        xmin,xmax = ax.get_xlim()
+        xvals = np.asarray(xvals)*(xmax-xmin)+xmin
+
 
     for line,x,label in zip(labLines,xvals,labels):
         labelLine(line,x,label,align,**kwargs)
@@ -244,7 +248,11 @@ def InterpolateOneProfile(profile, NY, Yaxis, Ymin, Ymax, Variable):
         raise ValueError("Column 'opacity' is missing from the profile files")
 
     if (not "v_div_csound" in profile.dtype.names and (Variable == 'v_div_csound' )):
-        raise ValueError("Column 'v_div_csound' is missing from the profile files")
+        try:
+            profile = numpy.lib.recfunctions.append_fields(profile,'v_div_csound',
+                            data = profile['velocity']/profile['csound'], asrecarray=True)
+        except Exception:
+            raise ValueError("Column 'v_div_csound' is missing from the profile files")
 
     if (not "dq" in profile.dtype.names and (Variable == 'dq' )):
         raise ValueError("Column 'dq' is missing from the profile files")
@@ -388,7 +396,9 @@ class mesa(object):
         tau100 (bool) -- include optical depth of 100 in plot (default False)
         Nprofiles_to_plot (int) -- number of profiles to plot (default 10)
         profiles_to_plot (list[int]) -- profile numbers to be plotted (default [])
-        mass_locations_to_trace (list[float]) -- mas locations (in Msun) to trace in radius (default [])
+        masses_TML (list[float]) -- mass locations (in Msun) to trace in radius (default [])
+        xvals_TML (list[float]) -- xvals, between 0 and 1, where labels of lines that trace constant mass are places.
+                                   Must be same size as masses_TML. If left empty, labels are placed automatically (default [])
         """
 
         self._param = {'data_path':"./", 'NX':1024, 'NY':1024, 'Yaxis':'mass', 'Xaxis':'star_age',
@@ -396,7 +406,7 @@ class mesa(object):
                     'Yaxis_dynamic_range':4, 'figure_format':"eps", 'font_small':16, 'font_large':20, 'file_out':'figure',
                     'onscreen':False, 'parallel':True, 'abundances':False, 'log_abundances':True, 'czones':False,
                     'signed_log_cmap':True, 'orbit':False, 'tau10':True, 'tau100':False, 'Nprofiles_to_plot':10,
-                    'profiles_to_plot':[], 'mass_locations_to_trace':[], 'Xmin':None, 'Xmax':None}
+                    'profiles_to_plot':[], 'masses_TML':[], 'xvals_TML':[], 'Xmin':None, 'Xmax':None}
 
         for key in kwargs:
             if (key in self._param):
@@ -510,8 +520,13 @@ class mesa(object):
         return self._param['profiles_to_plot']
 
     @property
-    def mass_locations_to_trace(self):
-        return self._param['mass_locations_to_trace']
+    def masses_TML(self):
+        return self._param['masses_TML']
+
+    @property
+    def xvals_TML(self):
+        return self._param['xvals_TML']
+
 
     @property
     def Xmin(self):
@@ -747,17 +762,17 @@ class mesa(object):
 
 
     def TraceMassLocations(self):
-        mass_locations_to_trace = np.asarray(self._param['mass_locations_to_trace'])
-        radii_of_mass_locations_to_trace = np.zeros((mass_locations_to_trace.shape[0],self.Nprofile))
+        masses_TML = np.asarray(self._param['masses_TML'])
+        radii_of_masses_TML = np.zeros((masses_TML.shape[0],self.Nprofile))
 
         for i in range(self.Nprofile):
-            inter_trace_mass_locations = interp1d(self.profiles[i]["mass"],10.**self.profiles[i]["logR"])
-            valid_points  = np.where(mass_locations_to_trace < np.max(self.profiles[i]["mass"]))
-            radii_of_mass_locations_to_trace[:,i] = float('nan')
-            radii_of_mass_locations_to_trace[valid_points,i] = inter_trace_mass_locations(mass_locations_to_trace[valid_points])
+            inter_TML = interp1d(self.profiles[i]["mass"],10.**self.profiles[i]["logR"])
+            valid_points  = np.where(masses_TML < np.max(self.profiles[i]["mass"]))
+            radii_of_masses_TML[:,i] = float('nan')
+            radii_of_masses_TML[valid_points,i] = inter_TML(masses_TML[valid_points])
 
 
-        return radii_of_mass_locations_to_trace
+        return radii_of_masses_TML
 
 
 
@@ -869,12 +884,12 @@ class mesa(object):
             cmap_label = "sign x log(max(1,abs(" + cmap_label[4:]+"))"
 
 
-        if ax is None: 
+        if ax is None:
             fig1 = plt.figure()
             ax1 = fig1.add_subplot(111)
             fig1.subplots_adjust(top=0.80, left=0.12, right=0.9, bottom=0.12)
         else:
-            ax1 = ax 
+            ax1 = ax
 
 
         ax1.set_xlabel(Xlabel,fontsize=self._param['font_large'])
@@ -912,7 +927,7 @@ class mesa(object):
         else:
             divider1 = make_axes_locatable(ax1)
             cax1 = divider1.append_axes("top", size="10%", pad=0.1)
-            cbar1 = plt.colorbar(Image1, cax=cax1, orientation='horizontal') 
+            cbar1 = plt.colorbar(Image1, cax=cax1, orientation='horizontal')
 
         cbar1.ax.xaxis.set_ticks_position('top')
         cbar1.ax.xaxis.set_label_position('top')
@@ -986,8 +1001,8 @@ class mesa(object):
 
 
         #Plotting radii of mass locations to trace
-        if len(self._param['mass_locations_to_trace'])>0:
-            radii_of_mass_locations_to_trace = self.TraceMassLocations()
+        if len(self._param['masses_TML'])>0:
+            radii_of_masses_TML = self.TraceMassLocations()
 
             if self._param['Xaxis'] == "model_number":
                 X_axis_TML = self._profile_index
@@ -1003,24 +1018,29 @@ class mesa(object):
                 X_axis_TML = np.log10(2.*self.profile_age[-1]- self.profile_age[-2] -self.profile_age)
 
 
-        x_lines_trace_mass_location = [] 
-        lines_trace_mass_location = []
+        lines_TML = []
         if self._param['Yaxis'] == "radius":
-            for i in range(len(self._param['mass_locations_to_trace'])):
-                idx_valid = np.where(~np.isnan(radii_of_mass_locations_to_trace[i,:]))
-                label1 = str(self._param['mass_locations_to_trace'][i])+r"$M_{\odot}$"
-                line1 = ax1.plot(X_axis_TML[idx_valid], radii_of_mass_locations_to_trace[i,idx_valid][0], ":",linewidth=1, color='black',label=label1)
-                lines_trace_mass_location.append(line1[0])
-            if len(self._param['mass_locations_to_trace']) > 0:
-                labelLines(lines_trace_mass_location,align=False,xvals=x_lines_trace_mass_location,color='black')
+            for i in range(len(self._param['masses_TML'])):
+                idx_valid = np.where(~np.isnan(radii_of_masses_TML[i,:]))
+                label1 = str(self._param['masses_TML'][i])+r"$M_{\odot}$"
+                line1 = ax1.plot(X_axis_TML[idx_valid], radii_of_masses_TML[i,idx_valid][0], ":",linewidth=1, color='black',label=label1)
+                lines_TML.append(line1[0])
+            if len(self._param['masses_TML']) > 0:
+                if len(self._param['masses_TML']) == len(self._param['xvals_TML']):
+                    labelLines(lines_TML,align=False,xvals=self._param['xvals_TML'],color='black')
+                else:
+                    labelLines(lines_TML,align=False,color='black')
         elif self._param['Yaxis'] == "log_radius":
-            for i in range(len(self._param['mass_locations_to_trace'])):
-                idx_valid = np.where(~np.isnan(radii_of_mass_locations_to_trace[i,:]))
-                label1 = str(self._param['mass_locations_to_trace'][i])+r"$M_{\odot}$"
-                line1 = ax1.plot(X_axis_TML[idx_valid], np.log10(radii_of_mass_locations_to_trace[i,idx_valid][0]), ":",linewidth=1, color='black',label=label1)
-                lines_trace_mass_location.append(line1[0])
-            if len(self._param['mass_locations_to_trace']) > 0:
-                labelLines(lines_trace_mass_location,align=True,xvals=x_lines_trace_mass_location,color='black')
+            for i in range(len(self._param['masses_TML'])):
+                idx_valid = np.where(~np.isnan(radii_of_masses_TML[i,:]))
+                label1 = str(self._param['masses_TML'][i])+r"$M_{\odot}$"
+                line1 = ax1.plot(X_axis_TML[idx_valid], np.log10(radii_of_masses_TML[i,idx_valid][0]), ":",linewidth=1, color='black',label=label1)
+                lines_TML.append(line1[0])
+            if len(self._param['masses_TML']) > 0:
+                if len(self._param['masses_TML']) == len(self._param['xvals_TML']):
+                    labelLines(lines_TML,align=False,xvals=self._param['xvals_TML'],color='black')
+                else:
+                    labelLines(lines_TML,align=False,color='black')
 
 
 
@@ -1284,9 +1304,9 @@ if __name__ == "__main__":
     #                        "super_ad", "vconv", "vconv_div_vesc", "conv_vel_div_csound", "total_energy_plus_vconv2"
 
 
-    data_path = "../working/LOGS/"
-    a = mesa(data_path=data_path, parallel=True, abundances=False, log_abundances = True, Yaxis='radius', Xaxis="star_age",
-        czones=True, Variable='v_div_vesc', orbit=True, mass_locations_to_trace = [4., 6., 8., 10.,12.,14.])
+    data_path = "/data/disk1/fragkos/repos/CE_mesa/working/LOGS/"
+    a = mesa(data_path=data_path, parallel=False, abundances=False, log_abundances = True, Yaxis='radius', Xaxis="star_age",
+        czones=True, Variable='v_div_vesc', orbit=True, masses_TML = [4., 6., 8., 10.,12.,14., 20., 25., 28.])
     a.SetParameters(onscreen=True, cmap = 'jet', cmap_dynamic_range=5, signed_log_cmap=False, tau10=True, tau100=True)
 
 
