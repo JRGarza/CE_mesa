@@ -24,12 +24,6 @@
 
 &controls
 
-   ! check for retries and backups as part of test_suite
-   ! you can/should delete this for use outside of test_suite
-   max_number_backups = 50
-   max_number_retries = 100
-
-
    photosphere_r_upper_limit = 1500
 
 
@@ -39,8 +33,10 @@
    use_Type2_opacities = .true.
    Zbase = 0.02d0
 
-
-
+   hot_wind_scheme = 'Dutch'
+   cool_wind_RGB_scheme = 'Dutch'
+   cool_wind_AGB_scheme = 'Dutch'
+   Dutch_scaling_factor = 1d0
 
 
 

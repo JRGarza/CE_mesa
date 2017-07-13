@@ -3,10 +3,10 @@
    create_pre_main_sequence_model = .false.
 
    save_model_when_terminate = .true.
-   save_model_filename = 'CE_paperI_StartingModel_30M_1000R.mod'
+   save_model_filename = 'CE_paperI_StartingModel_30M_400R.mod'
 
    write_profile_when_terminate = .true.
-   filename_for_profile_when_terminate = 'CE_paperI_StartingModel_30M_1000R.data'
+   filename_for_profile_when_terminate = 'CE_paperI_StartingModel_30M_400R.data'
 
    history_columns_file = './history_columns.list'
    profile_columns_file = './profile_columns.list'
@@ -24,7 +24,7 @@
 
 &controls
 
-   photosphere_r_upper_limit = 1000
+   photosphere_r_upper_limit = 400
 
 
    initial_mass = 30.0
