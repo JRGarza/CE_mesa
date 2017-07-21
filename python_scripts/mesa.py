@@ -137,7 +137,7 @@ def InterpolateOneProfile(profile, NY, Yaxis, Ymin, Ymax, Variable):
             eps_recombination, ionization_energy, energy, potential_plus_kinetic,
             extra_heat, v_div_vesc, v_div_csound, pressure, temperature, density,
             tau, opacity, gamma1, dq, L_div_Ledd, Lrad_div_Ledd. t_thermal, t_dynamical,
-            t_dynamical_down, t_thermal_div_t_dynamical, omega_div_omega_crit
+            t_dynamical_down, t_thermal_div_t_dynamical, omega_div_omega_crit, omega
             super_ad, vconv, vconv_div_vesc, conv_vel_div_csound, total_energy_plus_vconv2
 
 
@@ -301,6 +301,14 @@ def InterpolateOneProfile(profile, NY, Yaxis, Ymin, Ymax, Variable):
 
     if (not "omega_div_omega_crit" in profile.dtype.names and (Variable == 'omega_div_omega_crit' )):
         raise ValueError("Column 'omega_div_omega_crit' is missing from the profile files")
+
+    if (not "omega" in profile.dtype.names and (Variable == 'omega' )):
+        try:
+            profile = numpy.lib.recfunctions.append_fields(profile,'omega',
+                            data = 10.**profile['log_omega'], asrecarray=True)
+        except Exception:
+            raise ValueError("Column 'omega' and 'log_omega' are missing from the profile files")
+
 
     if (not "super_ad" in profile.dtype.names and (Variable == 'super_ad' )):
         raise ValueError("Column 'super_ad' is missing from the profile files")
@@ -556,7 +564,7 @@ class mesa(object):
             eps_recombination, ionization_energy, energy, potential_plus_kinetic,
             extra_heat, v_div_vesc, v_div_csound, pressure, temperature, density,
             tau, opacity, gamma1, dq,L_div_Ledd, Lrad_div_Ledd, t_thermal, t_dynamical,
-            t_dynamical_down, t_thermal_div_t_dynamical, omega_div_omega_crit
+            t_dynamical_down, t_thermal_div_t_dynamical, omega_div_omega_crit, omega
 
         cmap -- colors allowed by colormap module in matplotlib
         """
@@ -572,7 +580,7 @@ class mesa(object):
                 , 'ionization_energy', 'energy', 'potential_plus_kinetic', 'extra_heat', 'v_div_vesc',
                 'v_div_csound',    'pressure', 'temperature', 'density', 'tau', 'opacity', 'gamma1', 'dq',
                 'L_div_Ledd', 'Lrad_div_Ledd', 't_thermal', 't_dynamical', 't_dynamical_down', 't_thermal_div_t_dynamical',
-                 'omega_div_omega_crit','super_ad', 'vconv', 'vconv_div_vesc', 'conv_vel_div_csound', 'total_energy_plus_vconv2']):
+                 'omega_div_omega_crit', 'omega','super_ad', 'vconv', 'vconv_div_vesc', 'conv_vel_div_csound', 'total_energy_plus_vconv2']):
             raise ValueError(self._param['Variable']+"not a valid option for parameter Variable")
 
 
@@ -864,6 +872,8 @@ class mesa(object):
         elif self._param['Variable'] == "omega_div_omega_crit":
             cmap_label = "log($\Omega/\Omega_{crit}$)"
 
+        elif self._param['Variable'] == "omega":
+            cmap_label = "log($\Omega [rad/s]$)"
         elif self._param['Variable'] == "super_ad":
             cmap_label = "log($\\nabla - \\nabla_{ad}$)"
         elif self._param['Variable'] == "vconv":
@@ -1302,6 +1312,8 @@ if __name__ == "__main__":
     #                        "energy", "potential_plus_kinetic", "extra_heat", "v_div_vesc", "v_div_csound"
     #                        "pressure", "temperature", "density", "tau", "opacity", "gamma1", "dq"
     #                        "super_ad", "vconv", "vconv_div_vesc", "conv_vel_div_csound", "total_energy_plus_vconv2"
+    #                       "omega_div_omega_crit", "omega"
+
 
 
     data_path = "/data/disk1/fragkos/repos/CE_mesa/working/LOGS/"
