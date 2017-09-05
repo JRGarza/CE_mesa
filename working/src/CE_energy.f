@@ -342,7 +342,8 @@
          log_mdot_factor = a1 + a2 / (1.0 + a3*e_rho + a4*e_rho**2)
          mdot_HL = pi * R2**2 * rho_at_companion * v_rel
          mdot_macleod = mdot_HL * 10.0**log_mdot_factor
-         s% xtra22 = mdot_macleod
+         s% xtra22 = mdot_HL
+         s% xtra23 = mdot_macleod
 
          ! Accretion luminosity luminosity
          L_acc = standard_cgrav * M2 / R2 * mdot_macleod
@@ -456,8 +457,9 @@
 
             log_mdot_factor = a1 + a2 / (1.0 + a3*e_rho + a4*e_rho**2)
             mdot_HL = pi * R_acc**2 * rho_at_companion * v_rel
-            mdot_HL = mdot_HL * 10.0**log_mdot_factor
+            mdot_macleod = mdot_HL * 10.0**log_mdot_factor
             s% xtra22 = mdot_HL
+            s% xtra23 = mdot_macleod
 
             ! Accretion luminosity luminosity: 10% efficiency
             L_acc = 0.1 * standard_cgrav * M2 / R2 * mdot_HL
@@ -483,7 +485,6 @@
          ! Save the total erg/second added in this time step
          s% xtra1 = CE_energy_rate
          s% xtra20 = L_acc
-         s% xtra22 = mdot_HL
 
       end subroutine CE_inject_case5
 

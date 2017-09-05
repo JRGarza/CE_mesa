@@ -265,8 +265,10 @@
          s% xtra20 = 0.0
          !s% xtra21 -> eta_pulse_wind: Wind enhancement term from Yoon & Cantiello (2010)
          s% xtra21 = 1.
-         !s% xtra22 -> mdot_macleod. Accretion rate onto compact object. Calculated in CE_energy_rate
+         !s% xtra22 -> mdot_HL. Hoyle-Littleton accretion rate onto compact object. Calculated in CE_energy_rate
          s% xtra22 = 0.0d0
+         !s% xtra23 -> mdot_macleod. Macleod & Ramirez-Ruiz accretion rate onto compact object. Calculated in CE_energy_rate
+         s% xtra23 = 0.0d0
 
          !s% xtra7 -> CE_test_case
          s% ixtra1 = s% x_integer_ctrl(1)
@@ -479,7 +481,7 @@
          ierr = 0
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
-         how_many_extra_history_columns = 19
+         how_many_extra_history_columns = 20
       end function how_many_extra_history_columns
 
 
@@ -508,46 +510,48 @@
          vals(2) = s% xtra20
          names(3) = 'Mdot_macleod'
          vals(3) = s% xtra22
-         names(4) = 'CE_torque'
-         vals(4) = s% xtra6
-         names(5) = 'CE_companion_position_r'
-         vals(5) = s% xtra2
-         names(6) = 'CE_companion_position_m'
-         vals(6) = s% xtra9
-         names(7) = 'CE_ang_mom_transferred'
-         vals(7) = s% xtra6
-         names(8) = 'envelope_binding_energy'
-         vals(8) = s% xtra11
-         names(9) = 'R_acc'
-         vals(9) = s% xtra12
-         names(10) = 'R_acc_low'
-         vals(10) = s% xtra13
-         names(11) = 'R_acc_high'
-         vals(11) = s% xtra14
-         names(12) = 'v_rel'
-         vals(12) = s% xtra16
-         names(13) = 'v_over_c_sound'
-         vals(13) = s% xtra17
-         names(14) = 'eta_pulse_wind' ! From Yoon & Cantiello (2010)
-         vals(14) = s% xtra21
-         names(15) = 'b_mag'
-         vals(15) = b_mag
-         names(16) = 'u_mag'
-         vals(16) = u_mag
-         names(17) = 'v_mag'
-         vals(17) = v_mag
-         names(18) = 'r_mag'
-         vals(18) = r_mag
-         names(19) = 'i_mag'
-         vals(19) = i_mag
+         names(4) = 'Mdot_HL'
+         vals(4) = s% xtra23
+         names(5) = 'CE_torque'
+         vals(5) = s% xtra6
+         names(6) = 'CE_companion_position_r'
+         vals(6) = s% xtra2
+         names(7) = 'CE_companion_position_m'
+         vals(7) = s% xtra9
+         names(8) = 'CE_ang_mom_transferred'
+         vals(8) = s% xtra6
+         names(9) = 'envelope_binding_energy'
+         vals(9) = s% xtra11
+         names(10) = 'R_acc'
+         vals(10) = s% xtra12
+         names(11) = 'R_acc_low'
+         vals(11) = s% xtra13
+         names(12) = 'R_acc_high'
+         vals(12) = s% xtra14
+         names(13) = 'v_rel'
+         vals(13) = s% xtra16
+         names(14) = 'v_over_c_sound'
+         vals(14) = s% xtra17
+         names(15) = 'eta_pulse_wind' ! From Yoon & Cantiello (2010)
+         vals(15) = s% xtra21
+         names(16) = 'b_mag'
+         vals(16) = b_mag
+         names(17) = 'u_mag'
+         vals(17) = u_mag
+         names(18) = 'v_mag'
+         vals(18) = v_mag
+         names(19) = 'r_mag'
+         vals(19) = r_mag
+         names(20) = 'i_mag'
+         vals(20) = i_mag
 
          ! If a distance provided, adjust from absolute to apparent magnitude
          if (s% x_ctrl(17) .ne. -1) then
-            vals(15) = vals(15) + 5.0*(log10(s% x_ctrl(17) * 1000.0) - 1.0)
             vals(16) = vals(16) + 5.0*(log10(s% x_ctrl(17) * 1000.0) - 1.0)
             vals(17) = vals(17) + 5.0*(log10(s% x_ctrl(17) * 1000.0) - 1.0)
             vals(18) = vals(18) + 5.0*(log10(s% x_ctrl(17) * 1000.0) - 1.0)
             vals(19) = vals(19) + 5.0*(log10(s% x_ctrl(17) * 1000.0) - 1.0)
+            vals(20) = vals(20) + 5.0*(log10(s% x_ctrl(17) * 1000.0) - 1.0)
          endif
 
       end subroutine data_for_extra_history_columns
