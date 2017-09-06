@@ -378,7 +378,7 @@
          real(dp) :: M2, R2
          real(dp) :: F_drag
          real(dp) :: F_DHL, f1, f2, f3, e_rho
-         real(dp) :: mdot_HL, L_acc, a1, a2, a3, a4
+         real(dp) :: mdot_macleod, mdot_HL, L_acc, a1, a2, a3, a4
          real(dp) :: R_acc, R_acc_low, R_acc_high
          real(dp) :: v_rel, beta, M_encl, csound
          real(dp) :: rho_at_companion, scale_height_at_companion
