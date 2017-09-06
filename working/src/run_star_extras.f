@@ -509,9 +509,9 @@
          names(2) = 'L_accretion'
          vals(2) = s% xtra20
          names(3) = 'Mdot_macleod'
-         vals(3) = s% xtra22
+         vals(3) = s% xtra23
          names(4) = 'Mdot_HL'
-         vals(4) = s% xtra23
+         vals(4) = s% xtra22
          names(5) = 'CE_torque'
          vals(5) = s% xtra6
          names(6) = 'CE_companion_position_r'
