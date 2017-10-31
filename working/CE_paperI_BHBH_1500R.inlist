@@ -2,7 +2,7 @@
 &star_job
 
       load_saved_model = .true.
-      saved_model_name = '/Users/tassos/repos/CE_mesa/data/CE_paperI_StartingModel_30M_1000R.mod'
+      saved_model_name = '../data/CE_paperI_StartingModel_30M_1000R.mod'
 
       history_columns_file = './history_columns.list'
       profile_columns_file = './profile_columns.list'
@@ -64,7 +64,7 @@
                                  !#CE: in units of the primary's radius
                                  !#CE: star from the center of the donor star in solar radii
       x_ctrl(3) = 1.437d-5           !#CE: initial CE_companion_radius: The radius of the companion star in solar radii
-      x_ctrl(4) = 1.4d0           !#CE: CE_companion_mass: The mass of the companion star in solar masses
+      x_ctrl(4) = 8d0           !#CE: CE_companion_mass: The mass of the companion star in solar masses
       x_ctrl(5) = 1.0d0           !#CE: CE_n_acc_radii: Number of accretion radii away from companion star to deposit
                                  !#CE: heating into the star from orbital energy
       x_ctrl(8) = 1d-2           !#CE: Fractional orbital energy change allowed per step
