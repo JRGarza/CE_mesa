@@ -82,6 +82,7 @@
          if (s% lxtra1) then
             s% xtra1 = 0.0d0
             s% xtra20 = 0.0d0
+            s% xtra22 = 0.0d0
             return
          endif
 
@@ -316,7 +317,7 @@
          v_rel_div_csound = s% xtra17
          rho_at_companion = s% xtra18
          scale_height_at_companion = s% xtra19
-         csound = v_rel / v_rel_div_csound  
+         csound = v_rel / v_rel_div_csound
 
 !         ! For a first approximation, let's use the average R_acc
 !         R_acc = (R_acc_low + R_acc_high) / 2.0
@@ -341,6 +342,8 @@
          log_mdot_factor = a1 + a2 / (1.0 + a3*e_rho + a4*e_rho**2)
          mdot_HL = pi * R2**2 * rho_at_companion * v_rel
          mdot_macleod = mdot_HL * 10.0**log_mdot_factor
+         s% xtra22 = mdot_HL
+         s% xtra23 = mdot_macleod
 
          ! Accretion luminosity luminosity
          L_acc = standard_cgrav * M2 / R2 * mdot_macleod
@@ -375,9 +378,9 @@
          real(dp) :: M2, R2
          real(dp) :: F_drag
          real(dp) :: F_DHL, f1, f2, f3, e_rho
-         real(dp) :: mdot_HL, L_acc, a1, a2, a3, a4
+         real(dp) :: mdot_macleod, mdot_HL, L_acc, a1, a2, a3, a4
          real(dp) :: R_acc, R_acc_low, R_acc_high
-         real(dp) :: v_rel, beta, M_encl, csound 
+         real(dp) :: v_rel, beta, M_encl, csound
          real(dp) :: rho_at_companion, scale_height_at_companion
          real(dp) :: log_mdot_factor, lambda_squared
          ierr = 0
@@ -405,7 +408,7 @@
          beta = s% xtra17
          rho_at_companion = s% xtra18
          scale_height_at_companion = s% xtra19
-         csound = v_rel / beta 
+         csound = v_rel / beta
 
 
          lambda_squared = exp(3.0) / 16.0
@@ -425,9 +428,9 @@
 
             ! Drag force
             F_drag = beta * csound * mdot_HL
-            ! F_drag = beta * v_rel * mdot_HL 
+            ! F_drag = beta * v_rel * mdot_HL
 
-            ! Accretion luminosity luminosity: 10% efficiency 
+            ! Accretion luminosity luminosity: 10% efficiency
             L_acc = 0.1 * standard_cgrav * M2 / R2 * mdot_HL
 
          else
@@ -454,15 +457,17 @@
 
             log_mdot_factor = a1 + a2 / (1.0 + a3*e_rho + a4*e_rho**2)
             mdot_HL = pi * R_acc**2 * rho_at_companion * v_rel
-            mdot_HL = mdot_HL * 10.0**log_mdot_factor
+            mdot_macleod = mdot_HL * 10.0**log_mdot_factor
+            s% xtra22 = mdot_HL
+            s% xtra23 = mdot_macleod
 
-            ! Accretion luminosity luminosity: 10% efficiency 
+            ! Accretion luminosity luminosity: 10% efficiency
             L_acc = 0.1 * standard_cgrav * M2 / R2 * mdot_HL
 
          endif
 
          ! Limit accretion luminosity to Eddington rate
-         L_acc = min(L_acc, 1.26e38 * CE_companion_mass) 
+         L_acc = min(L_acc, 1.26e38 * CE_companion_mass)
 
 
 

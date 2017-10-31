@@ -145,7 +145,7 @@
          ! is added to the envelope of the donor.
          orbital_ang_mom_lost = J_final - J_init
          !We save in s% xtra6 the total torque that will be applied to the Envelope
-         s% xtra6 = -orbital_ang_mom_lost/s% dt
+         s% xtra6 = max(0., -orbital_ang_mom_lost/s% dt) 
 
          ! Keep track of orbital energy and angular momentum
          s% xtra8 = E_final
@@ -192,7 +192,10 @@
 
          ! Merger condition
          ! Merge if either the companion or the core fills its rochelobe
-         if ((rl_companion .le. CE_companion_radius) .or. (rl_core .le. s% he_core_radius)) s% lxtra1 = .true.
+         if ((rl_companion .le. CE_companion_radius) .or. (rl_core .le. s% he_core_radius)) then
+            s% lxtra1 = .true.
+            s% xtra2 = 0.0
+         end if
 
       end subroutine check_merger
 
