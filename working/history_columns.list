@@ -239,13 +239,13 @@
    ! information about cores
 
       he_core_mass
-      !he_core_radius
-      !he_core_lgT
-      !he_core_lgRho
-      !he_core_L
-      !he_core_v
-      !he_core_omega
-      !he_core_omega_div_omega_crit
+      he_core_radius
+      he_core_lgT
+      he_core_lgRho
+      he_core_L
+      he_core_v
+      he_core_omega
+      he_core_omega_div_omega_crit
 
       c_core_mass
       !c_core_radius
@@ -307,19 +307,19 @@
 
       tau10_mass ! mass in solar units where optical depth = 10
       tau10_radius ! radius in solar units where optical depth = 10
-      !tau10_lgP ! estimate for log10(P) at tau = 10
+      tau10_lgP ! estimate for log10(P) at tau = 10
       !tau10_T ! estimate for T at tau = 10
-      !tau10_lgT ! estimate for log10(T) at tau = 10
-      !tau10_lgRho ! estimate for log10(density) at tau = 10
-      !tau10_L ! estimate for L/Lsun at tau = 10
+      tau10_lgT ! estimate for log10(T) at tau = 10
+      tau10_lgRho ! estimate for log10(density) at tau = 10
+      tau10_L ! estimate for L/Lsun at tau = 10
 
       tau100_mass ! location in solar units where optical depth = 100
       tau100_radius ! location in solar units where optical depth = 100
-      !tau100_lgP ! estimates for values at tau = 100
+      tau100_lgP ! estimates for values at tau = 100
       !tau100_T
-      !tau100_lgT
-      !tau100_lgRho
-      !tau100_L
+      tau100_lgT
+      tau100_lgRho
+      tau100_L
 
    ! timescales
 
@@ -351,7 +351,7 @@
       !log_Lneu_nonnuc ! log10 power emitted in neutrinos, thermal sources only (in Lsun units)
       !mass_loc_of_max_eps_nuc ! (in Msun units)
       !mass_ext_to_max_eps_nuc ! (in Msun units)
-      !eps_grav_integral ! (in Lsun units)
+      eps_grav_integral ! (in Lsun units)
       !log_abs_Lgrav ! log10 abs(eps_grav_integral) (in Lsun units)
 
 
@@ -374,8 +374,8 @@
 
       log_g ! log10 gravity
       gravity
-      !log_Ledd
-      !log_L_div_Ledd ! log10(L/Leddington)
+      log_Ledd
+      log_L_div_Ledd ! log10(L/Leddington)
       !lum_div_Ledd
       !log_surf_opacity
       !log_surf_P

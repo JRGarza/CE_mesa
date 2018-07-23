@@ -35,6 +35,12 @@ x_integer_ctrl(1) = 4        1: Uniform heating of the whole envelope.
                                 This calculation currently does not work.
                              4: CE_energy_rate is calculated from fitting formula based on
                                 simulations by Morgan MacLeod and Enrico Ramirez-Ruiz.
+x_integer_ctrl(2) = 1           !#CE: 1: Classic BHL drag
+                                 !#CE: 2: Macleod & Ramirez-Ruiz (2015)
+                                 !#CE: 3: Lee, Aaron T.; Stahler, Steven W. (2011,2014)
+x_integer_ctrl(3) = 1      !#CE: 1: Deposit energy and AM with constant specific energy and AM withing Racc
+                                 !#CE: 2: Follow Taam et al. (1978)
+
 
 x_logical_ctrl(1) = .false.   include_internal_energy: If true, then the internal energy is included when
                               when the outer parts of the envelope are bound or unbound.

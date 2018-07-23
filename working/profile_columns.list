@@ -36,8 +36,8 @@
    !log_radial_depth ! log10 radial distance to surface (cm)
    luminosity ! luminosity at outer boundary of zone (in Lsun units)
 
-   !conv_vel
-   !conv_L_div_L
+   conv_vel
+   conv_L_div_L
    !log_conv_L_div_L
 
    !lum_conv_div_lum_rad
@@ -47,7 +47,7 @@
    !lum_rad_div_L
    !lum_rad_div_L_Edd_sub_fourPrad_div_PchiT ! density increases outward if this is > 0
       ! see Joss, Salpeter, and Ostriker, "Critical Luminosity", ApJ 181:429-438, 1973.
-   !log_Lrad
+   log_Lrad
    !grav ! gravitational acceleration (cm sec^2)
    !log_g ! log10 gravitational acceleration (cm sec^2)
    !g_div_r ! grav/radius (sec^2)
@@ -102,7 +102,7 @@
    !tau ! optical depth
    logtau ! log10(optical depth) at center of zone
    !pressure ! total pressure at center of zone (pgas + prad)
-   !pgas ! gas pressure at center of zone (electrons and ions)
+   pgas ! gas pressure at center of zone (electrons and ions)
    !pgas_div_ptotal ! pgas/pressure
    !pturb_div_pgas_plus_prad
    !conv_dP_term ! value returned by MLT
@@ -118,7 +118,7 @@
    !dlnPgas_dlnd_c_E
    !dlnP_dlnd_c_E
 
-   !prad ! radiation pressure at center of zone
+   prad ! radiation pressure at center of zone
    energy ! internal energy (ergs/g)
    !logE ! log10(specific internal energy) at center of zone
    grada ! dlnT_dlnP at constant S
@@ -358,7 +358,7 @@
       c12
       n14
       o16
-      ne20 
+      ne20
       mg24
 
 

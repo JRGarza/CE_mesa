@@ -378,11 +378,12 @@
          real(dp) :: M2, R2
          real(dp) :: F_drag
          real(dp) :: F_DHL, f1, f2, f3, e_rho
-         real(dp) :: mdot_macleod, mdot_HL, L_acc, a1, a2, a3, a4
+         real(dp) :: mdot, mdot_macleod, mdot_HL, L_acc, a1, a2, a3, a4
          real(dp) :: R_acc, R_acc_low, R_acc_high
          real(dp) :: v_rel, beta, M_encl, csound
          real(dp) :: rho_at_companion, scale_height_at_companion
-         real(dp) :: log_mdot_factor, lambda_squared
+         real(dp) :: drag_factor, log_mdot_factor, lambda_squared
+         real(dp) :: F_drag_subsonic, F_drag_supersonic
          ierr = 0
          call star_ptr(id, s, ierr)
          if (ierr /= 0) return
@@ -410,41 +411,20 @@
          scale_height_at_companion = s% xtra19
          csound = v_rel / beta
 
-
-         lambda_squared = exp(3.0) / 16.0
-
-
          M2 = CE_companion_mass * Msun
          R2 = CE_companion_radius * Rsun    ! NS radius is 10 km
 
+         mdot_HL = pi * R_acc**2 * rho_at_companion * v_rel
+         s% xtra22 = mdot_HL
 
-         ! Dimensionless
-         mdot_HL = 2.0 * sqrt(lambda_squared + beta*beta) / (1.0 + beta*beta)**2
-         ! Add in dimensions
-         mdot_HL = mdot_HL * 2.0 * pi * rho_at_companion * standard_cgrav**2 * M2**2 / csound**3
-
-
-         if (beta < 1.1) then
-
-            ! Drag force
-            F_drag = beta * csound * mdot_HL
-            ! F_drag = beta * v_rel * mdot_HL
-
-            ! Accretion luminosity luminosity: 10% efficiency
-            L_acc = 0.1 * standard_cgrav * M2 / R2 * mdot_HL
-
-         else
-
-
-            ! R_acc = (R_acc_low + R_acc_high) / 2.0
-            F_drag = pi * R_acc**2 * rho_at_companion * v_rel**2
+         if (s% x_integer_ctrl(2) == 2) then
 
             ! Hydrodynamic drag from MacLeod & Ramirez-Ruiz (2014)
             f1 = 1.91791946d0
             f2 = -1.52814698d0
             f3 = 0.75992092
             e_rho = R_acc / scale_height_at_companion
-            F_drag = F_drag*(f1 + f2*e_rho +f3*e_rho**2)
+            drag_factor = (f1 + f2*e_rho +f3*e_rho**2)
 
             ! Mass accretion from MacLeod & Ramirez-Ruiz (2014)
             a1 = -2.14034214
@@ -452,19 +432,63 @@
             a3 = 1.19007536
             a4 = 1.05762477
 
-            M2 = CE_companion_mass * Msun
-            R2 = CE_companion_radius * Rsun    ! NS radius is 10 km
-
             log_mdot_factor = a1 + a2 / (1.0 + a3*e_rho + a4*e_rho**2)
-            mdot_HL = pi * R_acc**2 * rho_at_companion * v_rel
-            mdot_macleod = mdot_HL * 10.0**log_mdot_factor
-            s% xtra22 = mdot_HL
-            s% xtra23 = mdot_macleod
+
+            !!Drag at the Supesonic regime based on Macleod & Ramirez-Ruiz (2015)
+            ! R_acc = (R_acc_low + R_acc_high) / 2.0
+            F_drag_supersonic = pi * R_acc**2 * rho_at_companion * v_rel**2
+            F_drag_supersonic = F_drag_supersonic * drag_factor
+
+            !!Drag at the subsonic regime based on Ostriker, E. (1999)
+            F_drag_subsonic = (1./2. * log((1+beta)/(1-beta))-beta)
+            F_drag_subsonic = F_drag_subsonic * 4.*pi*rho_at_companion*(standard_cgrav*CE_companion_mass*Msun)**2. /v_rel**2.
+
+            if (beta < 0.9 .and. beta > 0.001) then
+               F_drag =  F_drag_subsonic
+            else if (beta > 0.99) then
+               F_drag = F_drag_supersonic
+            else if (beta <= 0.001) Then
+               F_drag = 0.
+            else
+               !smooth between the two regimes
+               F_drag = ((beta-0.9)*F_drag_supersonic + (0.99-beta)*F_drag_subsonic)/0.09
+            endif
+
+            mdot = mdot_HL * 10.0**log_mdot_factor
+            s% xtra23 = mdot
 
             ! Accretion luminosity luminosity: 10% efficiency
             L_acc = 0.1 * standard_cgrav * M2 / R2 * mdot_HL
 
+         else if (s% x_integer_ctrl(2) == 3) then
+
+            lambda_squared = exp(3.0) / 16.0
+
+            ! Dimensionless
+            mdot = 2.0 * sqrt(lambda_squared + beta*beta) / (1.0 + beta*beta)**2
+            ! Add in dimensions
+            mdot = mdot * 2.0 * pi * rho_at_companion * standard_cgrav**2 * M2**2 / csound**3
+            s% xtra23 = mdot
+
+            ! Drag force
+            F_drag =  beta * csound * mdot
+            ! Accretion luminosity luminosity: 10% efficiency
+            L_acc = 0.1 * standard_cgrav * M2 / R2 * mdot
+
+         else if (s% x_integer_ctrl(2) == 1) then
+
+            F_drag = pi * R_acc**2 * rho_at_companion * v_rel**2
+
+            mdot = pi * R_acc**2 * rho_at_companion * v_rel
+            s% xtra23 = mdot
+
+            ! Accretion luminosity luminosity: 10% efficiency
+            L_acc = 0.1 * standard_cgrav * M2 / R2 * mdot
+
+         else
+            stop "x_integer_ctrl(2) is not defined"
          endif
+
 
          ! Limit accretion luminosity to Eddington rate
          L_acc = min(L_acc, 1.26e38 * CE_companion_mass)
@@ -476,9 +500,21 @@
 
 
          if (s% x_logical_ctrl(2)) then
-            call CE_set_extra_heat(id, CE_energy_rate + L_acc, ierr)
+            if (s% x_integer_ctrl(3) == 1) then
+               call CE_set_extra_heat(id, CE_energy_rate + L_acc, ierr)
+            else if (s% x_integer_ctrl(3) == 2) then
+               call CE_set_extra_heat2(id, CE_energy_rate + L_acc, ierr)
+            else
+               stop "s% x_integer_ctrl(3) is not defined"
+            endif
          else
-            call CE_set_extra_heat(id, CE_energy_rate, ierr)
+            if (s% x_integer_ctrl(3) == 1) then
+               call CE_set_extra_heat(id, CE_energy_rate, ierr)
+            else if (s% x_integer_ctrl(3) == 2) then
+               call CE_set_extra_heat2(id, CE_energy_rate, ierr)
+            else
+               stop "s% x_integer_ctrl(3) is not defined"
+            endif
          end if
 
 
@@ -552,6 +588,76 @@
 
       end subroutine CE_set_extra_heat
 
+      subroutine CE_set_extra_heat2(id, CE_energy_rate, ierr)
+         integer, intent(in) :: id
+         real(dp), intent(in) :: CE_energy_rate
+         integer, intent(out) :: ierr
+         type (star_info), pointer :: s
+         real(dp) :: CE_companion_position, CE_companion_radius, CE_companion_mass
+         real(dp) :: CE_n_acc_radii
+         real(dp) :: a_tukey, volume_to_be_heated, ff
+         real(dp) :: R_acc, R_acc_low, R_acc_high
+         real(dp), DIMENSION(:), ALLOCATABLE :: cell_dr
+         integer :: k, k_bottom
+         ierr = 0
+         call star_ptr(id, s, ierr)
+         if (ierr /= 0) return
+
+         CE_companion_position = s% xtra2
+         CE_n_acc_radii = s% xtra5
+
+
+         call calc_quantities_at_comp_position(id, ierr)
+
+         R_acc = s% xtra12
+         R_acc_low = s% xtra13
+         R_acc_high = s% xtra14
+
+         ! Tukey window scale
+         a_tukey = 0.5
+
+         ! define cell width
+         allocate(cell_dr(s% nz))
+         do k = 2, s% nz
+            cell_dr(k-1) = s% rmid(k-1) - s% rmid(k)
+         end do
+         cell_dr(s% nz) = s% rmid(s% nz) - s% R_center
+
+         ! First calculate the mass in which the energy will be deposited
+         volume_to_be_heated = 0.0
+         do k = 1, s% nz
+            if (s% r(k) < CE_companion_position*Rsun) then
+               R_acc = R_acc_low
+            else
+               R_acc = R_acc_high
+            end if
+
+            ff = TukeyWindow((s% r(k) - CE_companion_position*Rsun)/(CE_n_acc_radii * 2.0 * R_acc), a_tukey)
+            volume_to_be_heated = volume_to_be_heated + 4.0d0 * pi * s% r(k) * s% r(k) * cell_dr(k) * ff
+            !Energy should be deposited only on the envelope of the star and not in the core
+            !When we reach the core boundary we exit the loop
+            if (s% m(k) < s% he_core_mass * Msun) exit
+         end do
+         !this is the limit in k of the boundary between core and envelope
+         k_bottom = k-1
+         ! If companion is outside star, set mass_to_be_heated arbitrarily low
+         if (volume_to_be_heated == 0.) volume_to_be_heated = 1.0
+
+         ! Now redo the loop and add the extra specific heat
+         do k = 1, k_bottom
+            if (s% r(k) < CE_companion_position*Rsun) then
+               R_acc = R_acc_low
+            else
+               R_acc = R_acc_high
+            end if
+
+            ff = TukeyWindow((s% r(k) - CE_companion_position*Rsun)/(CE_n_acc_radii * 2.0 * R_acc), a_tukey)
+            s% extra_heat(k) = CE_energy_rate * (4.0d0 * pi * s% r(k) * s% r(k) * cell_dr(k) * ff / volume_to_be_heated) / s% dm(k)
+         end do
+         deallocate(cell_dr)
+
+
+      end subroutine CE_set_extra_heat2
 
 
 

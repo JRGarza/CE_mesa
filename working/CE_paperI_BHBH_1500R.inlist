@@ -84,6 +84,11 @@
                                  !#CE: 2: Heating at the base of the hydrogen envelope
                                  !#CE: 3: CE_energy_rate is calculated based on the companions position
                                  !#CE: and the gravitational drag prescription by Eve Ostriker (1999)
+      x_integer_ctrl(2) = 1      !#CE: 1: Classic BHL drag
+                                 !#CE: 2: Macleod & Ramirez-Ruiz (2015)
+                                 !#CE: 3: Lee, Aaron T.; Stahler, Steven W. (2011,2014)
+      x_integer_ctrl(3) = 1      !#CE: 1: Deposit energy and AM with constant specific energy and AM withing Racc
+                                 !#CE: 2: Follow Taam et al. (1978)
       x_logical_ctrl(1) = .true. !#CE: include_internal_energy: If true, then the internal energy is included when
                                  !#CE: when the outer parts of the envelope are bound or unbound.
       x_logical_ctrl(2) = .true. !#CE: include accretion luminosity: If true, then accretion energy onto the NS

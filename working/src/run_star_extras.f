@@ -239,7 +239,13 @@
 
          ! Here we should point to the names of the "other_" functions to be used
          s% other_energy => CE_inject_energy
-         s% other_torque => CE_inject_am ! NEEDS TESTING
+         if (s% x_integer_ctrl(3)==1) then
+            s% other_torque => CE_inject_am
+         else if (s% x_integer_ctrl(3)==2) then
+            s% other_torque => CE_inject_am2
+         else
+            stop "s% x_integer_ctrl(3) is not defined"
+         endif
          s% other_before_struct_burn_mix => calc_recombination_before_struct_burn_mix
          s% other_after_struct_burn_mix => CE_other_after_struct_burn_mix
          s% other_adjust_mdot => CE_other_adjust_mdot
