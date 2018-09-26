@@ -596,7 +596,7 @@ class mesa(object):
                 , 'ionization_energy', 'energy', 'potential_plus_kinetic', 'extra_heat', 'v_div_vesc',
                 'v_div_csound',    'pressure', 'temperature', 'density', 'tau', 'opacity', 'gamma1', 'dq',
                 'L_div_Ledd', 'Lrad_div_Ledd', 't_thermal', 't_dynamical', 't_dynamical_down', 't_thermal_div_t_dynamical',
-                 'omega_div_omega_crit', 'omega','super_ad', 'vconv', 'vconv_div_vesc', 'conv_vel_div_csound', 
+                 'omega_div_omega_crit', 'omega','super_ad', 'vconv', 'vconv_div_vesc', 'conv_vel_div_csound',
                  't_thermal_div_t_expansion','E_kinetic_div_E_thermal','total_energy_plus_vconv2']):
             raise ValueError(self._param['Variable']+"not a valid option for parameter Variable")
 
@@ -665,7 +665,7 @@ class mesa(object):
         if self._param['parallel'] :
             # Creates jobserver with ncpus workers
             pool = Pool(processes=cpu_count())
-            print "Process running in parallel on ", cpu_count(), " cores"
+            print("Process running in parallel on ", cpu_count(), " cores")
             filenames = [self._param['data_path']+"profile"+str(self._profile_index["file_index"][i])+".data" for i in range(self.Nprofile)]
             results = [pool.apply_async(LoadOneProfile, args = (filename,)) for filename in filenames]
             Nresults=len(results)
@@ -674,7 +674,7 @@ class mesa(object):
             pool.close()
 
         else:
-            print "Process running serially"
+            print("Process running serially")
             for i in range(self.Nprofile):
                 filename = self._param['data_path']+"profile"+str(self._profile_index["file_index"][i])+".data"
                 self.profiles.append(LoadOneProfile(filename))
@@ -751,7 +751,7 @@ class mesa(object):
         if self._param['parallel'] :
             # Creates jobserver with ncpus workers
             pool = Pool(processes=cpu_count())
-            print "Process running in parallel on ", cpu_count(), " cores"
+            print("Process running in parallel on ", cpu_count(), " cores")
             results = [pool.apply_async(InterpolateOneProfile, args = (profile, self._param['NY'], self._param['Yaxis'],
                         self._Ymin, self._Ymax, self._param['Variable'],)) for profile in self.profiles]
             Nresults=len(results)
@@ -759,7 +759,7 @@ class mesa(object):
                 data_all[i,:] = results[i].get()
             pool.close()
         else:
-            print "Process running serially"
+            print("Process running serially")
             for i in range(self.Nprofile):
                 data_all[i,:] = InterpolateOneProfile(self.profiles[i], self._param['NY'], self._param['Yaxis'], self._Ymin,
                                                     self._Ymax, self._param['Variable'])
