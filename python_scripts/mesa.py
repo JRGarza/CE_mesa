@@ -430,7 +430,8 @@ class mesa(object):
                     'Yaxis_dynamic_range':4, 'figure_format':"eps", 'font_small':16, 'font_large':20, 'file_out':'figure',
                     'onscreen':False, 'parallel':True, 'abundances':False, 'log_abundances':True, 'czones':False,
                     'signed_log_cmap':True, 'orbit':False, 'tau10':True, 'tau100':False, 'Nprofiles_to_plot':10,
-                    'profiles_to_plot':[], 'masses_TML':[], 'xvals_TML':[], 'Xmin':None, 'Xmax':None}
+                    'profiles_to_plot':[], 'masses_TML':[], 'xvals_TML':[], 'Xaxis_min':None, 'Xaxis_max':None, 'Xaxis_label':None,
+                    'Yaxis_label':None, 'Yaxis_min':None, 'Yaxis_max':None, 'cmap_min':None, 'cmap_max':None, 'cmap_label':None}
 
         for key in kwargs:
             if (key in self._param):
@@ -553,13 +554,40 @@ class mesa(object):
 
 
     @property
-    def Xmin(self):
-        return self._param['Xmin']
+    def Xaxis_min(self):
+        return self._param['Xaxis_min']
 
     @property
-    def Xmax(self):
-        return self._param['Xmax']
+    def Xaxis_max(self):
+        return self._param['Xaxis_max']
 
+    @property
+    def Xaxis_label(self):
+        return self._param['Xaxis_label']
+
+    @property
+    def Yaxis_min(self):
+        return self._param['Yaxis_min']
+
+    @property
+    def Yaxis_max(self):
+        return self._param['Yaxis_max']
+
+    @property
+    def Yaxis_label(self):
+        return self._param['Yaxis_label']
+
+    @property
+    def cmap_min(self):
+        return self._param['cmap_min']
+
+    @property
+    def cmap_max(self):
+        return self._param['cmap_max']
+
+    @property
+    def cmap_label(self):
+        return self._param['cmap_label']
 
     def help(self):
     #TODO: add a list of all parameters, the default values and the possible option, add a list of functions, and an example
@@ -689,57 +717,65 @@ class mesa(object):
         the defined x-axis.
         """
         # Set the maximum and the minimum of the X axis
-        if self._param['Xmin'] is not None and self._param['Xmax'] is not None:
-            pass
+        if (self._param['Xaxis_min'] is None) != (self._param['Xaxis_max'] is None):
+            raise("Both Xaxis_min and Xaxis_max need to be provided")
+        elif self._param['Xaxis_min'] is not None and self._param['Xaxis_max'] is not None:
+            self._Xaxis_min = self._param['Xaxis_min']
+            self._Xaxis_max = self._param['Xaxis_max']
         elif self._param['Xaxis'] == "model_number":
-            self._Xmax = np.max(self._profile_index["model_number"])
-            self._Xmin = np.min(self._profile_index["model_number"])
+            self._Xaxis_max = np.max(self._profile_index["model_number"])
+            self._Xaxis_min = np.min(self._profile_index["model_number"])
         elif self._param['Xaxis'] == "star_age":
-            self._Xmax = np.max(self.profile_age)
-            self._Xmin = np.min(self.profile_age)
+            self._Xaxis_max = np.max(self.profile_age)
+            self._Xaxis_min = np.min(self.profile_age)
         elif self._param['Xaxis'] == "inv_star_age":
-            self._Xmax = np.min(self.profile_age[-1] - self.profile_age)
-            self._Xmin = np.max(self.profile_age[-1] - self.profile_age)
+            self._Xaxis_max = np.min(self.profile_age[-1] - self.profile_age)
+            self._Xaxis_min = np.max(self.profile_age[-1] - self.profile_age)
         elif self._param['Xaxis'] == "log_model_number":
-            self._Xmax = np.max(np.log10(self._profile_index["model_number"]))
-            self._Xmin = max([np.min(np.log10(self._profile_index["model_number"])),
-                            self._Xmax-self._param['Xaxis_dynamic_range']])
+            self._Xaxis_max = np.max(np.log10(self._profile_index["model_number"]))
+            self._Xaxis_min = max([np.min(np.log10(self._profile_index["model_number"])),
+                            self._Xaxis_max-self._param['Xaxis_dynamic_range']])
         elif self._param['Xaxis'] == "log_star_age":
-            self._Xmax = np.max(np.log10(self.profile_age))
-            self._Xmin = max([np.min(np.log10(self.profile_age)), self._Xmax-self._param['Xaxis_dynamic_range']])
+            self._Xaxis_max = np.max(np.log10(self.profile_age))
+            self._Xaxis_min = max([np.min(np.log10(self.profile_age)), self._Xaxis_max-self._param['Xaxis_dynamic_range']])
         elif self._param['Xaxis'] == "log_inv_star_age":
-            self._Xmin = np.max(np.log10(2.*self.profile_age[-1] - self.profile_age[-2] - self.profile_age))
-            self._Xmax = max([np.min(np.log10(2.*self.profile_age[-1] - self.profile_age[-2] - self.profile_age)),
-                            self._Xmin-self._param['Xaxis_dynamic_range']])
+            self._Xaxis_min = np.max(np.log10(2.*self.profile_age[-1] - self.profile_age[-2] - self.profile_age))
+            self._Xaxis_max = max([np.min(np.log10(2.*self.profile_age[-1] - self.profile_age[-2] - self.profile_age)),
+                            self._Xaxis_min-self._param['Xaxis_dynamic_range']])
         else:
             raise(self._param['Xaxis']+" is not a valid option for Xaxis")
 
 
         # Set the maximum and the minimum of the Y axis
-        if self._param['Yaxis'] == "mass":
-            self._Ymax = np.max(self.history["star_mass"])
-            self._Ymin = 0.
+        if (self._param['Yaxis_min'] is None) != (self._param['Yaxis_max'] is None):
+            raise("Both Yaxis_min and Yaxis_max need to be provided")
+        elif self._param['Yaxis_min'] is not None and self._param['Yaxis_max'] is not None:
+            self._Yaxis_min = self._param['Yaxis_min']
+            self._Yaxis_max = self._param['Yaxis_max']
+        elif self._param['Yaxis'] == "mass":
+            self._Yaxis_max = np.max(self.history["star_mass"])
+            self._Yaxis_min = 0.
         elif self._param['Yaxis'] == "radius":
-            self._Ymax = 10.**np.max(self.history["log_R"])
-            self._Ymin = 0.
+            self._Yaxis_max = 10.**np.max(self.history["log_R"])
+            self._Yaxis_min = 0.
         elif self._param['Yaxis'] == "q":
-            self._Ymax = 1.
-            self._Ymin = 0.
+            self._Yaxis_max = 1.
+            self._Yaxis_min = 0.
         elif self._param['Yaxis'] == "log_mass":
-            self._Ymax = np.max(np.log10(self.history["star_mass"]))
-            self._Ymin = np.max(np.log10(self.history["star_mass"])) - self._param['Yaxis_dynamic_range']
+            self._Yaxis_max = np.max(np.log10(self.history["star_mass"]))
+            self._Yaxis_min = np.max(np.log10(self.history["star_mass"])) - self._param['Yaxis_dynamic_range']
         elif self._param['Yaxis'] == "log_radius":
-            self._Ymax = np.max(self.history["log_R"])
-            self._Ymin = np.max(self.history["log_R"]) - self._param['Yaxis_dynamic_range']
+            self._Yaxis_max = np.max(self.history["log_R"])
+            self._Yaxis_min = np.max(self.history["log_R"]) - self._param['Yaxis_dynamic_range']
         elif self._param['Yaxis'] == "log_q":
-            self._Ymax = 0.
-            self._Ymin = -self._param['Yaxis_dynamic_range']
+            self._Yaxis_max = 0.
+            self._Yaxis_min = -self._param['Yaxis_dynamic_range']
         else:
             raise(self._param['Yaxis']+" is not a valid option for Yaxis")
 
 
         #Define the values that we want to itnerpolate along the the X and Y axis
-        X_to_interp = (np.arange(1,self._param['NX']+1).astype(float))/float(self._param['NX']+2) * (self._Xmax-self._Xmin) + self._Xmin
+        X_to_interp = (np.arange(1,self._param['NX']+1).astype(float))/float(self._param['NX']+2) * (self._Xaxis_max-self._Xaxis_min) + self._Xaxis_min
 
         self._data = np.zeros((self._param['NX'],self._param['NY']))
         data_all = np.zeros((self.Nprofile,self._param['NY']))
@@ -753,7 +789,7 @@ class mesa(object):
             pool = Pool(processes=cpu_count())
             print("Process running in parallel on ", cpu_count(), " cores")
             results = [pool.apply_async(InterpolateOneProfile, args = (profile, self._param['NY'], self._param['Yaxis'],
-                        self._Ymin, self._Ymax, self._param['Variable'],)) for profile in self.profiles]
+                        self._Yaxis_min, self._Yaxis_max, self._param['Variable'],)) for profile in self.profiles]
             Nresults=len(results)
             for i in range(0,Nresults):
                 data_all[i,:] = results[i].get()
@@ -761,8 +797,8 @@ class mesa(object):
         else:
             print("Process running serially")
             for i in range(self.Nprofile):
-                data_all[i,:] = InterpolateOneProfile(self.profiles[i], self._param['NY'], self._param['Yaxis'], self._Ymin,
-                                                    self._Ymax, self._param['Variable'])
+                data_all[i,:] = InterpolateOneProfile(self.profiles[i], self._param['NY'], self._param['Yaxis'], self._Yaxis_min,
+                                                    self._Yaxis_max, self._param['Variable'])
 
 
 
@@ -808,7 +844,9 @@ class mesa(object):
         """
         ######################################################################
         # Set the labels of the two axis
-        if self._param['Yaxis'] == "mass":
+        if self._param["Yaxis_label"] is not None:
+            Ylabel = self._param["Yaxis_label"]
+        elif self._param['Yaxis'] == "mass":
             Ylabel = "Mass Coordinate [$M_{\odot}$]"
         elif self._param['Yaxis'] == "radius":
             Ylabel = "Radius Coordinate [$R_{\odot}$]"
@@ -821,7 +859,9 @@ class mesa(object):
         elif self._param['Yaxis'] == "log_q":
             Ylabel = "log(Dimentionless Mass Coordinate q)"
 
-        if self._param['Xaxis'] == "model_number":
+        if self._param["Xaxis_label"] is not None:
+            Xlabel = self._param["Xaxis_label"]
+        elif self._param['Xaxis'] == "model_number":
             Xlabel = "Model Number"
         elif self._param['Xaxis'] == "star_age":
             Xlabel = "Star Age [yr]"
@@ -834,7 +874,9 @@ class mesa(object):
         elif self._param['Xaxis'] == "log_inv_star_age":
             Xlabel = "log(Time since the end of evolution [yr])"
 
-        if self._param['Variable'] == "eps_nuc":
+        if self._param["cmap_label"] is not None:
+            cmap_label = self._param["cmap_label"]
+        elif self._param['Variable'] == "eps_nuc":
             cmap_label = "log($\epsilon_{nuclear}$ [erg/s/gr])"
         elif self._param['Variable'] == "velocity":
             cmap_label = "log(radial velocity [cm/s])"
@@ -888,7 +930,6 @@ class mesa(object):
             cmap_label = "log($\\tau_{thermal}/\\tau_{s.cr.}$)"
         elif self._param['Variable'] == "omega_div_omega_crit":
             cmap_label = "log($\Omega/\Omega_{crit}$)"
-
         elif self._param['Variable'] == "omega":
             cmap_label = "log($\Omega [rad/s]$)"
         elif self._param['Variable'] == "super_ad":
@@ -911,7 +952,7 @@ class mesa(object):
 
 
 
-        if self._param['signed_log_cmap']:
+        if self._param['signed_log_cmap'] and (self._cmap_label is not None):
             cmap_label = "sign x log(max(1,abs(" + cmap_label[4:]+"))"
 
 
@@ -927,8 +968,8 @@ class mesa(object):
         ax1.set_ylabel(Ylabel,fontsize=self._param['font_large'])
         ax1.xaxis.set_tick_params(labelsize = self._param['font_small'])
         ax1.yaxis.set_tick_params(labelsize = self._param['font_small'])
-        ax1.set_xlim([self._Xmin,self._Xmax])
-        ax1.set_ylim([self._Ymin,self._Ymax])
+        ax1.set_xlim([self._Xaxis_min,self._Xaxis_max])
+        ax1.set_ylim([self._Yaxis_min,self._Yaxis_max])
 
 
         if self._param['signed_log_cmap']:
@@ -936,18 +977,30 @@ class mesa(object):
         else:
             data_to_plot = np.log10(np.transpose(self._data))
 
+        #Define the minimum and maximum of the color scale
         # When using signed_log_cmap, ignore cmap_dynamic_range
-        if self._param['signed_log_cmap']:
+        if (self._param['cmap_min'] is None) != (self._param['cmap_max'] is None):
+            raise("Both cmap_min and cmap_max need to be provided")
+        elif self._param['cmap_min'] is not None and self._param['cmap_max'] is not None:
+            cmap_min = self._param['cmap_min']
+            cmap_max = self._param['cmap_max']
+        elif self._param['signed_log_cmap']:
             self._param['cmap_dynamic_range'] = np.nanmax(data_to_plot) - np.nanmin(data_to_plot)
+            cmap_min = np.nanmax(data_to_plot)-self._param['cmap_dynamic_range']
+            cmap_max = np.nanmax(data_to_plot)
+        else:
+            cmap_min = np.nanmax(data_to_plot)-self._param['cmap_dynamic_range']
+            cmap_max = np.nanmax(data_to_plot)
+
 
         if ax is None:
             Image1 = plt.imshow(data_to_plot, origin='lower', cmap=self._param['cmap'],
-                                extent=[self._Xmin, self._Xmax, self._Ymin,self._Ymax], vmax = np.nanmax(data_to_plot),
-                                vmin=np.nanmax(data_to_plot)-self._param['cmap_dynamic_range'])
+                                extent=[self._Xaxis_min, self._Xaxis_max, self._Yaxis_min,self._Yaxis_max], vmax = cmap_max,
+                                vmin=cmap_min)
         else:
             Image1 = ax1.imshow(data_to_plot, origin='lower', cmap=self._param['cmap'],
-                                extent=[self._Xmin, self._Xmax, self._Ymin,self._Ymax], vmax = np.nanmax(data_to_plot),
-                                vmin=np.nanmax(data_to_plot)-self._param['cmap_dynamic_range'])
+                                extent=[self._Xaxis_min, self._Xaxis_max, self._Yaxis_min,self._Yaxis_max], vmax = cmap_max,
+                                vmin=cmap_min)
 
 
         ax1.set_aspect('auto')
@@ -985,47 +1038,52 @@ class mesa(object):
 
 
             if self._param['Yaxis'] == "mass":
-                conv_mx1_top = interp1d(X_axis_czones, self.history['conv_mx1_top']*self.history['star_mass'])
-                conv_mx1_bot = interp1d(X_axis_czones, self.history['conv_mx1_bot']*self.history['star_mass'])
-                conv_mx2_top = interp1d(X_axis_czones, self.history['conv_mx2_top']*self.history['star_mass'])
-                conv_mx2_bot = interp1d(X_axis_czones, self.history['conv_mx2_bot']*self.history['star_mass'])
+                conv_mx1_top = interp1d(X_axis_czones, self.history['conv_mx1_top']*self.history['star_mass'], fill_value="extrapolate")
+                conv_mx1_bot = interp1d(X_axis_czones, self.history['conv_mx1_bot']*self.history['star_mass'], fill_value="extrapolate")
+                conv_mx2_top = interp1d(X_axis_czones, self.history['conv_mx2_top']*self.history['star_mass'], fill_value="extrapolate")
+                conv_mx2_bot = interp1d(X_axis_czones, self.history['conv_mx2_bot']*self.history['star_mass'], fill_value="extrapolate")
             elif self._param['Yaxis'] == "radius":
-                conv_mx1_top = interp1d(X_axis_czones, self.history['conv_mx1_top_r'])
-                conv_mx1_bot = interp1d(X_axis_czones, self.history['conv_mx1_bot_r'])
-                conv_mx2_top = interp1d(X_axis_czones, self.history['conv_mx2_top_r'])
-                conv_mx2_bot = interp1d(X_axis_czones, self.history['conv_mx2_bot_r'])
+                conv_mx1_top = interp1d(X_axis_czones, self.history['conv_mx1_top_r'], fill_value="extrapolate")
+                conv_mx1_bot = interp1d(X_axis_czones, self.history['conv_mx1_bot_r'], fill_value="extrapolate")
+                conv_mx2_top = interp1d(X_axis_czones, self.history['conv_mx2_top_r'], fill_value="extrapolate")
+                conv_mx2_bot = interp1d(X_axis_czones, self.history['conv_mx2_bot_r'], fill_value="extrapolate")
             elif self._param['Yaxis'] == "q":
-                conv_mx1_top = interp1d(X_axis_czones, self.history['conv_mx1_top'])
-                conv_mx1_bot = interp1d(X_axis_czones, self.history['conv_mx1_bot'])
-                conv_mx2_top = interp1d(X_axis_czones, self.history['conv_mx2_top'])
-                conv_mx2_bot = interp1d(X_axis_czones, self.history['conv_mx2_bot'])
+                conv_mx1_top = interp1d(X_axis_czones, self.history['conv_mx1_top'], fill_value="extrapolate")
+                conv_mx1_bot = interp1d(X_axis_czones, self.history['conv_mx1_bot'], fill_value="extrapolate")
+                conv_mx2_top = interp1d(X_axis_czones, self.history['conv_mx2_top'], fill_value="extrapolate")
+                conv_mx2_bot = interp1d(X_axis_czones, self.history['conv_mx2_bot'], fill_value="extrapolate")
             elif self._param['Yaxis'] == "log_mass":
-                conv_mx1_top = interp1d(X_axis_czones, np.log10(self.history['conv_mx1_top']*self.history['star_mass']))
-                conv_mx1_bot = interp1d(X_axis_czones, np.log10(self.history['conv_mx1_bot']*self.history['star_mass']))
-                conv_mx2_top = interp1d(X_axis_czones, np.log10(self.history['conv_mx2_top']*self.history['star_mass']))
-                conv_mx2_bot = interp1d(X_axis_czones, np.log10(self.history['conv_mx2_bot']*self.history['star_mass']))
+                conv_mx1_top = interp1d(X_axis_czones, np.log10(self.history['conv_mx1_top']*self.history['star_mass']), fill_value="extrapolate")
+                conv_mx1_bot = interp1d(X_axis_czones, np.log10(self.history['conv_mx1_bot']*self.history['star_mass']), fill_value="extrapolate")
+                conv_mx2_top = interp1d(X_axis_czones, np.log10(self.history['conv_mx2_top']*self.history['star_mass']), fill_value="extrapolate")
+                conv_mx2_bot = interp1d(X_axis_czones, np.log10(self.history['conv_mx2_bot']*self.history['star_mass']), fill_value="extrapolate")
             elif self._param['Yaxis'] == "log_radius":
-                conv_mx1_top = interp1d(X_axis_czones, np.log10(self.history['conv_mx1_top_r']))
-                conv_mx1_bot = interp1d(X_axis_czones, np.log10(self.history['conv_mx1_bot_r']))
-                conv_mx2_top = interp1d(X_axis_czones, np.log10(self.history['conv_mx2_top_r']))
-                conv_mx2_bot = interp1d(X_axis_czones, np.log10(self.history['conv_mx2_bot_r']))
+                conv_mx1_top = interp1d(X_axis_czones, np.log10(self.history['conv_mx1_top_r']), fill_value="extrapolate")
+                conv_mx1_bot = interp1d(X_axis_czones, np.log10(self.history['conv_mx1_bot_r']), fill_value="extrapolate")
+                conv_mx2_top = interp1d(X_axis_czones, np.log10(self.history['conv_mx2_top_r']), fill_value="extrapolate")
+                conv_mx2_bot = interp1d(X_axis_czones, np.log10(self.history['conv_mx2_bot_r']), fill_value="extrapolate")
             elif self._param['Yaxis'] == "log_q":
-                conv_mx1_top = interp1d(X_axis_czones, np.log10(self.history['conv_mx1_top']))
-                conv_mx1_bot = interp1d(X_axis_czones, np.log10(self.history['conv_mx1_bot']))
-                conv_mx2_top = interp1d(X_axis_czones, np.log10(self.history['conv_mx2_top']))
-                conv_mx2_bot = interp1d(X_axis_czones, np.log10(self.history['conv_mx2_bot']))
+                conv_mx1_top = interp1d(X_axis_czones, np.log10(self.history['conv_mx1_top']), fill_value="extrapolate")
+                conv_mx1_bot = interp1d(X_axis_czones, np.log10(self.history['conv_mx1_bot']), fill_value="extrapolate")
+                conv_mx2_top = interp1d(X_axis_czones, np.log10(self.history['conv_mx2_top']), fill_value="extrapolate")
+                conv_mx2_bot = interp1d(X_axis_czones, np.log10(self.history['conv_mx2_bot']), fill_value="extrapolate")
 
 
 
             N_cz_lines = 200
-            X_cz = np.arange(self._Xmin, self._Xmax, (self._Xmax-self._Xmin)/N_cz_lines)
+            print(self._Xaxis_min,self._Xaxis_max,self._Xaxis_max-self._Xaxis_min,N_cz_lines)
+            X_cz = np.arange(self._Xaxis_min, self._Xaxis_max, (self._Xaxis_max-self._Xaxis_min)/N_cz_lines)
             cz1_top = conv_mx1_top(X_cz)
             cz1_bot = conv_mx1_bot(X_cz)
             cz2_top = conv_mx2_top(X_cz)
             cz2_bot = conv_mx2_bot(X_cz)
-            for i in range(N_cz_lines):
-                ax1.plot([X_cz[i], X_cz[i]], [cz1_bot[i],cz1_top[i]], color='grey', linewidth=1.0, alpha=0.5)
-                ax1.plot([X_cz[i], X_cz[i]], [cz2_bot[i],cz2_top[i]], color='grey', linewidth=1.0, alpha=0.5)
+            ax1.plot(np.append(np.append(X_cz, X_cz[::-1]),X_cz[0]), np.append(np.append(cz1_bot,cz1_top[::-1]),cz1_bot[0]), color='cyan', linewidth=1.0, alpha=1.0)
+            ax1.fill(np.append(np.append(X_cz, X_cz[::-1]),X_cz[0]), np.append(np.append(cz1_bot,cz1_top[::-1]),cz1_bot[0]), fill=False, hatch='oo',color="cyan", linewidth=1.0, alpha=1.0)
+            ax1.plot(np.append(np.append(X_cz, X_cz[::-1]),X_cz[0]), np.append(np.append(cz2_bot,cz2_top[::-1]),cz2_bot[0]), color='cyan', linewidth=1.0, alpha=1.0)
+            ax1.fill(np.append(np.append(X_cz, X_cz[::-1]),X_cz[0]), np.append(np.append(cz2_bot,cz2_top[::-1]),cz1_bot[0]), fill=False, hatch='oo',color="cyan")
+            # for i in range(N_cz_lines):
+            #     ax1.plot([X_cz[i], X_cz[i]], [cz1_bot[i],cz1_top[i]], color='cyan', linewidth=1.0, alpha=1.0)
+            #     ax1.plot([X_cz[i], X_cz[i]], [cz2_bot[i],cz2_top[i]], color='cyan', linewidth=1.0, alpha=1.0)
 
 
 
@@ -1054,7 +1112,7 @@ class mesa(object):
             for i in range(len(self._param['masses_TML'])):
                 idx_valid = np.where(~np.isnan(radii_of_masses_TML[i,:]))
                 label1 = str(self._param['masses_TML'][i])+r"$M_{\odot}$"
-                line1 = ax1.plot(X_axis_TML[idx_valid], radii_of_masses_TML[i,idx_valid][0], ":",linewidth=1, color='black',label=label1)
+                line1 = ax1.plot(X_axis_TML[idx_valid], radii_of_masses_TML[i,idx_valid][0], ":",linewidth=2., color='black',label=label1)
                 lines_TML.append(line1[0])
             # if len(self._param['masses_TML']) > 0:
             #     if len(self._param['masses_TML']) == len(self._param['xvals_TML']):
@@ -1065,7 +1123,7 @@ class mesa(object):
             for i in range(len(self._param['masses_TML'])):
                 idx_valid = np.where(~np.isnan(radii_of_masses_TML[i,:]))
                 label1 = str(self._param['masses_TML'][i])+r"$M_{\odot}$"
-                line1 = ax1.plot(X_axis_TML[idx_valid], np.log10(radii_of_masses_TML[i,idx_valid][0]), ":",linewidth=1, color='black',label=label1)
+                line1 = ax1.plot(X_axis_TML[idx_valid], np.log10(radii_of_masses_TML[i,idx_valid][0]), ":",linewidth=2., color='black',label=label1)
                 lines_TML.append(line1[0])
             # if len(self._param['masses_TML']) > 0:
             #     if len(self._param['masses_TML']) == len(self._param['xvals_TML']):
@@ -1140,7 +1198,7 @@ class mesa(object):
             elif self._param['Yaxis'] == "log_q":
                 Y_axis_tau10 = np.log10(self.history['tau10_mass']/self.history['star_mass'])
 
-            ax1.plot(X_axis_tau10, Y_axis_tau10, "--",linewidth=2, color='lightgray')
+            ax1.plot(X_axis_tau10, Y_axis_tau10, "--",linewidth=2, color='grey')
 
 
         #Plotting the tau=100 surface
@@ -1271,10 +1329,10 @@ class mesa(object):
 
 
         #Re-enforcing the calculated limits for X and Y axis. Without this there may be a white band on the right of the plot.
-        ax1.set_xlim([self._Xmin,self._Xmax])
-        ax1.set_ylim([self._Ymin,self._Ymax])
+        ax1.set_xlim([self._Xaxis_min,self._Xaxis_max])
+        ax1.set_ylim([self._Yaxis_min,self._Yaxis_max])
         if self._param['abundances']:
-            ax2.set_xlim([self._Xmin,self._Xmax])
+            ax2.set_xlim([self._Xaxis_min,self._Xaxis_max])
             if self._param['log_abundances']:
                 ax2.set_ylim([1e-5,1.])
             else:
@@ -1293,7 +1351,7 @@ class mesa(object):
         # ax2.set_ylabel(cmap_label,fontsize=self._param['font_small'])
         # ax2.xaxis.set_tick_params(labelsize = self._param['font_small'])
         # ax2.yaxis.set_tick_params(labelsize = self._param['font_small'])
-        # ax2.set_xlim([self._Ymin,self._Ymax])
+        # ax2.set_xlim([self._Yaxis_min,self._Yaxis_max])
         # ax2.set_ylim([np.nanmax(data_to_plot)-self._param['cmap_dynamic_range'],np.nanmax(data_to_plot)])
         #
         # ax2.plot(10.**self.profiles[10]['logR'], np.log10(self.profiles[10]['extra_heat']), linewidth=3, color='black')
@@ -1303,6 +1361,11 @@ class mesa(object):
         if self._param['onscreen'] and ax is None:
             plt.show()
             # fig1.canvas.manager.window.raise_()
+
+        #reset Xaxis, Yaxis and cmap limits
+        self.SetParameters(Xaxis_min = None, Xaxis_max = None, Xaxis_label = None, Yaxis_min = None, Yaxis_max = None,
+            Yaxis_label = None, cmap_min = None, cmap_max = None, cmap_label = None)
+
 
         return
 
