@@ -93,5 +93,5 @@ def rzams(m):
 
 if __name__ == "__main__":
     prepare_coefficients(0.02)
-    print lzams(2.*u.Msun), rzams(2.*u.Msun)
-    print lzams(1.*u.Msun), rzams(1.*u.Msun)
+    print(lzams(2.*u.Msun), rzams(2.*u.Msun))
+    print(lzams(1.*u.Msun), rzams(1.*u.Msun))

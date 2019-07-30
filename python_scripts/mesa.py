@@ -136,7 +136,7 @@ def InterpolateOneProfile(profile, NY, Yaxis, Ymin, Ymax, Variable):
         Possible values: eps_nuc, velocity, entropy, total_energy, j_rot,
             eps_recombination, ionization_energy, energy, potential_plus_kinetic,
             extra_heat, v_div_vesc, v_div_csound, pressure, temperature, density,
-            tau, opacity, gamma1, dq, L_div_Ledd, Lrad_div_Ledd. t_thermal, t_dynamical,
+            tau, opacity, gamma1, gamma3, dq, L_div_Ledd, Lrad_div_Ledd. t_thermal, t_dynamical,
             t_dynamical_down, t_thermal_div_t_dynamical, omega_div_omega_crit, omega
             super_ad, vconv, vconv_div_vesc, conv_vel_div_csound, total_energy_plus_vconv2
             t_thermal_div_t_expansion, E_kinetic_div_E_thermal
@@ -622,7 +622,7 @@ class mesa(object):
             raise ValueError(self._param['Xaxis']+"not a valid option for parameter Xaxis")
         if not (self._param['Variable'] in ['eps_nuc', 'velocity', 'entropy', 'total_energy', 'j_rot', 'eps_recombination'
                 , 'ionization_energy', 'energy', 'potential_plus_kinetic', 'extra_heat', 'v_div_vesc',
-                'v_div_csound',    'pressure', 'temperature', 'density', 'tau', 'opacity', 'gamma1', 'dq',
+                'v_div_csound',    'pressure', 'temperature', 'density', 'tau', 'opacity', 'gamma1', 'gamma3', 'dq',
                 'L_div_Ledd', 'Lrad_div_Ledd', 't_thermal', 't_dynamical', 't_dynamical_down', 't_thermal_div_t_dynamical',
                  'omega_div_omega_crit', 'omega','super_ad', 'vconv', 'vconv_div_vesc', 'conv_vel_div_csound',
                  't_thermal_div_t_expansion','E_kinetic_div_E_thermal','total_energy_plus_vconv2']):
@@ -904,6 +904,8 @@ class mesa(object):
             cmap_label = "log($v/v_{sound}$)"
         elif self._param['Variable'] == "gamma1":
             cmap_label = "log($4/3-\Gamma_{1}$)"
+        elif self._param['Variable'] == "gamma3":
+            cmap_label = "log($\Gamma_{3}$)"
         elif self._param['Variable'] == "opacity":
             cmap_label = "log(Opacity [cm$^2$/gr])"
         elif self._param['Variable'] == "pressure":
@@ -1077,10 +1079,10 @@ class mesa(object):
             cz1_bot = conv_mx1_bot(X_cz)
             cz2_top = conv_mx2_top(X_cz)
             cz2_bot = conv_mx2_bot(X_cz)
-            ax1.plot(np.append(np.append(X_cz, X_cz[::-1]),X_cz[0]), np.append(np.append(cz1_bot,cz1_top[::-1]),cz1_bot[0]), color='cyan', linewidth=1.0, alpha=1.0)
-            ax1.fill(np.append(np.append(X_cz, X_cz[::-1]),X_cz[0]), np.append(np.append(cz1_bot,cz1_top[::-1]),cz1_bot[0]), fill=False, hatch='oo',color="cyan", linewidth=1.0, alpha=1.0)
-            ax1.plot(np.append(np.append(X_cz, X_cz[::-1]),X_cz[0]), np.append(np.append(cz2_bot,cz2_top[::-1]),cz2_bot[0]), color='cyan', linewidth=1.0, alpha=1.0)
-            ax1.fill(np.append(np.append(X_cz, X_cz[::-1]),X_cz[0]), np.append(np.append(cz2_bot,cz2_top[::-1]),cz1_bot[0]), fill=False, hatch='oo',color="cyan")
+            #ax1.plot(np.append(np.append(X_cz, X_cz[::-1]),X_cz[0]), np.append(np.append(cz1_bot,cz1_top[::-1]),cz1_bot[0]), color='cyan', linewidth=1.0, alpha=1.0)
+            ax1.fill(np.append(np.append(X_cz, X_cz[::-1]),X_cz[0]), np.append(np.append(cz1_bot,cz1_top[::-1]),cz1_bot[0]), fill=False, hatch='ooo',color="cyan", linewidth=0.0, alpha=1.0)
+            #ax1.plot(np.append(np.append(X_cz, X_cz[::-1]),X_cz[0]), np.append(np.append(cz2_bot,cz2_top[::-1]),cz2_bot[0]), color='cyan', linewidth=1.0, alpha=1.0)
+            ax1.fill(np.append(np.append(X_cz, X_cz[::-1]),X_cz[0]), np.append(np.append(cz2_bot,cz2_top[::-1]),cz1_bot[0]), fill=False, hatch='ooo',color="cyan", linewidth=0.0, alpha=1.0)
             # for i in range(N_cz_lines):
             #     ax1.plot([X_cz[i], X_cz[i]], [cz1_bot[i],cz1_top[i]], color='cyan', linewidth=1.0, alpha=1.0)
             #     ax1.plot([X_cz[i], X_cz[i]], [cz2_bot[i],cz2_top[i]], color='cyan', linewidth=1.0, alpha=1.0)
@@ -1112,7 +1114,7 @@ class mesa(object):
             for i in range(len(self._param['masses_TML'])):
                 idx_valid = np.where(~np.isnan(radii_of_masses_TML[i,:]))
                 label1 = str(self._param['masses_TML'][i])+r"$M_{\odot}$"
-                line1 = ax1.plot(X_axis_TML[idx_valid], radii_of_masses_TML[i,idx_valid][0], ":",linewidth=2., color='black',label=label1)
+                line1 = ax1.plot(X_axis_TML[idx_valid], radii_of_masses_TML[i,idx_valid][0], ":",linewidth=1., color='black',label=label1)
                 lines_TML.append(line1[0])
             # if len(self._param['masses_TML']) > 0:
             #     if len(self._param['masses_TML']) == len(self._param['xvals_TML']):
@@ -1123,7 +1125,7 @@ class mesa(object):
             for i in range(len(self._param['masses_TML'])):
                 idx_valid = np.where(~np.isnan(radii_of_masses_TML[i,:]))
                 label1 = str(self._param['masses_TML'][i])+r"$M_{\odot}$"
-                line1 = ax1.plot(X_axis_TML[idx_valid], np.log10(radii_of_masses_TML[i,idx_valid][0]), ":",linewidth=2., color='black',label=label1)
+                line1 = ax1.plot(X_axis_TML[idx_valid], np.log10(radii_of_masses_TML[i,idx_valid][0]), ":",linewidth=1., color='black',label=label1)
                 lines_TML.append(line1[0])
             # if len(self._param['masses_TML']) > 0:
             #     if len(self._param['masses_TML']) == len(self._param['xvals_TML']):
@@ -1163,7 +1165,7 @@ class mesa(object):
             elif self._param['Yaxis'] == "log_q":
                 Y_axis_orbit = np.log10(self.history['CE_companion_position_m']/self.history['star_mass'])
 
-            ax1.plot(X_axis_orbit, Y_axis_orbit, linewidth=3, color='black')
+            ax1.plot(X_axis_orbit, Y_axis_orbit, linewidth=2, color='black')
 
 
 
@@ -1198,7 +1200,7 @@ class mesa(object):
             elif self._param['Yaxis'] == "log_q":
                 Y_axis_tau10 = np.log10(self.history['tau10_mass']/self.history['star_mass'])
 
-            ax1.plot(X_axis_tau10, Y_axis_tau10, "--",linewidth=2, color='grey')
+            ax1.plot(X_axis_tau10, Y_axis_tau10, "--",linewidth=1, color='grey')
 
 
         #Plotting the tau=100 surface
@@ -1231,7 +1233,7 @@ class mesa(object):
             elif self._param['Yaxis'] == "log_q":
                 Y_axis_tau100 = np.log10(self.history['tau100_mass']/self.history['star_mass'])
 
-            ax1.plot(X_axis_tau100, Y_axis_tau100, "--",linewidth=2, color='darkgray')
+            ax1.plot(X_axis_tau100, Y_axis_tau100, "--",linewidth=1, color='darkgray')
 
 
 
@@ -1270,31 +1272,31 @@ class mesa(object):
 
 
             if 'center_h1' in self.history.dtype.names:
-                ax2.plot(X_axis_abundances, self.history['center_h1'], ':', linewidth=2, color=colors[1])
+                ax2.plot(X_axis_abundances, self.history['center_h1'], ':', linewidth=1, color=colors[1])
                 fig1.text(0.12, 0.81, "$H^1$", fontsize = self._param['font_small'], color=colors[1])
             if 'center_he4' in self.history.dtype.names:
-                ax2.plot(X_axis_abundances, self.history['center_he4'], ':', linewidth=2, color=colors[2])
+                ax2.plot(X_axis_abundances, self.history['center_he4'], ':', linewidth=1, color=colors[2])
                 fig1.text(0.18, 0.81, "$He^4$", fontsize = self._param['font_small'], color=colors[2])
             if 'center_c12' in self.history.dtype.names:
-                ax2.plot(X_axis_abundances, self.history['center_c12'], ':', linewidth=2, color=colors[3])
+                ax2.plot(X_axis_abundances, self.history['center_c12'], ':', linewidth=1, color=colors[3])
                 fig1.text(0.24, 0.81, "$C^{12}$", fontsize = self._param['font_small'], color=colors[3])
             if 'center_n14' in self.history.dtype.names:
-                ax2.plot(X_axis_abundances, self.history['center_n14'], ':', linewidth=2, color=colors[4])
+                ax2.plot(X_axis_abundances, self.history['center_n14'], ':', linewidth=1, color=colors[4])
                 fig1.text(0.30, 0.81, "$N^{14}$", fontsize = self._param['font_small'], color=colors[4])
             if 'center_o16' in self.history.dtype.names:
-                ax2.plot(X_axis_abundances, self.history['center_o16'], ':', linewidth=2, color=colors[5])
+                ax2.plot(X_axis_abundances, self.history['center_o16'], ':', linewidth=1, color=colors[5])
                 fig1.text(0.36, 0.81, "$O^{16}$", fontsize = self._param['font_small'], color=colors[5])
             if 'center_ne20' in self.history.dtype.names:
-                ax2.plot(X_axis_abundances, self.history['center_ne20'], ':', linewidth=2, color=colors[6])
+                ax2.plot(X_axis_abundances, self.history['center_ne20'], ':', linewidth=1, color=colors[6])
                 fig1.text(0.42, 0.81, "$Ne^{20}$", fontsize = self._param['font_small'], color=colors[6])
             if 'center_mg24' in self.history.dtype.names:
-                ax2.plot(X_axis_abundances, self.history['center_mg24'], ':', linewidth=2, color=colors[7])
+                ax2.plot(X_axis_abundances, self.history['center_mg24'], ':', linewidth=1, color=colors[7])
                 fig1.text(0.48, 0.81, "$Mg^{24}$", fontsize = self._param['font_small'], color=colors[7])
             if 'center_si28' in self.history.dtype.names:
-                ax2.plot(X_axis_abundances, self.history['center_si28'], ':', linewidth=2, color=colors[8])
+                ax2.plot(X_axis_abundances, self.history['center_si28'], ':', linewidth=1, color=colors[8])
                 fig1.text(0.54, 0.81, "$Si^{28}$", fontsize = self._param['font_small'], color=colors[8])
             if 'center_fe56' in self.history.dtype.names:
-                ax2.plot(X_axis_abundances, self.history['center_fe56'], ':', linewidth=2, color=colors[9])
+                ax2.plot(X_axis_abundances, self.history['center_fe56'], ':', linewidth=1, color=colors[9])
                 fig1.text(0.60, 0.81, "$Fe^{56}$", fontsize = self._param['font_small'], color=colors[9])
 
 
